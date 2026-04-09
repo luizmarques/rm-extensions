@@ -624,6 +624,8 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 		return;
 	end
 
+	local bIsApplyTrigger = (type(woundEffects) == "table") and (next(woundEffects) ~= nil);
+
 	local nodeAttackerCT = nil;
 	if type(woundEffects) == "table" and woundEffects.AttackerNodeName then
 		nodeAttackerCT = DB.findNode(woundEffects.AttackerNodeName);
@@ -686,11 +688,8 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 	if not nodeAttackerPC then
 		nodeAttackerPC = getSeverityStateNodePC(sSeverityStateKey);
 	end
-	if sCritField == "" then
-		sCritField = getSeverityFieldFromState(sSeverityStateKey);
-	end
 
-	if nodeAttackerPC and sCritField ~= "" and not isSeverityProcessedRecently(sSeverityStateKey, nodeAttackerPC, sCritField) then
+	if bIsApplyTrigger and nodeAttackerPC and sCritField ~= "" and not isSeverityProcessedRecently(sSeverityStateKey, nodeAttackerPC, sCritField) then
 		addXPValue(nodeAttackerPC, sCritField, 1);
 	end
 end
@@ -1125,17 +1124,39 @@ function getCriticalOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescripti
 	end
 
 	local sDesc = normalizeText(sDescription);
-	if hasWoundKey(woundEffects, "Unconscious") or sDesc:find("unconscious", 1, true) then
+	if hasWoundKey(woundEffects, "Unconscious") or hasWoundKey(woundEffects, "Dying") or hasAnyWoundText(woundEffects, { "unconscious", "dying" }) or sDesc:find("unconscious", 1, true) then
 		return "unc";
 	end
-	if sDesc:find("down", 1, true) then
+	if sDesc:find("down", 1, true) or sDesc:find("prone", 1, true) or sDesc:find("kneeling", 1, true) or hasAnyWoundText(woundEffects, { "down", "prone", "kneeling" }) then
 		return "down";
 	end
-	if hasWoundKey(woundEffects, "Stun") or sDesc:find("stun", 1, true) then
+	if hasWoundKey(woundEffects, "Stun") or hasWoundKey(woundEffects, "NoParry") or hasWoundKey(woundEffects, "MustParry") or hasAnyWoundText(woundEffects, { "stun", "no parry", "mustparry", "must parry" }) or sDesc:find("stun", 1, true) then
 		return "stun";
 	end
 
 	return "norm";
+end
+
+function hasAnyWoundText(woundEffects, aNeedles)
+	if type(woundEffects) ~= "table" then
+		return false;
+	end
+
+	for sKey, vValue in pairs(woundEffects) do
+		if type(vValue) == "string" then
+			local sKeyNormalized = normalizeText(tostring(sKey or ""));
+			if sKeyNormalized:find("effect", 1, true) or sKeyNormalized:find("wound", 1, true) then
+				local sText = normalizeText(vValue);
+				for _, sNeedle in ipairs(aNeedles) do
+					if sText:find(sNeedle, 1, true) then
+						return true;
+					end
+				end
+			end
+		end
+	end
+
+	return false;
 end
 
 function hasWoundKey(woundEffects, sBaseKey)
