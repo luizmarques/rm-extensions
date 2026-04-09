@@ -6,6 +6,10 @@
 local fOriginalAddWoundEffects;
 local fOriginalApplyDamage;
 local aPendingAttackerPCByTarget = {};
+local aProcessedCombatEPKeys = {};
+local aProcessedSeverityKeys = {};
+local aProcessedSkillEPKeys = {};
+local aProcessedSpellEPKeys = {};
 
 function onInit()
 	if not Session.IsHost then
@@ -13,6 +17,8 @@ function onInit()
 	end
 
 	ActionsManager.registerPostRollHandler("attack", onAttackPostRoll);
+	ActionsManager.registerPostRollHandler("skill", onSkillPostRoll);
+	ActionsManager.registerPostRollHandler("basecasting", onBaseCastingPostRoll);
 
 	if CombatManager2 and CombatManager2.addWoundEffects then
 		fOriginalAddWoundEffects = CombatManager2.addWoundEffects;
@@ -34,12 +40,6 @@ function onAttackPostRoll(rSource, rTarget, rRoll)
 	if nodeAttackerPC and rTarget then
 		local nodeTargetCT = ActorManager.getCTNode(rTarget);
 		updateCombatXPDescByOpponent(nodeAttackerPC, nodeTargetCT);
-		if nodeTargetCT then
-			local sTargetPath = DB.getPath(nodeTargetCT) or "";
-			if sTargetPath ~= "" then
-				aPendingAttackerPCByTarget[sTargetPath] = DB.getPath(nodeAttackerPC) or "";
-			end
-		end
 	end
 
 	local nodeTargetPC = getPCNodeFromActor(rTarget);
@@ -47,6 +47,57 @@ function onAttackPostRoll(rSource, rTarget, rRoll)
 		local nodeSourceCT = ActorManager.getCTNode(rSource);
 		updateCombatXPDescByOpponent(nodeTargetPC, nodeSourceCT);
 	end
+end
+
+function onSkillPostRoll(rSource, _, rRoll)
+	if not rRoll then
+		return;
+	end
+
+	local nodeSourcePC = getPCNodeFromRoll(rSource, rRoll);
+	if not nodeSourcePC then
+		return;
+	end
+
+	local sSkillField = getSkillDifficultyField(rRoll);
+	if sSkillField == "" then
+		return;
+	end
+
+	local nDieResult = getRollPrimaryDieResult(rRoll);
+	if isSkillEPProcessedRecently(nodeSourcePC, sSkillField, rRoll.skillName, nDieResult, rRoll.sDesc) then
+		return;
+	end
+
+	addXPValue(nodeSourcePC, sSkillField, 1);
+end
+
+function onBaseCastingPostRoll(rSource, _, rRoll)
+	if not rRoll then
+		return;
+	end
+
+	local nodeSourcePC = getPCNodeFromRoll(rSource, rRoll);
+	if not nodeSourcePC then
+		return;
+	end
+
+	local nSpellLevel = tonumber(rRoll.nSpellLevel or 0) or 0;
+	if nSpellLevel <= 0 then
+		return;
+	end
+
+	local sSpellField = getSpellLevelFieldName(nSpellLevel);
+	if sSpellField == "" then
+		return;
+	end
+
+	local nDieResult = getRollPrimaryDieResult(rRoll);
+	if isSpellEPProcessedRecently(nodeSourcePC, sSpellField, nSpellLevel, rRoll.sSpellNodeName, rRoll.sSpellListNodeName, nDieResult, rRoll.sDesc) then
+		return;
+	end
+
+	addXPValue(nodeSourcePC, sSpellField, 1);
 end
 
 function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
@@ -62,15 +113,6 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 	end
 
 	local nodeAttackerPC = getPCNodeFromCT(nodeAttackerCT);
-	if not nodeAttackerPC and nodeTarget then
-		local sTargetPath = DB.getPath(nodeTarget) or "";
-		if sTargetPath ~= "" then
-			local sSourcePCPath = aPendingAttackerPCByTarget[sTargetPath] or "";
-			if sSourcePCPath ~= "" then
-				nodeAttackerPC = DB.findNode(sSourcePCPath);
-			end
-		end
-	end
 	local nodeTargetPC = getPCNodeFromCT(nodeTarget);
 
 	if nodeAttackerPC then
@@ -128,6 +170,10 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 		return;
 	end
 
+	if isSeverityProcessedRecently(nodeAttackerPC, sCritField, description) then
+		return;
+	end
+
 	addXPValue(nodeAttackerPC, sCritField, 1);
 end
 
@@ -172,15 +218,15 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 		end
 	end
 
-	if nodeTargetPC then
+	if nodeTargetPC and not isCombatEPProcessedRecently(nodeTargetPC, "hitstaken", nAppliedDamage, bKill) then
 		addXPValue(nodeTargetPC, "hitstaken", nAppliedDamage);
 	end
 
-	if nodeSourcePC then
+	if nodeSourcePC and not isCombatEPProcessedRecently(nodeSourcePC, "hitsgiven", nAppliedDamage, bKill) then
 		addXPValue(nodeSourcePC, "hitsgiven", nAppliedDamage);
 	end
 
-	if nodeSourcePC and bKill then
+	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
 		addXPValue(nodeSourcePC, "foekill", 1);
 	end
 end
@@ -255,6 +301,58 @@ function getPCNodeFromActor(rActor)
 	end
 
 	local sClass, sRecord = DB.getValue(nodeActor, "link", "", "");
+	if sClass == "charsheet" and sRecord ~= "" then
+		return DB.findNode(sRecord);
+	end
+
+	return nil;
+end
+
+function getPCNodeFromRoll(rSource, rRoll)
+	local nodePC = getPCNodeFromActor(rSource);
+	if nodePC then
+		return nodePC;
+	end
+
+	if type(rRoll) ~= "table" then
+		return nil;
+	end
+
+	local aCandidatePaths = {
+		rRoll.nodeActorName,
+		rRoll.nodeAttackerName,
+		rRoll.targetNodeName,
+	};
+
+	for _, sPath in ipairs(aCandidatePaths) do
+		if type(sPath) == "string" and sPath ~= "" then
+			local nodeCandidate = DB.findNode(sPath);
+			nodePC = getPCNodeFromNode(nodeCandidate);
+			if nodePC then
+				return nodePC;
+			end
+		end
+	end
+
+	return nil;
+end
+
+function getPCNodeFromNode(nodeValue)
+	if not nodeValue then
+		return nil;
+	end
+
+	local sPath = DB.getPath(nodeValue) or "";
+	if sPath:match("^charsheet%.") then
+		return nodeValue;
+	end
+
+	local nodePC = getPCNodeFromCT(nodeValue);
+	if nodePC then
+		return nodePC;
+	end
+
+	local sClass, sRecord = DB.getValue(nodeValue, "link", "", "");
 	if sClass == "charsheet" and sRecord ~= "" then
 		return DB.findNode(sRecord);
 	end
@@ -348,6 +446,90 @@ function normalizeText(sValue)
 	sValue = sValue:gsub("^%s+", "");
 	sValue = sValue:gsub("%s+$", "");
 	return sValue;
+end
+
+function getRollPrimaryDieResult(rRoll)
+	if not rRoll then
+		return 0;
+	end
+
+	if rRoll.aDice and rRoll.aDice[1] and rRoll.aDice[1].result then
+		return tonumber(rRoll.aDice[1].result) or 0;
+	end
+
+	if rRoll.unmodified then
+		return tonumber(rRoll.unmodified) or 0;
+	end
+
+	if rRoll.dieResult then
+		return tonumber(rRoll.dieResult) or 0;
+	end
+
+	return 0;
+end
+
+function getSkillDifficultyField(rRoll)
+	if type(rRoll) ~= "table" then
+		return "";
+	end
+
+	local sDifficulty = normalizeText(rRoll.columnTitle or rRoll.difficultyName or "");
+	if sDifficulty == "" then
+		sDifficulty = "medium";
+	end
+
+	if sDifficulty:find("sheer folly", 1, true) or sDifficulty:find("sheerfolly", 1, true) then
+		return "sheerfolly";
+	end
+	if sDifficulty:find("extremely hard", 1, true) or sDifficulty:find("extremelyhard", 1, true) then
+		return "extremelyhard";
+	end
+	if sDifficulty:find("very hard", 1, true) or sDifficulty:find("veryhard", 1, true) then
+		return "veryhard";
+	end
+	if sDifficulty:find("routine", 1, true) then
+		return "routine";
+	end
+	if sDifficulty:find("easy", 1, true) then
+		return "easy";
+	end
+	if sDifficulty:find("light", 1, true) then
+		return "light";
+	end
+	if sDifficulty:find("hard", 1, true) then
+		return "hard";
+	end
+	if sDifficulty:find("absurd", 1, true) then
+		return "absurd";
+	end
+
+	return "medium";
+end
+
+function getSpellLevelFieldName(nSpellLevel)
+	nSpellLevel = tonumber(nSpellLevel or 0) or 0;
+	if nSpellLevel <= 0 then
+		return "";
+	end
+
+	local aSpellFieldByLevel = {
+		"spellone",
+		"spelltwo",
+		"spellthree",
+		"spellfour",
+		"spellfive",
+		"spellsix",
+		"spellseven",
+		"spelleight",
+		"spellnine",
+		"spellten",
+	};
+
+	if nSpellLevel <= #aSpellFieldByLevel then
+		return aSpellFieldByLevel[nSpellLevel];
+	end
+
+	return "spelleleven";
 end
 
 function getCriticalSeverity(woundEffects, sDescription)
@@ -472,5 +654,107 @@ function getCriticalFieldName(sSeverity, sOutcome)
 	end
 
 	return sPrefix .. sSeverity;
+end
+
+function isCombatEPProcessedRecently(nodePC, sField, nValue, bKill)
+	if not nodePC or sField == "" then
+		return false;
+	end
+
+	local sPath = DB.getPath(nodePC) or "";
+	local sKey = table.concat({ sPath, sField, tostring(nValue or 0), bKill and "1" or "0" }, "|");
+
+	local nNow = os.time() or 0;
+	for sExistingKey, nTimestamp in pairs(aProcessedCombatEPKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedCombatEPKeys[sExistingKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedCombatEPKeys[sKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedCombatEPKeys[sKey] = nNow;
+	return false;
+end
+
+function isSeverityProcessedRecently(nodePC, sField, sDescription)
+	if not nodePC or sField == "" then
+		return false;
+	end
+
+	local sPath = DB.getPath(nodePC) or "";
+	local sDesc = normalizeText(sDescription or "");
+	local sKey = table.concat({ sPath, sField, sDesc }, "|");
+
+	local nNow = os.time() or 0;
+	for sExistingKey, nTimestamp in pairs(aProcessedSeverityKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedSeverityKeys[sExistingKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedSeverityKeys[sKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedSeverityKeys[sKey] = nNow;
+	return false;
+end
+
+function isSkillEPProcessedRecently(nodePC, sField, sSkillName, nDieResult, sDescription)
+	if not nodePC or sField == "" then
+		return false;
+	end
+
+	local sPath = DB.getPath(nodePC) or "";
+	local sName = normalizeText(sSkillName or "");
+	local sDesc = normalizeText(sDescription or "");
+	local sKey = table.concat({ sPath, sField, sName, tostring(nDieResult or 0), sDesc }, "|");
+
+	local nNow = os.time() or 0;
+	for sExistingKey, nTimestamp in pairs(aProcessedSkillEPKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedSkillEPKeys[sExistingKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedSkillEPKeys[sKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedSkillEPKeys[sKey] = nNow;
+	return false;
+end
+
+function isSpellEPProcessedRecently(nodePC, sField, nSpellLevel, sSpellNodeName, sSpellListNodeName, nDieResult, sDescription)
+	if not nodePC or sField == "" then
+		return false;
+	end
+
+	local sPath = DB.getPath(nodePC) or "";
+	local sSpellPath = tostring(sSpellNodeName or "");
+	local sListPath = tostring(sSpellListNodeName or "");
+	local sDesc = normalizeText(sDescription or "");
+	local sKey = table.concat({ sPath, sField, tostring(nSpellLevel or 0), sSpellPath, sListPath, tostring(nDieResult or 0), sDesc }, "|");
+
+	local nNow = os.time() or 0;
+	for sExistingKey, nTimestamp in pairs(aProcessedSpellEPKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedSpellEPKeys[sExistingKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedSpellEPKeys[sKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedSpellEPKeys[sKey] = nNow;
+	return false;
 end
 
