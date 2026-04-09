@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="skill" copy="record_window" />
+	<windowclass name="skill_main">
+		<margins control="0,0,0,2" />
+		<script>
+			function update()
+				local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+				
+				fullname.setReadOnly(bReadOnly);
+				name.setReadOnly(bReadOnly);
+
+				WindowManager.callSafeControlUpdate(self, "class", bReadOnly);
+				self["class"].setComboBoxReadOnly(bReadOnly);
+
+				type.setReadOnly(bReadOnly);
+				WindowManager.callSafeControlUpdate(self, "skilltype", bReadOnly);
+				self["skilltype"].setComboBoxReadOnly(bReadOnly);
+
+				group.setReadOnly(bReadOnly);
+				calc.setReadOnly(bReadOnly);
+				WindowManager.callSafeControlUpdate(self, "progression", bReadOnly);
+				self["progression"].setComboBoxReadOnly(bReadOnly);
+				stats.setReadOnly(bReadOnly);
+				armorfactor.setReadOnly(bReadOnly);
+				
+				WindowManager.callSafeControlUpdate(self, "core_level_bonus_group", bReadOnly);
+				self["core_level_bonus_group"].setComboBoxReadOnly(bReadOnly);
+				WindowManager.callSafeControlUpdate(self, "rm2_level_bonus_group", bReadOnly);
+				self["rm2_level_bonus_group"].setComboBoxReadOnly(bReadOnly);
+				WindowManager.callSafeControlUpdate(self, "rmfrp_level_bonus_group", bReadOnly);
+				self["rmfrp_level_bonus_group"].setComboBoxReadOnly(bReadOnly);
+				WindowManager.callSafeControlUpdate(self, "rmcompanion2_level_bonus_group", bReadOnly);
+				self["rmcompanion2_level_bonus_group"].setComboBoxReadOnly(bReadOnly);
+
+				description.setReadOnly(bReadOnly);
+			end
+		</script>
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<label_column name="label_fullname">
+				<static textres="skill_label_fullname" />
+			</label_column>
+			<string_columnh name="fullname" />
+			<label_column name="label_name">
+				<static textres="skill_label_name" />
+			</label_column>
+			<string_columnh name="name" />
+			<label_column name="class_label">
+				<static textres="skill_label_class" />
+			</label_column>
+			<combobox_columnh_skill name="class">
+				<script>
+					function onInit()
+						super.onInit();
+
+						addItems(Rules_Skills.ClassList());
+
+						if getValue() == "" then
+							setValue(Rules_Skills.GetClassName(window.fullname.getValue()));
+						end
+					end
+				</script>
+			</combobox_columnh_skill>
+			<label_column name="skilltype_label">
+				<static textres="skill_label_type" />
+			</label_column>
+			<hn name="type" />
+			<combobox_columnh_skill name="skilltype">
+				<script>
+					function onInit()
+						super.onInit();
+
+						addItems(Rules_Skills.TypeList());
+
+						local sSkillType = getValue();
+						if not sSkillType or sSkillType == "" then
+							local nTypeID = window.type.getValue();
+							setValue(Rules_Skills.GetTypeName(nTypeID));
+						else
+							window.type.setValue(Rules_Skills.GetTypeID(getValue()));
+						end
+					end
+					
+					function onValueChanged()
+						window.type.setValue(Rules_Skills.GetTypeID(getValue()));
+					end
+				</script>
+			</combobox_columnh_skill>
+			<label_column name="label_group">
+				<static textres="skill_label_group" />
+			</label_column>
+			<string_columnh name="group">
+				<empty>(group by type)</empty>
+			</string_columnh>
+			<label_column name="progression_label">
+				<static textres="skill_label_progression" />
+				<tooltip textres="skill_tooltip_progression" />
+			</label_column>
+			<hn name="calc" />
+			<combobox_columnh_skill name="progression">
+				<script>
+					function onInit()
+						super.onInit();
+
+						addItems(Rules_Skills.ProgressionList());
+
+						local sSkilProgression = getValue();
+						if not sSkillProgression or sSkillProgression == "" then
+							local nProgressionID = window.calc.getValue();
+							setValue(Rules_Skills.GetProgressionName(nProgressionID));
+						else
+							window.calc.setValue(Rules_Skills.GetProgressionID(getValue()));
+						end
+					end
+					
+					function onValueChanged()
+						window.calc.setValue(Rules_Skills.GetProgressionID(getValue()));
+					end
+				</script>
+			</combobox_columnh_skill>
+			<label_column name="label_stats">
+				<static textres="skill_label_stats" />
+			</label_column>
+			<string_columnh name="stats" />
+			<label_column name="label_armorfactor">
+				<static textres="skill_label_armorfactor" />
+				<tooltip textres="skill_tooltip_armorfactor" />
+			</label_column>
+			<number_columnh_skill name="armorfactor" />
+
+			<header_column name="level_bonus_group_header">
+				<static textres="skill_label_level_bonus_group"/>
+				<center />
+			</header_column>
+			<label_column name="core_level_bonus_group_label">
+				<static textres="skill_label_level_bonus_core" />
+			</label_column>
+			<combobox_columnh_skill name="core_level_bonus_group">
+				<source><name>levelbonus.core</name></source>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Skills.CoreLevelBonusGroupList());
+						add("");
+					end
+				</script>
+			</combobox_columnh_skill>
+			<label_column name="rm2_level_bonus_group_label">
+				<static textres="skill_label_level_bonus_rm2" />
+			</label_column>
+			<combobox_columnh_skill name="rm2_level_bonus_group">
+				<source><name>levelbonus.rm2</name></source>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Skills.RM2LevelBonusGroupList());
+						add("");
+					end
+				</script>
+			</combobox_columnh_skill>
+			<label_column name="rmfrp_level_bonus_group_label">
+				<static textres="skill_label_level_bonus_rmfr" />
+			</label_column>
+			<combobox_columnh_skill name="rmfrp_level_bonus_group">
+				<source><name>levelbonus.rmfrp</name></source>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Skills.RMFRPLevelBonusGroupList());
+						add("");
+					end
+				</script>
+			</combobox_columnh_skill>
+			<label_column name="rmcompanion2_level_bonus_group_label">
+				<static textres="skill_label_level_bonus_rmcompanion2" />
+			</label_column>
+			<combobox_columnh_skill name="rmcompanion2_level_bonus_group">
+				<source><name>levelbonus.rmcompanion2</name></source>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Skills.RMCompanion2LevelBonusGroupList());
+						add("");
+					end
+				</script>
+			</combobox_columnh_skill>
+
+
+			<header_column name="header_description">
+				<static textres="skill_label_description"/>
+				<center />
+			</header_column>
+			<ft_columnh name="description" />
+
+		</sheetdata>
+	</windowclass>
+</root>

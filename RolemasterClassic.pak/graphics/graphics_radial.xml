@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- Table Results Radial options -->
+	<icon name="critA" file="graphics/radial/A.png" />
+	<icon name="critB" file="graphics/radial/B.png" />
+	<icon name="critC" file="graphics/radial/C.png" />
+	<icon name="critD" file="graphics/radial/D.png" />
+	<icon name="critE" file="graphics/radial/E.png" />
+	<icon name="CritLarge" file="graphics/radial/CritLarge.png" />
+	<icon name="CritSuperLarge" file="graphics/radial/CritSuperLarge.png" />
+	<icon name="alternateCrit" file="graphics/radial/alternateCrit.png" />
+	<icon name="additionalCrit" file="graphics/radial/additionalCrit.png" />
+	<icon name="RRTable" file="graphics/radial/icon_rrtable.png" />
+	<icon name="fumble" file="graphics/radial/icon_fumble.png" />
+	<icon name="clearall" file="graphics/radial/icon_clearall.png" />
+	<icon name="clearstack" file="graphics/radial/icon_clearstack.png" />
+	<icon name="resolve" file="graphics/radial/icon_resolve.png" />
+
+	<!-- Combat Tracker Radial options -->
+	<icon name="new_attack" file="graphics/radial/icon_new_attack.png" />
+	<icon name="delete_attack" file="graphics/radial/icon_delete_attack.png" />
+	<icon name="new_defense" file="graphics/radial/icon_new_defense.png" />
+	<icon name="delete_defense" file="graphics/radial/icon_delete_defense.png" />
+	<icon name="initiative" file="graphics/radial/icon_initiative.png" />
+	<icon name="rollallinits" file="graphics/radial/icon_rollallinits.png" />
+	<icon name="rollnpcinits" file="graphics/radial/icon_rollnpcinits.png" />
+	<icon name="rollpcinits" file="graphics/radial/icon_rollpcinits.png" />
+	<icon name="clearallinits" file="graphics/radial/icon_clearallinits.png" />
+	<icon name="resetround" file="graphics/radial/icon_resetround.png" />
+	<icon name="delete_foes" file="graphics/radial/icon_delete_foes.png" />
+	<icon name="delete_nonfriendly" file="graphics/radial/icon_delete_nonfriendly.png" />
+	<icon name="rest" file="graphics/radial/icon_rest.png" />
+	<icon name="rest_1_hour" file="graphics/radial/icon_rest_1_hour.png" />
+	<icon name="rest_2_hours" file="graphics/radial/icon_rest_2_hours.png" />
+	<icon name="rest_4_hours" file="graphics/radial/icon_rest_4_hours.png" />
+	<icon name="rest_8_hours" file="graphics/radial/icon_rest_8_hours.png" />
+	<icon name="rest_12_hours" file="graphics/radial/icon_rest_12_hours.png" />
+	<icon name="rest_24_hours" file="graphics/radial/icon_rest_24_hours.png" />
+	<icon name="rest_remove" file="graphics/radial/icon_rest_remove.png" />
+	<icon name="rest_hits" file="graphics/radial/icon_rest_hits.png" />
+	<icon name="rest_hits_pp" file="graphics/radial/icon_rest_hits_pp.png" />
+	<icon name="rest_pp" file="graphics/radial/icon_rest_pp.png" />
+	<icon name="update_pc_ownership" file="graphics/radial/icon_update_pc_ownership.png" />
+
+	<!-- Grouping Radial options -->
+	<icon name="ungroup" file="graphics/radial/icon_ungroup.png" />
+	<icon name="group" file="graphics/radial/icon_group.png" />
+
+	<icon name="sort" file="graphics/radial/icon_sort.png" />
+
+</root>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<font name="sheetlabelsmall">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Regular.ttf" name="Noto Sans" size="13" />
+		<color value="#261A12" />
+	</font>
+	<font name="sheetlabelsmallbold">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Bold.ttf" name="Noto Sans Bold" size="13" />
+		<color value="#261A12" />
+	</font>
+	<font name="sheetlabelminibold">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Bold.ttf" name="Noto Sans Bold" size="14" />
+		<color value="#261A12" />
+	</font>
+
+	<font name="tablecell_normal">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Regular.ttf" name="Noto Sans" size="15" />
+		<color value="#000000" />
+	</font>
+	<font name="tablecell_header">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Bold.ttf" name="Noto Sans Bold" size="16" />
+		<color value="#000000" />
+	</font>
+
+	<font name="rmdicelabel_white">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Bold.ttf" name="Noto Sans Bold" size="24" />
+		<color value="#ffffff" />
+	</font>
+
+	<!-- Formatted text fields -->
+	<font name="reference-h">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Bold.ttf" name="Noto Sans Bold" size="24" />
+		<color value="660000" />
+	</font>
+
+	<!-- Modifier stack -->
+	<font name="modcollector">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Bold.ttf" name="Noto Sans Bold" size="24" />
+		<color value="#000000" />
+	</font>
+	<font name="modcollectorlabel">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Regular.ttf" name="Noto Sans" size="14" />
+		<color value="#E7CDAC" />
+	</font>
+
+	<!-- Utility Windows -->
+	<font name="list-empty-ct">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Italic.ttf" name="Noto Sans Italic" size="16" />
+		<color value="#000000" />
+	</font>
+	
+	<!-- Asset View -->
+	<font name="assetview_empty">
+		<ttf file="graphics/fonts/Noto_Sans/NotoSans-Bold.ttf" name="Noto Sans Bold" size="16" />
+		<color value="#FFFFFF" />
+	</font>
+</root>

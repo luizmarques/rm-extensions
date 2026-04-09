@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="charsheet_spells">
+		<placement>
+			<size width="252" height="611" />
+		</placement>
+		<sheetdata>
+			<frame_char name="addspelllistframe">
+				<anchored position="insidetop" height="70" />
+			</frame_char>
+			<label>
+				<anchored to="addspelllistframe" position="insidetopleft" offset="15,10" />
+				<static>Add Spell Lists</static>
+			</label>
+			<stringc_labeled name="spelllistrealm">
+				<anchored to="addspelllistframe" position="insidetopleft" offset="15,30" width="80" height="20" />
+				<label>View Realm</label>
+				<readonly />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						if DB.getChild(window.getDatabaseNode(), "realm") then
+							local realmFound = false;
+							local charRealm = DB.getValue(window.getDatabaseNode(), "realm", "");
+							local realmList = Rules_Spells.RealmList();
+							for i, r in pairs(realmList) do
+								if string.lower(string.sub(r,1,4)) == string.lower(string.sub(charRealm,1,4)) then
+									realmFound = true;
+									charRealm = r;
+								end								
+							end
+							if realmFound == true then
+								setValue(charRealm);
+							else
+								setValue(realmList[1]);
+							end
+						end
+					end
+				</script>
+			</stringc_labeled>
+			<DropDown name="realmdropdown">
+				<target>spelllistrealm</target>
+				<position>0,3</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Spells.RealmList());
+					end
+				</script>
+			</DropDown>
+			<stringc_labeled name="spellclass">
+				<anchored to="spelllistrealm" position="righthigh" offset="50,0" width="105" height="20" />
+				<label>Spell Category</label>
+				<readonly />
+			</stringc_labeled>
+			<DropDown name="spellclassdropdown">
+				<target>spellclass</target>
+				<position>0,3</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Spells.SpellClassList());
+					end
+				</script>
+			</DropDown>
+			<stringc_labeled name="spelllist">
+				<anchored to="spellclass" position="righthigh" offset="50,0" width="120" height="20" />
+				<label>Spell List</label>
+				<readonly />
+			</stringc_labeled>
+			<DropDown name="spelllistdropdown">
+				<target>spelllist</target>
+				<position>0,3</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Spells.SpellListNamesList());
+					end
+				</script>
+			</DropDown>
+
+			<button_text_sm name="button_viewrealmlists">
+				<anchored to="addspelllistframe" position="insidetopleft" offset="100,30" width="40" height="20" />
+				<state textres="char_label_spelllist_view" />
+				<tooltip textres="char_tooltip_spelllist_view" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("referencespelllists", "reference.spelllist." .. string.lower(window.spelllistrealm.getValue()) .. "@Spell Law");
+					end
+				</script>
+			</button_text_sm>
+			<button_text_sm name="button_addcategorylists">
+				<anchored to="button_viewrealmlists" position="righthigh" offset="115,0" width="40" />
+				<state textres="char_label_spelllist_category_add" />
+				<tooltip textres="char_tooltip_spelllist_category_add" />
+				<script>
+					function onButtonPress()
+						local spellListNodeNames = Rules_Spells.SpellListNodesListByClass(window.spellclass.getValue());
+						if spellListNodeNames then
+							for i, nodeName in pairs(spellListNodeNames) do
+								window.spells.addSpell(nodeName);
+							end
+						end
+					end
+				</script>
+			</button_text_sm>
+			<button_text_sm name="button_addspelllists">
+				<anchored to="button_addcategorylists" position="righthigh" offset="130,0" width="40" />
+				<state textres="char_label_spelllist_add" />
+				<tooltip textres="char_tooltip_spelllist_add" />
+				<script>
+					function onButtonPress()
+						local spellListNodeNames = Rules_Spells.SpellListNodesListByListName(window.spelllist.getValue());
+						if spellListNodeNames then
+							for i, nodeName in pairs(spellListNodeNames) do
+								window.spells.addSpell(nodeName);
+							end
+						end
+					end
+				</script>
+			</button_text_sm>
+
+			<!-- SPELLS -->
+			<frame_char name="spellframe">
+				<anchored position="insidetop" offset="0,70">
+					<bottom />
+				</anchored>
+			</frame_char>
+
+			<!-- Headings -->
+			<label>
+				<anchored to="spellframe" position="insidetopleft" offset="40,10" width="170" />
+				<static>Spell Lists</static>
+			</label>
+			<label_content_list_column>
+				<anchored to="spellframe" position="insidetopleft" offset="183,10" width="30" />
+				<static>ESF</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="spellframe" position="insidetopleft" offset="220,10" width="125" />
+				<center merge="delete" />
+				<static>Type</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="spellframe" position="insidetopleft" offset="350,10" width="35" />
+				<static>Base?</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="spellframe" position="insidetopleft" offset="385,10" width="35" />
+				<static>Level</static>
+			</label_content_list_column>
+			<label_content_list_column name="chancelabel">
+				<anchored to="spellframe" position="insidetopleft" offset="418,10" width="40" />
+				<static>Chance</static>
+			</label_content_list_column>
+
+			<!-- Spell list -->
+			<windowlist name="spells">
+				<anchored to="spellframe" position="insidetop" offset="-15,25">
+					<bottom offset="-20" />
+				</anchored>
+				<allowdelete />
+				<datasource>.spells</datasource>
+				<class>charsheet_spellwindow</class>
+				<sortby>
+					<field>type</field>
+					<field>name</field>
+				</sortby>
+				<script>
+					function addSpell(source)
+						local newentry;
+						local newnode;
+						local prof;
+						local cls;
+
+						--[[ Prevent duplicate named lists ]]
+						local newname = DB.getValue(source, "name", "");
+						if newname ~= "" then
+							for i,win in ipairs(getWindows()) do
+								if win.name.getValue()==newname then
+									--[[ duplicate, warn the user and fail ]]
+									Comm.deliverChatMessage({font="systemfont",text="Spell list '" .. newname .. "' is already known"});
+									return nil;
+								end
+							end
+						end
+
+						newentry = createWindow();
+						newnode = newentry.getDatabaseNode();
+						prof = string.lower(DB.getValue(window.getDatabaseNode(), "profession", ""));
+						cls = string.lower(DB.getValue(source, "class", ""));
+
+						--[[ Descriptive fields ]]
+						local sSpellListName = DB.getValue(source, "name", "");
+						local sSpellListClass = DB.getValue(source, "class", "");
+						local sSpellListRealm = DB.getValue(source, "realm", "");
+						local sSpellListType = DB.getValue(source, "type", "");
+
+						if sSpellListClass == "" and sSpellListRealm == "" and sSpellListType ~= "" then
+							sSpellListClass, sSpellListRealm = Rules_Spells.GetClassAndRealm(sSpellListType);
+						end
+
+						newentry.name.setValue(sSpellListName);
+						newentry.class.setValue(sSpellListClass);
+						newentry.realm.setValue(sSpellListRealm);
+
+						--[[ Shortcut ]]
+						newentry.open.setTarget(DB.getPath(source));
+
+						--[[ Base list? ]]
+						newentry.base.setValue(0);
+						if string.find(cls,prof,1,true) then
+							newentry.base.setValue(1);
+							--[[ prevent a false positive if a Healer chooses a Lay Healer list ]]
+							if prof=="healer" and string.find(cls,"lay healer",1,true) then
+								newentry.base.setValue(0);
+							end
+						end
+
+						--[[ re-initialise 
+						newentry.onInit(); ]]
+
+						return newentry;
+					end
+
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("spelllist") then
+							local win = draginfo.getCustomData();
+							local source = win.getDatabaseNode();
+							addSpell(source);
+							return true;
+						elseif draginfo.isType("shortcut") then
+							local class = draginfo.getShortcutData();
+							local source = draginfo.getDatabaseNode();
+							if source and class == "spelllist" then
+								addSpell(source);
+								return true;
+							end
+						end
+						return false;
+					end
+
+					function onInit()
+						resetMenuItems();
+						registerMenuItem("Create List","insert",5);
+					end
+
+					function onMenuSelection(item)
+						if item and item==5 then
+							local win = createWindow();
+							local node = win.getDatabaseNode();
+							win.open.setValue("spelllist", DB.getPath(node));
+						end
+					end
+				</script>
+			</windowlist>
+			<scrollbar_content_base>
+				<anchored to="spells" />
+				<target>spells</target>
+			</scrollbar_content_base>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charsheet_spellwindow">
+		<sizelimits>
+			<minimum height="20" />
+			<maximum height="20" />
+		</sizelimits>
+		<script>
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				local node = getDatabaseNode();
+				DB.addHandler(DB.getPath(node, "class"), "onUpdate", self.updateType);
+				DB.addHandler(DB.getPath(node, "realm"), "onUpdate", self.updateType);
+				self.updateType();
+				DB.addHandler(DB.getPath(node, "open"), "onUpdate", self.updateCustom);
+				self.updateCustom();
+			end
+
+			function isCustom()
+				local class,path = open.getValue();
+				if path == "" or path == getDatabasePath() then
+					return true;
+				else
+					return false;
+				end
+			end
+
+			function updateCustom()
+				if isCustom() then
+					custom.setValue(1);
+				else
+					custom.setValue(0);
+				end
+			end
+
+			function updateType()
+				local cls = class.getValue();
+				if cls=="Open" or cls=="Closed" then
+					type.setValue(cls .. " " .. realm.getValue());
+				else
+					type.setValue(cls);
+				end
+			end
+		</script>
+		<sheetdata>
+			<!-- hidden fields -->
+			<hn name="custom" />
+			<hs name="realm" />
+			<hs name="class" />
+			<hn name="level" />
+
+			<!-- visible fields -->
+			<linkfield name="open">
+				<anchored position="insidetopleft" offset="0,1" width="20" height="20" />
+				<script>
+					function setTarget(path)
+						setValue("spelllist",path);
+					end
+				</script>
+			</linkfield>
+			<dice_ghost name="diceholder">
+				<anchored to="open" position="right" offset="5" width="90" />
+			</dice_ghost>
+			<stringfield name="name">
+				<anchored to="open" position="right" offset="5" width="140" />
+				<font>sheettext</font>
+				<readonly />
+				<tooltip field="name" />
+				<script>
+					local nESFTotal = 0;
+					
+                    function action(draginfo)
+                        local charNode = DB.getChild(window.getDatabaseNode(), "...");
+                        local rActor = ActorManager.resolveActor(charNode);
+                        if not rActor then
+                            rActor = ActorManager.getActiveActor();
+                        end
+                        local sClass, sRecordName = window.open.getValue();
+                        local sRealm = window.realm.getValue();
+                        local nESFTotal = 0;
+                        local esf_value = DB.getValue(window.getDatabaseNode(), "esf", "0");
+                        if esf_value then
+                            nESFTotal = tonumber(esf_value) or 0;
+                        end
+                        if nESFTotal &lt; 0 then
+                            nESFTotal = 0;
+                        end
+
+                        local nSpellLevel = DB.getValue(window.getDatabaseNode(), "level", 0);
+
+                        if not rActor then
+                            return false;
+                        end
+
+                        ActionBaseCasting.performRoll(draginfo, rActor, getValue(), sRecordName, sRealm, Rules_Spells.GetSpellFailure(nESFTotal), { sSpellName = getValue(), sSpellNodeName = sRecordName, nSpellLevel = nSpellLevel });
+                        return true;
+                    end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</stringfield>
+			<numberfieldX_underlined_text name="esf">
+				<anchored to="name" position="right" offset="5,0" width="30" />
+				<tooltip textres="char_tooltip_esf" />
+			</numberfieldX_underlined_text>
+			<stringfieldX name="type">
+				<anchored>
+					<to>esf</to>
+					<position>right</position>
+					<offset>5</offset>
+					<size>
+						<width>125</width>
+					</size>
+				</anchored>
+				<font>sheettext</font>
+				<nodrag/>
+				<static/>
+				<empty>(Custom)</empty>
+				<script>
+					function onInit()
+						onUpdate = update();
+					end
+
+					function update()
+						if window.isCustom() then
+							if getValue() ~= window.class.getValue() then
+								window.class.setValue(getValue());
+							end
+						end
+					end
+				</script>
+			</stringfieldX>
+			<button_checkbox name="base">
+				<anchored to="type" position="right" offset="15,0" width="15" />
+			</button_checkbox>
+			<numberfieldX_underlined_text name="maxlevel">
+				<anchored to="type" position="right" offset="45,0" width="30" />
+			</numberfieldX_underlined_text>
+			<numberfieldX name="chance">
+				<anchored>
+					<to>maxlevel</to>
+					<position>right</position>
+					<offset>5</offset>
+					<size>
+						<width>30</width>
+					</size>
+				</anchored>
+				<font>sheettext</font>
+				<hideonvalue>0</hideonvalue>
+				<frame name="textlinedice" offset="0,1,0,0" />
+				<keyeditframe name="rowshade" offset="0,1,0,0" />
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+						ActionSpellGain.performRoll(draginfo, rActor, ActionRMDice.Closed, window.name.getValue(), window.type.getValue(), getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</numberfieldX>
+		</sheetdata>
+	</windowclass>
+</root>

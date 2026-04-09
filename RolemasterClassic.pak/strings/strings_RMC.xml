@@ -1,0 +1,972 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- Game Settings -->
+	<string name="lighting_lightspell">LightSpell</string>
+	<string name="vision_sonar">Sonar</string>
+	<string name="vision_nightvision">Nightvision</string>
+
+	<!-- Common -->
+	<string name="help_tool_options">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643421/</string>
+	<string name="help_charsheet">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/</string>
+	<string name="help_charsheet_stats">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/#Stats-Window</string>
+	<string name="help_charsheet_resistances">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/#Resistances-Window</string>
+	<string name="help_charsheet_move_initiative">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/#Move-%26-Init-Window</string>
+	<string name="help_charsheet_skill">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/#Skill-Properties-Window</string>
+	<string name="help_charassist_statgen">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/#Stat-Generation-Window</string>
+	<string name="help_charassist_statgain">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/#Stat-Gain-Window</string>
+	<string name="help_charassist_skilldev">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/#Window---Skill-Development</string>
+	<string name="help_reference_attack_martial_arts">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/#Martial-Arts-Button</string>
+	<string name="help_reference_attack_spell_list">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643432/#Spell-Attacks-Button</string>
+
+	<!-- Desktop -->
+	<string name="sidebar_tooltip_rolemaster_tables">Rolemaster Tables</string>
+	<string name="sidebar_tooltip_tableresolver">Table Resolver</string>
+
+	<!-- Rolls -->
+
+	<!-- Options -->
+	<string name="option_label_DDTA">Add: NPC defenses default to All</string>
+	<string name="option_label_NRLH">Add: NPC Random Level and Hits</string>
+	<string name="option_label_INTD">Initiative: Dice used for initiative</string>
+	<string name="option_label_INTA">Initiative: Auto roll each round for</string>
+	<string name="option_label_INTC">Initiative: Clear each round</string>
+	<string name="option_label_SETC">RM Table Results: Send description to chat</string>
+	<string name="option_label_SEPC">RM Table Results: Effect Visibility - Ally</string>
+	<string name="option_label_SENPC">RM Table Results: Effect Visibility - Non-ally</string>
+	<string name="option_val_gmonly">GM Only</string>
+	<string name="option_label_TSDU">Turn: Skip dead or unconscious actor</string>
+	<string name="option_label_TSEC">Turn: Open/Close Sections</string>
+	<string name="option_label_TRCS">Table Resolver: Resolve clears Stack</string>
+	<string name="option_label_TRSO">Table Resolver: Table sort order</string>
+	<string name="option_label_TRRR">Table Resolver Apply: NPC RRs auto roll</string>
+	<string name="option_label_TRAR">Table Resolver Apply: Roll NPC result table</string>
+	<string name="option_label_MISP">Parry: Allow Missile Parry</string>
+	<string name="option_label_NCON">NPC: Constitution used to determine death</string>
+	<string name="option_header_character">Character (GM)</string>
+	<string name="option_label_CCAD">Auto Calculate: Adrenal Defense</string>
+	<string name="option_label_CCHP">Auto Calculate: Max Hits</string>
+	<string name="option_label_CCPP">Auto Calculate: Max Power Points</string>
+	<string name="option_label_CGEN">Stat Generation: Always use minimum</string>
+	<string name="option_label_CMSG">Stat Generation: Minimum acceptable roll</string>
+	<string name="option_header_optionalrules">Optional Rules (GM)</string>
+	<string name="option_label_AL14">AL #14: 'Must Parry' as Stun</string>
+	<string name="option_label_CL01">ChL #01: Bonus Based PPs</string>
+	<string name="option_label_CL07">ChL #07: Alternative Stat Generation Methods</string>
+	<string name="option_label_CL111">ChL #11.1: DP based on Stat Bonus</string>
+	<string name="option_label_CL112">ChL #11.2: Flat Development Points</string>
+	<string name="option_label_CL113">ChL #11.3: Additional DP % for Secondary Skills</string>
+	<string name="option_label_CL16">ChL #16: PP Development</string>
+	<string name="option_label_CL23G">ChL #23: Level Bonus Grouping</string>
+	<string name="option_label_CL23T">ChL #23: Level Bonus Type</string>
+	<string name="option_label_CL24">ChL #24: An Alternative Static Maneuver Table</string>
+	<string name="option_label_SL04">SL #04: Base Power Points</string>
+	<string name="option_label_OMOV">Other: Movement Pace Difficulties</string>
+	<string name="option_label_OOMM">Other: Stat for MM Rolls</string>
+	<string name="option_label_OOMV">Other: Stat for Move Rolls</string>
+	<string name="option_label_RC552">RMC5-5.2: All Stats used for DPs</string>
+	<string name="option_label_CEEP">Exhaustion: Penalty</string>
+	<string name="option_label_CEAT">Exhaustion: Automatically track</string>
+	<string name="option_label_CEMD">Exhaustion: Multiply based on damage</string>
+	<string name="option_label_CEMV">Encumbrance: Penalty applies to BMR</string>
+	<string name="option_label_RRRM">Resting: Use Racial Recovery Multiplier</string>
+	<string name="option_val_2d10">Core: 2d10</string>
+	<string name="option_val_d100">d100</string>
+	<string name="option_val_open_ended">Open-Ended</string>
+	<string name="option_val_high_open_ended">High Open-Ended</string>
+	<string name="option_val_low_open_ended">Low Open-Ended</string>
+	<string name="option_val_core">Core</string>
+	<string name="option_val_gradual">Gradual</string>
+	<string name="option_val_standard">Standard</string>
+	<string name="option_val_ascending">Ascending</string>
+	<string name="option_val_descending">Descending</string>
+	<string name="option_val_random">Core: Random</string>
+	<string name="option_val_randomfixed">7.1: Random Fixed</string>
+	<string name="option_val_threecolumn">7.2: Three Column</string>
+	<string name="option_val_none">None</string>
+	<string name="option_val_npcs">NPCs Only</string>
+	<string name="option_val_pcs">PCs Only</string>
+	<string name="option_val_both">PCs and NPCs</string>
+	<string name="option_val_ag">AG</string>
+	<string name="option_val_qu">QU</string>
+	<string name="option_val_ag_qu">AG/QU</string>
+	<string name="option_val_0">0</string>
+	<string name="option_val_10">10</string>
+	<string name="option_val_20">20</string>
+	<string name="option_val_25">25</string>
+	<string name="option_val_30">30</string>
+	<string name="option_val_40">40</string>
+	<string name="option_val_50">50</string>
+	<string name="option_val_60">60</string>
+	<string name="option_val_70">70</string>
+	<string name="option_val_75">75</string>
+	<string name="option_val_80">80</string>
+	<string name="option_val_90">90</string>
+	<string name="option_val_100">100</string>
+	<string name="option_val_150">150</string>
+	<string name="option_val_200">200</string>
+	<string name="option_val_attack">Attack</string>
+	<string name="option_val_attack_defense">Attack/Defense</string>
+	<string name="option_val_attack_move">Attack/Move</string>
+	<string name="option_val_attack_defense_move">All Three</string>
+	<string name="option_val_co_1">1 Constitution</string>
+	<string name="option_val_co_50">50 Constitution</string>
+	<string name="option_val_co_npc">NPC Hits</string>
+	<string name="option_val_first_critical">First Critical</string>
+	<string name="option_val_all_criticals">All Criticals</string>
+	<string name="option_val_fumbles">Fumbles</string>
+	<string name="option_val_first_critical_fumbles">1st Crit/Fumbles</string>
+	<string name="option_val_all_criticals_fumbles">All Crits/Fumbles</string>
+	<string name="option_val_armslaw">Core: Arms Law</string>
+	<string name="option_val_rmc2">RM Companion II</string>
+	<string name="option_val_rmc4">RM Companion IV</string>
+	<string name="option_val_rmc6">RM Companion VI</string>
+	<string name="option_val_rmfrp">RMFRP/RMSS</string>
+	<string name="option_val_opt23_1">RM2 (Opt23.1)</string>
+	<string name="option_val_opt23_2">RMFRP (Opt23.2)</string>
+	<string name="option_val_opt23_3">Stepped (Opt23.3)</string>
+	<string name="option_val_opt23_4">Static (Opt23.4)</string>
+
+	<!-- Rolemaster Companion 1 Options -->
+	<string name="option_header_companion1">Rolemaster Companion 1 Options (GM)</string>
+	<string name="option_label_RC422">4.22 Elves And Self Discipline: Sneaky Races</string>
+	<string name="option_val_elves">Elves</string>
+	<string name="option_val_halflings">Halflings</string>
+	<string name="option_val_elves_halflings">Elves/Halflings</string>
+	<string name="option_label_RC422A">4.22 Modify SD for Stalk and Hide Skills</string>
+	<string name="option_label_RC422B">4.22 Modify SD for Adrenal Moves Skills</string>
+	<string name="option_label_RC422C">4.22 Modify SD for Diving Skill</string>
+	<string name="option_label_RC422D">4.22 Modify SD for Fletching Skill</string>
+	<string name="option_label_RC422E">4.22 Modify SD for Meditation Skill</string>
+	<string name="option_label_RC422F">4.22 Modify SD for Signaling Skill</string>
+	<string name="option_label_RC422G">4.22 Modify SD for Skiing Skill</string>
+	<string name="option_label_RC422H">4.22 Modify SD for Tumbling Skill</string>
+	<string name="option_label_RC44B">4.4 Stat Bonuses: Stat Bonus</string>
+	<string name="option_label_RC44D">4.4 Stat Bonuses: Development Points</string>
+	<string name="option_label_RC44P">4.4 Stat Bonuses: Power Points</string>
+	<string name="option_label_RC48B">4.8 Very High Stats: Stat Bonus</string>
+	<string name="option_label_RC48D">4.8 Very High Stats: Development Points</string>
+	<string name="option_label_RC48P">4.8 Very High Stats: Power Points</string>
+	<string name="option_val_core">Core</string>
+	<string name="option_val_linear">Linear</string>
+	<string name="option_val_smooth">Smooth</string>
+	<string name="option_val_option1">Option 1</string>
+	<string name="option_val_option2">Option 2</string>
+
+	<!-- Currencies -->
+	<string name="conversion_rates_window_title">Conversion Rates</string>
+
+	<!-- Combat Tracker -->
+	<string name="ct_label_init">Init</string>
+	<string name="ct_label_activitypercent">Act%</string>
+	<string name="ct_label_max_pp">PP</string>
+	<string name="ct_label_used_pp">Used</string>
+	<string name="ct_label_hits">Hits</string>
+	<string name="ct_label_damage">Dmg</string>
+	<string name="ct_label_size">Space</string>
+	<string name="ct_tooltip_size">Space</string>
+	<string name="ct_tooltip_move">Move and Exhaustion</string>
+	<string name="ct_tooltip_attacks">Attacks</string>
+	<string name="ct_tooltip_defenses">Defenses</string>
+	<string name="ct_menu_effectdelete">Delete Effect</string>
+	<string name="ct_tooltip_ob_nonid">OB from Non-ID equipped items</string>
+	<string name="ct_tooltip_db_nonid">DB from Non-ID equipped items</string>
+	<string name="ct_label_controlling_user">Controlling User</string>
+	<string name="ct_tooltip_controlling_user">This will allow the user to control the NPCs actions in the Combat Tracker by giving access to the appropriate sections.  Setting it to blank will remove ownership.  NOTE: The user will have to close and reopen the Combat Tracker to see the change in icons.</string>
+	<string name="ct_label_result_roll">RESULT ROLL</string>
+	<string name="ct_tooltip_result_roll">* Result Roll *\nDouble-clicking or dragging these dice will do a Result Table Roll action which will fill in the field on the Table Resolver for the GM.</string>
+
+	<!-- Table Resolver -->
+	<string name="tr_window_title">Table Resolver</string>
+	<string name="tr_label_reset">Reset</string>
+	<string name="tr_tooltip_reset">* Reset Button *\nResets the Table Resolver by setting everything back to the defaults except for the Roll Stack.</string>
+	<string name="tr_label_apply">Apply</string>
+	<string name="tr_tooltip_tableview_apply">* Apply Button *\nApply the selected table results.  You must have a table result selected and a target for the result to be applied to.</string>
+
+	<string name="tr_ag_header_attack_grid">Attack Grid</string>
+	<string name="tr_ag_tooltip_attack_grid">* Attack Grid *\nThis section contains information used with the table in the top grid of the Table Resolver).</string>
+	<string name="tr_ag_label_roll">ROLL</string>
+	<string name="tr_ag_tooltip_roll">* Attack Grid Roll *\nClick or drag a roll to edit the number.</string>
+	<string name="tr_ag_label_mods">MOD</string>
+	<string name="tr_ag_tooltip_mods">* Attack Grid Roll Modifier *\nThis modifier that will be applied to the Attack Grid Roll to determine the Attack Grid Total Roll.  It is the total of all the selected modifiers in the Modifiers section.</string>
+	<string name="tr_ag_label_total">TOTAL</string>
+	<string name="tr_ag_tooltip_total">* Attack Grid Total Roll *\nThe Attack Grid will automatically select the row of the table that matches unless it exceeds the Maximum Roll which will be used instead.</string>
+	<string name="tr_ag_label_unmodified">UM</string>
+	<string name="tr_ag_tooltip_unmodified">* Unmodified Roll *\nThe first roll if there are multiple rolls. If the Unmodified Roll matches an unmodified roll [UM] result then it will use that result instead of rhe Attack Grid Roll Total.</string>
+	<string name="tr_ag_label_multiplier">MULT</string>
+	<string name="tr_ag_tooltip_multiplier">* Hits Multiplier *\nThe hits for each Table Resolver entry will be multiplied by this value and will show in the table.</string>
+	<string name="tr_ag_label_maximum">MAX</string>
+	<string name="tr_ag_tooltip_maximum">* Maximum Table Result *\nUses Max Level from the item/attack and prevents the Attack Grid Roll Total from exceeding it. (1=105, 2=120, 3=135, 4=150.)</string>
+	<string name="tr_ag_label_attacker">Attacker/Actor</string>
+	<string name="tr_ag_tooltip_attacker">* Attacker/Actor *\nDrop effects and table results here to apply them to the attacker/actor.</string>
+	<string name="tr_ag_label_defender">Defender/Target</string>
+	<string name="tr_ag_tooltip_defender">* Defender/Target *\nDrop effects and table results here to apply them to the defender/target.</string>
+
+	<string name="tr_mod_header_modifiers">Attack Grid Modifiers</string>
+	<string name="tr_mod_tooltip_modifiers">* Attack Grid Modifiers *\nThis section contains the modifiers that will be applied to the Attack Grid Roll.</string>
+	<string name="tr_mod_tooltip_modifierlist_item_include">* Include *\nIf checked it will include the modifier in the Attack Grid Roll Modifier.</string>
+
+	<string name="tr_rg_header_result_grid">Result Grid</string>
+	<string name="tr_rg_tooltip_result_grid">* Result Grid *\nThis section contains information used with the result table (bottom grid of the Table Resolver).</string>
+	<string name="tr_rg_label_roll">ROLL</string>
+	<string name="tr_rg_tooltip_roll">* Result Grid Roll *\nClick to edit the number or Double-click or drag to do a Result Table Roll action which will fill in the field on the Table Resolver for the GM.</string>
+	<string name="tr_rg_label_crit_mod">MOD</string>
+	<string name="tr_rg_tooltip_crit_mod">* Result Grid Critical Modifier *\nThis modifier that will be applied to the Result Grid Roll to determine the Result Grid Total Roll.</string>
+	<string name="tr_rg_label_total">TOTAL</string>
+	<string name="tr_rg_tooltip_total">* Result Grid Total Roll *\nThe Result Grid will automatically select the row of the table that matches.</string>
+	<string name="tr_rg_label_crit_mod_description">Crit Mod Description</string>
+	<string name="tr_rg_tooltip_crit_mod_description">* Critical Modifier Description *\nThe defender's critical modifier description. (Large, Super Large, -1 Severity or -2 Severities)</string>
+	<string name="tr_rg_label_result_grid_list">RESULT TABLE LIST</string>
+	<string name="tr_rg_tooltip_result_grid_list">* Result Table List *\nThe list of result tables to resolve.  Click an entry in the list to load that result table.</string>
+	<string name="tr_rg_tooltip_resultlist_item_name">* Result Table *\nClick to load result table.</string>
+	<string name="tr_rg_tooltip_resultlist_item_applied">* Applied *\nIf checked it shows that the result table has already been applied.</string>
+
+	<string name="tr_rs_header_roll_stack">Roll Stack</string>
+	<string name="tr_rs_tooltip_roll_stack">* Roll Stack *\nThis section contains the different rolls that need to be resolved in the Table Resolver.</string>
+	<string name="tr_rs_tooltip_stack_resolve">* Resolve Button *\nClick here to resolve this item.</string>
+
+	<!-- Party Sheet -->
+	<string name="ps_label_hits">Hits</string>
+	<string name="ps_label_exhaustion">Exh</string>
+	<string name="ps_label_pp">PP</string>
+	<string name="ps_label_spelladder">SpA</string>
+
+	<string name="ps_label_statbonuses">STAT BONUSES</string>
+	<string name="ps_label_constitution">Co</string>
+	<string name="ps_label_agility">Ag</string>
+	<string name="ps_label_selfdiscipline">SD</string>
+	<string name="ps_label_reasoning">Re</string>
+	<string name="ps_label_memory">Me</string>
+	<string name="ps_label_strength">St</string>
+	<string name="ps_label_quickness">Qu</string>
+	<string name="ps_label_presence">Pr</string>
+	<string name="ps_label_intuition">In</string>
+	<string name="ps_label_empathy">Em</string>
+
+	<string name="ps_label_rrbonuses">RR BONUSES</string>
+	<string name="ps_label_channeling">Chn</string>
+	<string name="ps_label_essence">Ess</string>
+	<string name="ps_label_mentalism">Mnt</string>
+	<string name="ps_label_poison">Psn</string>
+	<string name="ps_label_disease">Dis</string>
+	<string name="ps_label_chan_ment">C/M</string>
+	<string name="ps_label_ess_chan">E/C</string>
+	<string name="ps_label_ment_ess">M/E</string>
+	<string name="ps_label_arcane">Arc</string>
+	<string name="ps_label_terror">Ter</string>
+
+	<string name="ps_label_move">Mv</string>
+	<string name="ps_label_movementmaneuver">MM</string>
+	<string name="ps_label_perception">Per</string>
+
+	<string name="ps_label_groupstat">Stat</string>
+	<string name="ps_label_groupresistance">Resistance</string>
+	<string name="ps_label_groupprimaryskill">Primary Skill</string>
+	<string name="ps_label_groupsecondaryskill">Secondary Skill</string>
+	<string name="ps_default_groupstat">Agility</string>
+	<string name="ps_default_groupresistance">Poison</string>
+	<string name="ps_default_groupprimaryskill">Perception</string>
+	<string name="ps_default_groupsecondaryskill">Acrobatics</string>
+	<string name="ps_default_groupskilldifficulty">Medium</string>
+
+	<string name="ps_tooltip_hits">Hits</string>
+	<string name="ps_tooltip_exhaustion">Exhaustion</string>
+	<string name="ps_tooltip_pp">Power Points</string>
+	<string name="ps_tooltip_spelladder">Spell Adder</string>
+
+	<string name="ps_tooltip_constitution">Constitution</string>
+	<string name="ps_tooltip_agility">Agility</string>
+	<string name="ps_tooltip_selfdiscipline">Self Discipline</string>
+	<string name="ps_tooltip_reasoning">Reasoning</string>
+	<string name="ps_tooltip_memory">Memory</string>
+	<string name="ps_tooltip_strength">Strength</string>
+	<string name="ps_tooltip_quickness">Quickness</string>
+	<string name="ps_tooltip_presence">Presence</string>
+	<string name="ps_tooltip_intuition">Intuition</string>
+	<string name="ps_tooltip_empathy">Empathy</string>
+
+	<string name="ps_tooltip_channeling">Channeling</string>
+	<string name="ps_tooltip_essence">Essence</string>
+	<string name="ps_tooltip_mentalism">Mentalism</string>
+	<string name="ps_tooltip_poison">Poison</string>
+	<string name="ps_tooltip_disease">Disease</string>
+	<string name="ps_tooltip_chan_ment">Channeling/Mentalism</string>
+	<string name="ps_tooltip_ess_chan">Essence/Channeling</string>
+	<string name="ps_tooltip_ment_ess">Mentalism/Essence</string>
+	<string name="ps_tooltip_arcane">Arcane</string>
+	<string name="ps_tooltip_terror">Terror</string>
+
+	<string name="ps_tooltip_move">Move</string>
+	<string name="ps_tooltip_movementmaneuver">Movement Maneuver</string>
+	<string name="ps_tooltip_perception">Perception</string>
+
+	<!-- Modifiers -->
+	<string name="modifier_category_difficulty">Skill/Stat - Difficulty</string>
+	<string name="modifier_label_routine">Routine</string>
+	<string name="modifier_label_easy">Easy</string>
+	<string name="modifier_label_light">Light</string>
+	<string name="modifier_label_medium">Medium</string>
+	<string name="modifier_label_hard">Hard</string>
+	<string name="modifier_label_veryhard">Very Hard</string>
+	<string name="modifier_label_extremelyhard">Extrmly Hard</string>
+	<string name="modifier_label_sheerfolly">Sheer Folly</string>
+	<string name="modifier_label_absurd">Absurd</string>
+
+	<string name="modifier_category_position">Attack - Position</string>
+	<string name="modifier_label_flank">Flank</string>
+	<string name="modifier_label_rearflank">Rear Flank</string>
+	<string name="modifier_label_rear">Rear</string>
+
+	<string name="modifier_category_cover">Attack - Cover</string>
+	<string name="modifier_label_halfsoft">Half Soft</string>
+	<string name="modifier_label_fullsoft">Full Soft</string>
+	<string name="modifier_label_halfhard">Half Hard</string>
+	<string name="modifier_label_fullhard">Full Hard</string>
+
+	<!-- Characters - Main -->
+	<string name="char_tooltip_copytonpc">Copy the PC to create a new NPC</string>
+	<string name="char_label_move">Move</string>
+	<string name="char_label_initiative">Initiative</string>
+	<string name="char_label_initiative_stat">Stat Bonus</string>
+	<string name="char_label_initiative_misc">Misc Bonus</string>
+	<string name="char_label_initiative_total">Total Bonus</string>
+	<string name="char_label_initresult_total">Initiative Result</string>
+	<string name="char_label_profession">Profession</string>
+	<string name="char_label_race">Race</string>
+	<string name="char_label_culture">Culture</string>
+	<string name="char_label_realm">Realm</string>
+	<string name="char_label_level">Level</string>
+	<string name="char_label_senses">Senses</string>
+	<string name="char_label_current_xp">Current XP</string>
+	<string name="char_label_next_level_xp">Next Lvl XP</string>
+	<string name="char_label_max_hits">Max</string>
+	<string name="char_label_damage">Damage</string>
+	<string name="char_label_max_pp">Max</string>
+	<string name="char_label_used_pp">Used</string>
+	<string name="tooltip_max_spell_adder">Max Spell Adder</string>
+	<string name="tooltip_used_spell_adder">Used Spell Adder</string>
+	<string name="char_label_max_exhaustion">Max</string>
+	<string name="char_label_used_exhaustion">Used</string>
+	<string name="tooltip_move_stat_bonus_reduced">The stat bonus has been reduced because of the armor quickness penalty.</string>
+	<string name="tooltip_move_encumbrance_off">The Encumbrance: Penalty applies to BMR option is Off so the encumbrance penalty isn't being applied.</string>
+	<string name="char_heading_exhaustion_max">MAX EXHAUSTION</string>
+	<string name="char_label_exhaustion_constitution">Constitution</string>
+	<string name="char_label_exhaustion_misc">Misc</string>
+	<string name="char_label_exhaustion_total">Total</string>
+	<string name="char_heading_exhaustion_used">USED EXHAUSTION</string>
+	<string name="char_label_exhaustion_used">Used</string>
+	<string name="char_label_exhaustion_penalty">Penalty</string>
+
+	<string name="char_label_stat_name">Stat Name</string>
+	<string name="char_label_stat_abbr">Abbr</string>
+	<string name="char_label_stat_temp">Temp</string>
+	<string name="char_label_stat_pot">Pot</string>
+	<string name="char_label_stat_bonus">Bonus</string>
+	<string name="char_label_stat_race">Race</string>
+	<string name="char_label_stat_spec">Spec</string>
+	<string name="char_label_stat_total">Total</string>
+	<string name="char_label_stat_dp">DP</string>
+	<string name="char_label_stat_dp_total">DP Total</string>
+	<string name="char_label_stat_damage">Dmg</string>
+	<string name="char_label_stat_temp_current">Curr</string>
+	<string name="char_label_stat_init_generation">Init Stat Gen</string>
+	<string name="char_tooltip_stat_init_generation">Open Initial Stat Generation Window</string>
+	<string name="char_tooltip_stat_init_generation_shift_temp_left">Switch Temp Roll and Extra Roll columns.</string>
+	<string name="char_tooltip_stat_init_generation_shift_temp_right">Switch Temp Roll and Pot Roll columns.</string>
+	<string name="char_tooltip_stat_init_generation_shift_pot_left">Switch Temp Roll and Pot Roll columns.</string>
+	<string name="char_tooltip_stat_init_generation_shift_pot_right">Switch Temp Roll and Pot Roll columns.</string>
+	<string name="char_tooltip_stat_init_generation_shift_extra_left">Switch Temp Roll and Extra Roll columns.</string>
+	<string name="char_tooltip_stat_init_generation_shift_extra_right">Switch Temp Roll and Pot Roll columns.</string>
+	<string name="char_tooltip_stat_init_generation_down">Shift the values down.</string>
+	<string name="char_tooltip_stat_init_generation_up">Shift the values up.</string>
+	<string name="char_label_stat_init_stat">Stat</string>
+	<string name="char_label_stat_init_prime">Prime</string>
+	<string name="char_label_stat_init_roll_temp">Temp</string>
+	<string name="char_label_stat_init_roll_pot">Pot</string>
+	<string name="char_label_stat_init_roll_extra">Extra</string>
+	<string name="char_label_stat_init_temporary">Temp</string>
+	<string name="char_label_stat_init_potential">Pot</string>
+	<string name="char_label_stat_init_bonus">Bonus</string>
+	<string name="char_label_stat_init_devpoints">DPs</string>
+	<string name="char_label_stat_init_dp_total">DP Total</string>
+	<string name="char_label_stat_init_potential_table">Potential Table</string>
+	<string name="char_tooltip_stat_init_potential_table">View Stat Potential Table</string>
+	<string name="char_label_stat_init_apply">Apply</string>
+	<string name="char_tooltip_stat_init_apply">Apply Stat Generation Results</string>
+	<string name="char_label_stat_init_roll_all">Roll All</string>
+	<string name="char_tooltip_stat_init_roll_all">Roll All Stat Generation Rolls</string>
+
+	<string name="char_label_stat_gain">Stat Gain</string>
+	<string name="char_tooltip_stat_gain">Open Stat Gain Window</string>
+	<string name="char_label_stat_diff">Diff</string>
+	<string name="char_label_stat_roll">Roll</string>
+	<string name="char_label_stat_result">Result</string>
+	<string name="char_label_stat_temp_new">New</string>
+	<string name="char_label_stat_gain_table_view">Stat Gain Table</string>
+	<string name="char_label_stat_gain_apply">Apply</string>
+	<string name="char_tooltip_stat_gain_apply">Apply Stat Gain Results</string>
+	<string name="char_label_stat_gain_roll_all">Roll All</string>
+	<string name="char_tooltip_stat_gain_roll_all">Roll All Stat Gain Rolls</string>
+
+	<string name="char_label_resistance_name">Resistance</string>
+	<string name="char_label_resistance_resistances">Base Resistances</string>
+	<string name="char_label_resistance_stat_abbr">Stat</string>
+	<string name="char_label_resistance_stat_bonus">Bonus</string>
+	<string name="char_label_resistance_race_bonus">Race</string>
+	<string name="char_label_resistance_item_bonus">Item</string>
+	<string name="char_label_resistance_special_bonus">Spec</string>
+	<string name="char_label_resistance_misc_bonus">Misc</string>
+	<string name="char_label_resistance_total_bonus">Total</string>
+
+	<string name="char_label_language_speak">S</string>
+	<string name="char_label_language_write">W</string>
+
+	<string name="char_heading_stats">STATS</string>
+	<string name="char_heading_resistances">RESISTANCES</string>
+	<string name="char_heading_base_resistances">BASE RESISTANCES</string>
+	<string name="char_heading_hybrid_resistances">HYBRID RESISTANCES</string>
+	<string name="char_heading_move_initiative">MOVE &amp; INIT</string>
+	<string name="char_heading_initiative">INITIATIVE</string>
+	<string name="char_heading_hits">HITS</string>
+	<string name="char_heading_pp">POWER POINTS</string>
+	<string name="char_heading_exhaustion">EXHAUSTION</string>
+	<string name="char_heading_languages">LANGUAGES</string>
+	<string name="char_heading_senses">SENSES</string>
+
+	<!-- Characters - Combat -->
+	<string name="char_heading_combat">Attacks and Defenses</string>
+	<string name="char_label_combat_nonid">NonID</string>
+	<string name="char_label_combat_ob">OB</string>
+	<string name="char_label_combat_fumble">F</string>
+	<string name="char_label_combat_range">Range Modifications</string>
+	<string name="char_label_combat_db_melee">Melee DB</string>
+	<string name="char_label_combat_db_missile">Missile DB</string>
+	<string name="char_label_combat_martial_arts">Martial Arts</string>
+	<string name="char_tooltip_combat_martial_arts">Open Martial Arts Attacks that can be added to the Combat tab.</string>
+	<string name="char_label_combat_spell_attacks">Spell Attacks</string>
+	<string name="char_tooltip_combat_spell_attacks">Open Spell Attacks that can be added to the Combat tab.</string>
+	<string name="char_label_protection_arms">ARMS</string>
+	<string name="char_tooltip_protection">These fields are updated based on the Equipped Armor or Helmet protection fields.  They are used for the conditional critical results that are looking for a particular location's armor type.</string>
+	<string name="char_heading_equipment">EQUIPPED ARMOR, WEAPONS &amp; POWER POINT ITEM</string>
+	<string name="char_label_equipped_armor">Armor</string>
+	<string name="char_tooltip_equipped_armor">Equipped Armor: Drop down list include inventory items of type Armor which aren't Arm Greaves, Leg Greaves or Helmets. \nArmor Types that include the greaves should be combined into one item.  There are new versions in Character Law.</string>
+	<string name="char_label_equipped_helmet">Helmet</string>
+	<string name="char_tooltip_equipped_helmet">Equipped Helmet: Drop down list include inventory items of type Helmet or with Helm in the item name</string>
+	<string name="char_label_equipped_primary_hand">Primary Hand</string>
+	<string name="char_tooltip_equipped_primary_hand">Equipped Primary Hand: Drop down list include inventory items of these types - \nOne-Handed Slashing\nOne-Handed Concussion\nTwo-Handed Weapon\nPole Arm\nMissile Weapon\nThrown Weapon\nNatural Weapon</string>
+	<string name="char_label_equipped_secondary_hand">Secondary Hand</string>
+	<string name="char_tooltip_equipped_secondary_hand">Equipped Secondary Hand: Drop down list include inventory items of these types - \nOne-Handed Slashing\nOne-Handed Concussion\nThrown Weapon\nNatural Weapon\nShield</string>
+	<string name="char_label_equipped_adder_multiplier">Spell Adder/PP Multiplier</string>
+	<string name="char_tooltip_equipped_adder_multiplier">Equipped Spell Adder/PP Multiplier: Drop down list include inventory items that match the character's realm and have Spell Adder or PP Multiplier values greater than 0</string>
+	<string name="char_heading_protection">ARMOR PROTECTION BY LOCATION</string>
+	<string name="char_label_protection_head">HEAD</string>
+	<string name="char_label_protection_face">FACE</string>
+	<string name="char_label_protection_neck">NECK</string>
+	<string name="char_label_protection_torso">TORSO</string>
+	<string name="char_label_protection_legs">LEGS</string>
+	<string name="char_label_protection_arms">ARMS</string>
+	<string name="char_tooltip_protection">These fields are updated based on the Equipped Armor or Helmet protection fields.  They are used for the conditional critical results that are looking for a particular location's armor type.</string>
+
+	<string name="char_label_db_nonid">NonID</string>
+	<string name="char_label_db_stat">Stat</string>
+	<string name="char_label_db_magic">Magic</string>
+	<string name="char_label_db_adrenaldefense">AD</string>
+	<string name="char_label_db_shield">Shield</string>
+	<string name="char_label_db_other">Other</string>
+	<string name="char_label_db_total">Total</string>
+
+	<string name="char_label_mm_minimum">Min</string>
+	<string name="char_label_mm_maximum">Max</string>
+	<string name="char_label_mm_penalty">MM Pn</string>
+	<string name="char_label_missile_penalty">Mis Pn</string>
+	<string name="char_label_quickness_penalty">Qu Pn</string>
+
+	<!-- Characters - Skills -->
+	<string name="char_heading_skills">SKILLS</string>
+	<string name="char_label_skill_name">Skill Name</string>
+	<string name="char_label_skill_stats">Stats</string>
+	<string name="char_label_skill_calc">Calc</string>
+	<string name="char_label_skill_cost">Cost</string>
+	<string name="char_label_skill_rank">Rk</string>
+	<string name="char_label_skill_rankbonus">Bns</string>
+	<string name="char_label_skill_other">Other</string>
+	<string name="char_label_skill_stat">Stat</string>
+	<string name="char_label_skill_level">Lvl</string>
+	<string name="char_label_skill_item">Itm</string>
+	<string name="char_label_skill_special">Spc</string>
+	<string name="char_label_skill_misc">Msc</string>
+	<string name="char_label_skill_total">Total</string>
+	<string name="char_label_skill_dev">Skill Development</string>
+	<string name="char_tooltip_skill_dev">Open Skill Development Window</string>
+
+	<!-- Characters - Skill Development -->
+	<string name="char_label_skill_dps">DPs</string>
+	<string name="char_label_skill_new">New</string>
+	<string name="char_label_skill_class">Cls</string>
+	<string name="char_label_skill_available">Avail</string>
+	<string name="char_label_skill_spent">Spent</string>
+	<string name="char_label_skill_remaining">Rem</string>
+	<string name="char_label_skill_total">Total</string>
+
+	<string name="char_label_skill_primary_skills">Primary Skills</string>
+	<string name="char_label_skill_dev_primary_view">View</string>
+	<string name="char_tooltip_skill_dev_primary_view">View Primary Skill Table</string>
+	<string name="char_label_skill_dev_primary_add">Add</string>
+	<string name="char_tooltip_skill_dev_primary_add">Add All Primary Skills</string>
+	<string name="char_label_skill_dev_primary_remove">Remove</string>
+	<string name="char_tooltip_skill_dev_primary_remove">Remove Untrained Primary Skills</string>
+
+	<string name="char_label_skill_secondary_skills">Secondary Skills</string>
+	<string name="char_label_skill_dev_secondary_view">View</string>
+	<string name="char_tooltip_skill_dev_secondary_view">View Secondary Skill Table</string>
+	<string name="char_label_skill_dev_secondary_add">Add</string>
+	<string name="char_tooltip_skill_dev_secondary_add">Add All Secondary Skills</string>
+	<string name="char_label_skill_dev_secondary_remove">Remove</string>
+	<string name="char_tooltip_skill_dev_secondary_remove">Remove Untrained Secondary Skills</string>
+
+	<string name="char_label_skill_new_skills">New Skills</string>
+	<string name="char_label_skill_dev_clear_new">Clear</string>
+	<string name="char_tooltip_skill_dev_clear_new">Clear New Skill Ranks</string>
+	<string name="char_label_skill_dev_remove_new">Remove</string>
+	<string name="char_tooltip_skill_dev_remove_new">Remove New Skill Ranks from Ranks</string>
+	<string name="char_label_skill_dev_add_new">Add</string>
+	<string name="char_tooltip_skill_dev_add_new">Add New Skill Ranks to Ranks</string>
+
+	<!-- Characters - Spells -->
+	<string name="char_heading_spell_casting">SPELL CASTING</string>
+	<string name="char_label_spell_spell_list">Spell List</string>
+	<string name="char_label_spell_spell">Spell</string>
+	<string name="char_label_spell_level">Level</string>
+	<string name="char_label_spell_prep_rounds">Prep</string>
+	<string name="char_label_spell_overcast_level">OC</string>
+	<string name="char_label_spell_pp_cost">PP</string>
+	<string name="char_label_spell_instantaneous">Inst</string>
+	<string name="char_heading_spell_esf">ESF</string>
+	<string name="char_label_spell_esf_level_known">Level</string>
+	<string name="char_label_spell_esf_spell_mastery">Mstry</string>
+	<string name="char_label_spell_esf_not_learned">Learn</string>
+	<string name="char_label_spell_esf_overcasting">OC</string>
+	<string name="char_label_spell_esf_rushed">Rush</string>
+	<string name="char_label_spell_esf_armor">Armor</string>
+	<string name="char_label_spell_esf_helm">Helm</string>
+	<string name="char_label_spell_esf_equipment">Equip</string>
+	<string name="char_label_spell_esf_transport_spell">Trans</string>
+	<string name="char_label_spell_esf_no_hands">Hands</string>
+	<string name="char_label_spell_esf_total">Total</string>
+	<string name="char_tooltip_esf">* Extraordinary Spell Casting Failure Modifier *\nThis value will be added to the fumble range of 2 to determine if there is spell failure</string>
+	<string name="char_label_spelllist_view">View</string>
+	<string name="char_tooltip_spelllist_view">View Realm Spell Lists</string>
+	<string name="char_label_spelllist_category_add">Add</string>
+	<string name="char_tooltip_spelllist_category_add">Add Category Spell Lists</string>
+	<string name="char_label_spelllist_add">Add</string>
+	<string name="char_tooltip_spelllist_add">Add Spell List</string>
+
+	<!-- Character - Abilities -->
+	<string name="char_abilities_message_raceadd">Race '%s' added to '%s'.</string>
+	<string name="char_abilities_message_professionadd">Profession '%s' added to '%s'.</string>
+
+	<!-- Character - Inventory -->
+	<string name="char_label_inventory">EQUIPMENT</string>
+	<string name="char_tooltip_filter_inventory">This field will filter the inventory items by the item type.</string>
+	<string name="char_label_itemweight">Wt</string>
+	<string name="char_label_itemdeadweight">DW</string>
+	<string name="char_tooltip_itemdeadweight">Dead Weight if the items are carried or equipped. If equipped and the items is of type Armor, Helmet or Clothing, it won't count as encumbrance so the dead weight will be 0.</string>
+	<string name="char_label_itemlocation">Location</string>
+	<string name="char_label_itemname">Name</string>
+	<string name="char_label_bmr">BASE MOVE RATE</string>
+	<string name="char_label_bmr_race">Race/Height</string>
+	<string name="char_label_bmr_stat">Stat</string>
+	<string name="char_label_bmr_misc">Misc</string>
+	<string name="char_label_bmr_encumbrance">Encumbrance</string>
+	<string name="char_label_bmr_total">Total</string>
+	<string name="char_label_encumbrance">ENCUMBRANCE</string>
+	<string name="char_label_encumbrance_allowance">Allowance</string>
+	<string name="char_label_encumbrance_load">Load</string>
+	<string name="char_label_encumbrance_penalty">Penalty</string>
+	<string name="char_label_encumbrance_stat">Stat</string>
+	<string name="char_label_encumbrance_misc">Misc.</string>
+	<string name="char_label_encumbrance_total">Total</string>
+	<string name="char_label_money">COINS</string>
+
+	<!-- Character - Notes -->
+	<string name="char_heading_appearance_description">APPEARANCE DESCRIPTION</string>
+	<string name="char_heading_notes">NOTES</string>
+	<string name="char_heading_gm_notes">GM NOTES</string>
+
+	<!-- Character - Logs -->
+
+	<!-- Character - Actions -->
+
+	<!-- Character - Creation / Level Up -->
+	<string name="charlevel_heading_statgeneration">Stat Generation</string>
+	<string name="charlevel_heading_levelup">LEVEL UP</string>
+	<string name="charlevel_heading_statgain">Stat Gain</string>
+	<string name="charlevel_heading_skilldevelopment">Skill Development</string>
+
+	<!-- Pregens -->
+
+	<!-- Backgrounds -->
+
+	<!-- Professions -->
+	<string name="profession_label_realm">Realm</string>
+	<string name="profession_label_category">Category</string>
+	<string name="profession_label_primerequisites">Prime Requisites</string>
+	<string name="profession_label_description">DESCRIPTION</string>
+	<string name="profession_header_primary_skill_costs">PRIMARY SKILL COSTS</string>
+	<string name="profession_header_secondary_skill_costs">SECONDARY SKILL COSTS</string>
+	<string name="profession_tooltip_skill_costs">NOTE: Only skills from loaded modules and the campaign will automatically appear here.</string>
+	<string name="profession_header_level_bonuses_core">LEVEL BONUSES - CORE</string>
+	<string name="profession_tooltip_level_bonuses_core">Character Law 9.3 Level Bonuses</string>
+	<string name="profession_header_level_bonuses_rm2">LEVEL BONUSES - RM2 OPTION</string>
+	<string name="profession_tooltip_level_bonuses_rm2">Character Law Option 23.1: Expanded Level Bonuses for Professions (RM2)</string>
+	<string name="profession_header_level_bonuses_rmfrp">LEVEL BONUSES - RMSS/RMFRP OPTION</string>
+	<string name="profession_tooltip_level_bonuses_rmfrp">Character Law Option 23.2: Expanded Level Bonuses for Professions (RMSS Conversion Friendly)</string>
+	<string name="profession_header_level_bonuses_rmcompanion2">LEVEL BONUSES - RM COMPANION 2</string>
+	<string name="profession_tooltip_level_bonuses_rmcompanion2">Level Bonus Groups/Categories from Rolemaster Companion 2</string>
+	<string name="profession_header_base_spell_lists">BASE SPELL LISTS</string>
+	<string name="profession_tooltip_base_spell_lists">Drag Spell List links here to add them to the list.</string>
+	
+
+	<!-- Races -->
+	<string name="race_label_statbonusmodifications">STAT BONUS MODIFICATIONS</string>
+	<string name="race_label_strength">Strength</string>
+	<string name="race_label_quickness">Quickness</string>
+	<string name="race_label_presence">Presence</string>
+	<string name="race_label_intuition">Intuition</string>
+	<string name="race_label_empathy">Empathy</string>
+	<string name="race_label_constitution">Constitution</string>
+	<string name="race_label_agility">Agility</string>
+	<string name="race_label_selfdiscipline">Self Discipline</string>
+	<string name="race_label_memory">Memory</string>
+	<string name="race_label_reasoning">Reasoning</string>
+	<string name="race_label_rrmodifications">RR MODIFICATIONS</string>
+	<string name="race_label_essence">Essence</string>
+	<string name="race_label_channeling">Channeling</string>
+	<string name="race_label_mentalism">Mentalism</string>
+	<string name="race_label_poison">Poison</string>
+	<string name="race_label_disease">Disease</string>
+	<string name="race_label_terror">Terror</string>
+	<string name="race_label_healingandinjury">HEALING AND INJURY</string>
+	<string name="race_label_souldeparture">Soul Departure</string>
+	<string name="race_label_statdeterioration">Stat Deterioration</string>
+	<string name="race_label_recoverymultiplier">Recovery Multiplier</string>
+	<string name="race_label_languages">Languages</string>
+	<string name="race_label_dicetype">Dice Type</string>
+	<string name="race_label_maxhits">Max Hits</string>
+	<string name="race_label_miscellaneous">MISCELLANEOUS</string>
+	<string name="race_label_backgroundoptions">Background Options</string>
+	<string name="race_label_racialleveloffset_BGO">Racial Level Offset with Bkgrd Opts</string>
+	<string name="race_label_racialleveloffset_no_BGO">Racial Level Offset w/o Bkgrd Opts</string>
+	<string name="race_label_senses">Senses</string>
+	<string name="race_label_deathmarker">Death Marker</string>
+	<string name="race_label_description">DESCRIPTION</string>
+
+	<!-- Skills -->
+	<string name="skill_label_fullname">Full Name</string>
+	<string name="skill_label_name">Name</string>
+	<string name="skill_label_class">Skill Class</string>
+	<string name="skill_label_type">Skill Type</string>
+	<string name="skill_label_group">Skill Group</string>
+	<string name="skill_label_progression">Progression</string>
+	<string name="skill_tooltip_progression">Skill Progression Type</string>
+	<string name="skill_label_stats">Stats</string>
+	<string name="skill_label_armorfactor">Armor Mult.</string>
+	<string name="skill_tooltip_armorfactor">Armor Penalty Multiplier</string>
+	<string name="skill_label_level_bonus_group">LEVEL BONUS GROUP</string>
+	<string name="skill_label_level_bonus_core">Core</string>
+	<string name="skill_label_level_bonus_rm2">RM2</string>
+	<string name="skill_label_level_bonus_rmfr">RMSS/RMFRP</string>
+	<string name="skill_label_level_bonus_rmcompanion2">Companion 2</string>
+	<string name="skill_label_description">DESCRIPTION</string>
+
+	<!-- Spell Lists -->
+	<string name="spelllist_label_realm">Realm</string>
+	<string name="spelllist_label_class">Class</string>
+	<string name="spelllist_label_spells">Spells</string>
+	<string name="spelllist_label_notes">Notes</string>
+
+	<string name="spelllist_label_item_level">Lvl</string>
+	<string name="spelllist_label_item_name">Spell</string>
+	<string name="spelllist_label_item_area">Area of Effect</string>
+	<string name="spelllist_label_item_duration">Duration</string>
+	<string name="spelllist_label_item_range">Range</string>
+	<string name="spelllist_label_item_type">Type</string>
+	
+	<!-- Spells -->
+	<string name="spell_label_list">Spell List</string>
+	<string name="spell_label_level">Level</string>
+	<string name="spell_label_area">Area of Effect</string>
+	<string name="spell_label_duration">Duration</string>
+	<string name="spell_label_range">Range</string>
+	<string name="spell_label_type">Type</string>
+	<string name="spell_label_attacktable">Table</string>
+	<string name="spell_label_description">DESCRIPTION</string>
+	
+
+	<!-- NPCs -->
+	<string name="npc_grouped_label_name">Name</string>
+	<string name="npc_grouped_label_level">Level</string>
+	<string name="npc_grouped_tooltip_level">Level</string>
+
+	<string name="npc_label_npcsize">Size</string>
+	<string name="npc_label_size">Space</string>
+	<string name="npc_label_level">Level</string>
+	<string name="npc_label_hits">Hits</string>
+	<string name="npc_label_at">AT</string>
+	<string name="npc_label_db">DB</string>
+	<string name="npc_label_baserate">Base Rate</string>
+	<string name="npc_label_maxpace">Max Pace</string>
+	<string name="npc_label_mnbonus">MN Bonus</string>
+	<string name="npc_label_movementspeed">Movement Speed</string>
+	<string name="npc_label_initmod">Init Mod</string>
+	<string name="npc_label_attackquickness">Attack Quickness</string>
+	<string name="npc_label_critmod">Crit Modification</string>
+	<string name="npc_label_immunity">Immunity</string>
+	<string name="npc_header_protection">CRITICAL PROTECTION</string>
+	<string name="npc_label_protection_head">Head Protection</string>
+	<string name="npc_label_protection_face">Face Protection</string>
+	<string name="npc_label_protection_neck">Neck Protection</string>
+	<string name="npc_label_protection_torso">Torso Protection</string>
+	<string name="npc_label_protection_arms">Arms Protection</string>
+	<string name="npc_label_protection_legs">Legs Protection</string>
+	<string name="npc_header_weapons">ATTACKS</string>
+	<string name="npc_tooltip_weapons">Drag Weapon links here to add them to the list.</string>
+	<string name="npc_header_defences">DEFENSES</string>
+	<string name="npc_tooltip_defenses">Drag Defense links here to add them to the list.</string>
+	<string name="npc_label_group">Group</string>
+	<string name="npc_label_subgroup">Subgroup</string>
+	<string name="npc_header_notes">NOTES</string>
+	<string name="npc_header_abilities">ABILITIES</string>
+	<string name="npc_header_description">DESCRIPTION</string>
+	<string name="npc_label_race">Race</string>
+	<string name="npc_label_profession">Profession</string>
+	<string name="npc_label_realm">Realm</string>
+	<string name="npc_header_stats">STATS</string>
+	<string name="npc_header_resistances_base">RESISTANCES - BASE</string>
+	<string name="npc_header_resistances_hybrid">RESISTANCES - HYBRID</string>
+	<string name="npc_header_exhaustion">EXHAUSTION</string>
+	<string name="npc_label_exhaustionmax">Maximum Exhaustion</string>
+	<string name="npc_header_skills">SKILLS</string>
+	<string name="npc_tooltip_skills">Drag Skill links here to add them to the list.</string>
+	<string name="npc_header_spelllists">SPELL LISTS</string>
+	<string name="npc_tooltip_spell_lists">Drag Spell List links here to add them to the list.</string>
+	<string name="npc_label_ppmax">Power Points</string>
+	<string name="npc_label_spelladdermax">Spell Adder</string>
+	<string name="npc_tooltip_esf">* Extraordinary Spell Casting Failure Modifier *\nThis value will be added to the fumble range of 2 to determine if there is spell failure</string>
+	<string name="npc_label_iq">IQ</string>
+	<string name="npc_label_outlook">Outlook</string>
+
+	<!-- Encounters -->
+	<string name="enc_label_party_avg_level">Party Avg Lvl</string>
+	<string name="enc_tooltip_refreshxp">Refresh Party Average Level and Experience Points</string>
+
+	<!-- Quests -->
+	<string name="quest_label_levelrange">Level Range</string>
+	<string name="quest_label_experiencepoints">Experience Points</string>
+
+	<!-- Items -->
+	<string name="item_tooltip_expand">Expand Section</string>
+	<string name="item_tooltip_collapse">Collapse Section</string>
+	<string name="item_tooltip_expand_all">Expand All Item Sections</string>
+	<string name="item_tooltip_collapse_all">Collapse All Item Sections</string>
+	<string name="item_label_button_armor">Armor Information</string>
+	<string name="item_label_button_shield">Shield Information</string>
+	<string name="item_label_button_weapon">Weapon Information</string>
+	<string name="item_label_button_magicitem">Magic Item Information</string>
+	<string name="item_label_button_herb">Herb Information</string>
+	<string name="item_label_button_transport">Transport Information</string>
+	<string name="item_label_button_general">General Information</string>
+	<string name="item_label_unidentifiednotes">Non-ID Notes</string>
+	<string name="item_label_notes">Notes</string>
+	<string name="item_label_type">Type</string>
+	<string name="item_label_subtype">Subtype</string>
+	<string name="item_label_length">Length</string>
+	<string name="item_label_strength">Strength</string>
+	<string name="item_label_breakfactor">Breakage Factor</string>
+	<string name="item_label_prod">Prod. Time</string>
+	<string name="item_label_armortype">Armor Type(AT)</string>
+	<string name="item_label_defensebonus">Defense Bonus</string>
+
+	<string name="item_label_armor_penalties">Armor Penalties</string>
+	<string name="item_label_minimum_mm_penalty">Min. MM</string>
+	<string name="item_label_maximum_mm_penalty">Max. MM</string>
+	<string name="item_label_missile_penalty">Missile</string>
+	<string name="item_label_quickness_penalty">QU</string>
+	<string name="item_label_armor_mm_skill">Armor MM Skill</string>
+	<string name="item_label_protection_head">Head Protection</string>
+	<string name="item_label_protection_face">Face Protection</string>
+	<string name="item_label_protection_neck">Neck Protection</string>
+	<string name="item_label_protection_torso">Torso Protection</string>
+	<string name="item_label_protection_arms">Arm Protection</string>
+	<string name="item_label_protection_legs">Leg Protection</string>
+	<string name="item_label_size">Size</string>
+	<string name="item_label_powerrating">Power Rating</string>
+	<string name="item_label_charges">Max. Charges</string>
+	<string name="item_label_level">Max. Level</string>
+	<string name="item_label_composition">Composition</string>
+	<string name="item_label_use">Use</string>
+	<string name="item_label_fumble">Fumble</string>
+	<string name="item_label_weaponbonus">Weapon Bonus</string>
+	<string name="item_label_skillbonus">Skill Bonus</string>
+	<string name="item_label_hitsmultiplier">Hits Multiplier</string>
+	<string name="item_label_range_mods">Range Modifiers</string>
+	<string name="item_label_rngslots"># Range Slots</string>
+	<string name="item_label_rng">Distance</string>
+	<string name="item_label_rngmod">Modifier</string>
+	<string name="item_label_adj_vs_at">Adjust vs AT</string>
+	<string name="item_label_at1_4">AT 1-4</string>
+	<string name="item_label_at5_8">AT 5-8</string>
+	<string name="item_label_at9_12">AT 9-12</string>
+	<string name="item_label_at13_16">AT 13-16</string>
+	<string name="item_label_at17_20">AT 17-20</string>
+
+	<string name="item_label_ftrn">Feet/Turn</string>
+	<string name="item_label_mihr">MPH</string>
+	<string name="item_label_mnb">MN Bonus</string>
+	<string name="item_label_htwt">Height/Weight</string>
+	<string name="item_label_capacity">Capacity</string>
+	<string name="item_label_transport_ob">Transport OB</string>
+
+	<string name="item_label_aoe">Effect Type</string>
+	<string name="item_label_codes">Codes</string>
+	<string name="item_label_form">Form/Prep</string>
+
+	<string name="item_label_fumbletable">Fumble Table</string>
+	<string name="item_label_fumblecolumn">Fumble Column</string>
+	<string name="item_label_attacktable">Attack Table</string>
+	<string name="item_label_tableid">Table ID</string>
+	<string name="item_label_tablename">Table Name</string>
+	<string name="item_label_maxsize">Max Size</string>
+	<string name="item_label_altcrittable">Alternate Crits</string>
+	<string name="item_label_ob_mod">OB Mod</string>
+	<string name="item_label_addcrittable">Additional Crits</string>
+	<string name="item_label_severity_level">Sev Level</string>
+	<string name="item_label_addcrit.tableid">Add Crit Table ID</string>
+	<string name="item_label_addcrit.name">Add Crit Table</string>
+	<string name="item_label_addcritleveldiff">Add Crit Mod</string>
+	<string name="item_label_altcrit.tableid">Alt Crit Table ID</string>
+	<string name="item_label_altcrit.name">Alt Crit Table</string>
+	<string name="item_label_altcritmod">Alt Crit Mod</string>
+
+	<string name="item_label_realm">Realm</string>
+	<string name="item_label_adderbonus">Spell Adder</string>
+	<string name="item_label_multiplierbonus">PP Multiplier</string>
+	<string name="item_label_associatedskill">Associated Skill</string>
+	<string name="item_label_ob">OB</string>
+	<string name="item_label_broken">Broken?</string>
+	<string name="item_label_isequipped">Is Equipped?</string>
+	<string name="item_label_criticaltable">Crit Table</string>
+	<string name="item_label_largecolumnname">L/SL Crit Column</string>
+	<string name="item_label_max_level">Max Level</string>
+	<string name="item_label_max_rank_size">Max Rank/Size</string>
+	<string name="item_label_meleebonus">Melee Bonus</string>
+	<string name="item_label_missilebonus">Missile Bonus</string>
+	<string name="item_label_stanvalx">Stan ValX</string>
+	<string name="item_label_totalvalue">Total Value</string>
+	<string name="item_label_value">Value</string>
+
+	<string name="item_label_button_esf">ESF - Extraordinary Spell Casting Failure</string>
+	<string name="item_label_esf_armor_essence">Essence Armor Mod</string>
+	<string name="item_label_esf_armor_channeling">Channeling Armor Mod</string>
+	<string name="item_label_esf_helmet_essence">Essence Helmet Mod</string>
+	<string name="item_label_esf_helmet_channeling">Channeling Helmet Mod</string>
+	<string name="item_label_esf_helmet_mentalism">Mentalism Helmet Mod</string>
+	<string name="item_label_esf_weight_organic_living">Organic(Living) Weight</string>
+	<string name="item_label_esf_weight_organic_dead">Organic(Non-Living) Weight</string>
+	<string name="item_label_esf_weight_inorganic">Inorganic Weight</string>
+
+	<!-- Setup Wizard -->
+	<string name="setup_button_wiki_RMC">Rolemaster Classic Guides</string>
+	<string name="setup_url_RMC_guides">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643408/Rolemaster+Classic+Ruleset</string>
+	<string name="setup_url_options">https://fantasygroundsunity.atlassian.net/wiki/spaces/FGCP/pages/996643421/Rolemaster+Classic+-+Campaign+Options</string>
+
+	<!-- Reference -->
+
+	<!-- Editors -->
+
+	<!-- Library -->
+	<string name="library_recordtype_label_race">Races</string>
+	<string name="library_recordtype_empty_race">&#171; New Race &#187;</string>
+	<string name="library_recordtype_label_profession">Professions</string>
+	<string name="library_recordtype_empty_profession">&#171; New Profession &#187;</string>
+	<string name="library_recordtype_label_skill">Skills</string>
+	<string name="library_recordtype_empty_skill">&#171; New Skill &#187;</string>
+	<string name="library_recordtype_label_spelllist">Spell Lists</string>
+	<string name="library_recordtype_empty_spelllist">&#171; New Spell List &#187;</string>
+
+	<string name="library_recordview_label_npc_byletter">By Letter</string>
+
+	<!-- Custom Dice Rolls -->
+	<string name="drc_label_type_attack">Attack Table</string>
+	<string name="drc_label_subtype_armslaw">Arms Law</string>
+	<string name="drc_label_subtype_clawlaw">Claw Law</string>
+	<string name="drc_label_subtype_armoury">Armoury</string>
+	<string name="drc_label_subtype_fantasyweapons">RM Fantasy Weapons</string>
+	<string name="drc_label_subtype_coldball">Spell Law - Cold Ball</string>
+	<string name="drc_label_subtype_icebolt">Spell Law - Ice Bolt</string>
+	<string name="drc_label_subtype_fireball">Spell Law - Fire Ball</string>
+	<string name="drc_label_subtype_firebolt">Spell Law - Fire Bolt</string>
+	<string name="drc_label_subtype_lightningbolt">Spell Law - Lightning Bolt</string>
+	<string name="drc_label_subtype_shockbolt">Spell Law - Shock Bolt</string>
+	<string name="drc_label_subtype_waterbolt">Spell Law - Water Bolt</string>
+
+	<string name="drc_label_type_resulttable">Result Table</string>
+	<string name="drc_label_subtype_grapple">Critical - Grapple</string>
+	<string name="drc_label_subtype_krush">Critical - Krush</string>
+	<string name="drc_label_subtype_mathrows">Critical - Martial Arts Sweeps</string>
+	<string name="drc_label_subtype_mastrikes">Critical - Martial Arts Strikes</string>
+	<string name="drc_label_subtype_puncture">Critical - Puncture</string>
+	<string name="drc_label_subtype_slash">Critical - Slash</string>
+	<string name="drc_label_subtype_tiny">Critical - Tiny</string>
+	<string name="drc_label_subtype_unbalancing">Critical - Unbalancing</string>
+	<string name="drc_label_subtype_largearms">Critical - Large (Arms)</string>
+	<string name="drc_label_subtype_superlargearms">Critical - Super Large (Arms)</string>
+	<string name="drc_label_subtype_weaponfumble">Fumble - Weapon</string>
+	<string name="drc_label_subtype_nonweaponfumble">Fumble - Non-Weapon</string>
+	<string name="drc_label_subtype_cold">Critical - Cold</string>
+	<string name="drc_label_subtype_electricity">Critical - Electricity</string>
+	<string name="drc_label_subtype_heat">Critical - Heat</string>
+	<string name="drc_label_subtype_impact">Critical - Impact</string>
+	<string name="drc_label_subtype_largespells">Critical - Large (Spells)</string>
+	<string name="drc_label_subtype_superlargespells">Critical - Super Large (Spells)</string>
+	<string name="drc_label_subtype_nonattackspellfailure">Spell Failure - Non-Attack</string>
+	<string name="drc_label_subtype_attackspellfailure">Spell Failure - Attack</string>
+	<string name="drc_label_subtype_subdual">Critical - Subdual</string>
+
+	<string name="drc_label_type_realmrr">Realm/RR</string>
+	<string name="drc_label_subtype_channeling">Pure - Channeling</string>
+	<string name="drc_label_subtype_essence">Pure - Essence</string>
+	<string name="drc_label_subtype_mentalism">Pure - Mentalism</string>
+	<string name="drc_label_subtype_channelingessence">Hybrid - Channeling/Essence</string>
+	<string name="drc_label_subtype_channelingmentalism">Hybrid - Channeling/Mentalism</string>
+	<string name="drc_label_subtype_essencementalism">Hybrid - Essence/Mentalism</string>
+	<string name="drc_label_subtype_arcane">Hybrid - Arcane</string>
+	<string name="drc_label_subtype_disease">Resistance - Disease</string>
+	<string name="drc_label_subtype_poison">Resistance - Poison</string>
+	<string name="drc_label_subtype_terror">Resistance - Terror</string>
+
+	<!-- Common Lighting/Vision Settings -->
+	<string name="lighting_spell_light_1">Spell-Light I</string>
+	<string name="lighting_spell_light_1_tag">light1</string>
+	<string name="lighting_spell_light_2">Spell-Light II</string>
+	<string name="lighting_spell_light_2_tag">light2</string>
+	<string name="lighting_spell_light_3">Spell-Light III</string>
+	<string name="lighting_spell_light_3_tag">light3</string>
+	<string name="lighting_spell_light_5">Spell-Light V</string>
+	<string name="lighting_spell_light_5_tag">light5</string>
+	<string name="lighting_spell_light_10">Spell-Light X</string>
+	<string name="lighting_spell_light_10_tag">light10</string>
+	<string name="lighting_spell_darkness_1">Spell-Darkness I</string>
+	<string name="lighting_spell_darkness_1_tag">darkness1</string>
+	<string name="lighting_spell_darkness_2">Spell-Darkness II</string>
+	<string name="lighting_spell_darkness_2_tag">darkness2</string>
+	<string name="lighting_spell_darkness_5">Spell-Darkness V</string>
+	<string name="lighting_spell_darkness_5_tag">darkness5</string>
+	<string name="lighting_spell_darkness_10">Spell-Darkness X</string>
+	<string name="lighting_spell_darkness_10_tag">darkness10</string>
+</root>

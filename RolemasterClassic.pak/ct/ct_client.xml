@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="combattracker_client" merge="join">
+		<sizelimits>
+			<minimum width="650" />
+		</sizelimits>
+		<softclose merge="delete" />
+		<script>
+			function onInit()
+				super.onInit();
+				OptionsManager.registerCallback("SHPC", self.updateHealthDisplay);
+				OptionsManager.registerCallback("SHNPC", self.updateHealthDisplay);
+				self.updateHealthDisplay();
+			end
+			function onClose()
+				super.onClose();
+				OptionsManager.unregisterCallback("SHPC", self.updateHealthDisplay);
+				OptionsManager.unregisterCallback("SHNPC", self.updateHealthDisplay);
+			end
+			function updateHealthDisplay()
+				for _,w in pairs(list.getWindows()) do
+					w.updateHealthDisplay();
+				end
+			end
+		</script>
+	</windowclass>
+	<windowclass name="sub_ct_header_client" merge="join">
+		<sheetdata>
+			<spacer_ct_header_buttons_client name="spacer_buttons_header_add" insertbefore="label_init">
+				<anchored width="60" />
+			</spacer_ct_header_buttons_client>
+
+			<label_ct_header_right name="label_damage" insertbefore="label_init">
+				<static textres="ct_label_damage" />
+			</label_ct_header_right>
+			<label_ct_header_right name="label_hits" insertbefore="label_init">
+				<static textres="ct_label_hits" />
+			</label_ct_header_right>
+			<label_ct_header_right name="label_used_pp" insertbefore="label_init">
+				<static textres="ct_label_used_pp" />
+			</label_ct_header_right>
+			<label_ct_header_right name="label_max_pp" insertbefore="label_init">
+				<static textres="ct_label_max_pp" />
+			</label_ct_header_right>
+			<label_ct_header_right name="label_activitypercent" insertbefore="label_init">
+				<static textres="ct_label_activitypercent" />
+			</label_ct_header_right>
+		</sheetdata>
+	</windowclass>
+</root>

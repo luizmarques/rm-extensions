@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="quest_header" copy="record_header">
+		<script>
+			function update()
+				super.update();
+
+				local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+				xp.setReadOnly(bReadOnly);
+			end
+		</script>
+		<sheetdata>
+			<area_content_record_header_details name="area_details" />
+			<number_listitem_base name="xp">
+				<anchored to="area_details" position="insidetopright" offset="5,0" width="70" height="20" />
+				<description textres="xp" />
+			</number_listitem_base>
+			<label name="xp_label">
+				<anchored to="xp" position="lefthigh" offset="10,0" />
+				<static textres="xp" />
+			</label>
+		</sheetdata>
+	</windowclass>
+</root>

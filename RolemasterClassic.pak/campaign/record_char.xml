@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="charsheet" copy="charsheet_base">
+		<sizelimits>
+			<minimum width="525" height="690" />
+			<dynamic />
+		</sizelimits>
+		<tab>
+			<name>main</name>
+			<resource>tab_main</resource>
+			<class>charsheet_main</class>
+		</tab>
+		<tab merge="add">
+			<name>combat</name>
+			<resource>tab_combat</resource>
+			<class>charsheet_combat</class>
+		</tab>
+		<tab merge="add">
+			<name>skills</name>
+			<resource>tab_skills</resource>
+			<class>charsheet_skills</class>
+		</tab>
+		<tab merge="add">
+			<name>spells</name>
+			<resource>tab_spells</resource>
+			<class>charsheet_spells</class>
+		</tab>
+		<tab merge="add">
+			<name>inventory</name>
+			<resource>tab_inventory</resource>
+			<class>charsheet_inventory</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>notes</name>
+			<resource>tab_notes</resource>
+			<class>charsheet_notes</class>
+		</tab>
+		<script file="campaign/scripts/charsheet.lua" />
+	</windowclass>
+	<windowclass name="charsheet_overview" copy="charsheet_overview_base_v2">
+		<sheetdata>
+			<linkfield name="professionlink" insertbefore="name">
+				<anchored to="rightanchor" width="20" height="20">
+					<top offset="15" />
+					<right relation="relative" offset="-2" postoffset="-2" />
+				</anchored>
+				<description field="profession" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						self.onValueChanged();
+					end
+					function onValueChanged()
+						if isEmpty() then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+						local _, sRecord = getValue();
+						local nodeProfession = DB.findNode(sRecord);
+						if ((sRecord or "") ~= "") and not nodeProfession then
+							local sModule = DB.getModule(sRecord);
+							if (sModule or "") ~= "" then
+								Module.activate(sModule);
+							end
+						end
+						local sProfessionRealm = DB.getValue(nodeProfession, "realm", "");
+						if (sProfessionRealm ~= "Pick One") and (sProfessionRealm ~= "") then
+							DB.setValue(window.getDatabaseNode(), "realm", "string", sProfessionRealm);
+						end
+					end
+				</script>
+			</linkfield>
+			<combobox_labeled_RMC name="profession" insertbefore="name">
+				<anchored to="rightanchor" width="150" height="20">
+					<top offset="15" />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<labelres>char_label_profession</labelres>
+				<listmaxsize>5</listmaxsize>
+				<readonly />
+				<script>
+					function onInit()
+						super.onInit();
+						
+						Module.addEventHandler("onModuleLoad", self.ModuleLoadUnload);
+						Module.addEventHandler("onModuleUnload", self.ModuleLoadUnload);
+						self.ModuleLoadUnload();
+					end
+					function ModuleLoadUnload()
+						self.getProfessionLink();
+						addItems(Rules_Professions.List());
+					end
+					function onValueChanged()
+						self.getProfessionLink();
+					end
+					function getProfessionLink()
+						local sCharNode = window.getDatabasePath();
+						Rules_Professions.SetProfessionLink(getValue(), sCharNode);
+					end
+				</script>
+			</combobox_labeled_RMC>
+		</sheetdata>
+	</windowclass>
+</root>

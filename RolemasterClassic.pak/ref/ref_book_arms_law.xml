@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="reference_armslaw_standard_weapons">
+		<script>
+			function onInit()
+				local tList = {
+					sRecordType = "item",
+					sSource = getDatabasePath(),
+					sTitle = "Table 02-10: Standard Weapons",
+					aColumns = {
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=200, nSortOrder = 1 },
+						{ sName = "weight_s", sType = "string", sHeading = "Wt", bCentered=true },
+						{ sName = "length_s", sType = "string", sHeading = "Len", bCentered=true },
+						{ sName = "fumble", sType = "number", sHeading = "Fum", nWidth=30, bCentered=true },
+						{ sName = "mod1", sType = "number", sHeading = "Rng 10", sTooltip="Range Modification (10 feet)", nWidth=50, bCentered=true },
+						{ sName = "mod2", sType = "number", sHeading = "Rng 25", sTooltip="Range Modification (25 feet)", nWidth=50, bCentered=true },
+						{ sName = "mod3", sType = "number", sHeading = "Rng 50", sTooltip="Range Modification (50 feet)", nWidth=50, bCentered=true },
+						{ sName = "mod4", sType = "number", sHeading = "Rng 100", sTooltip="Range Modification (100 feet)", nWidth=50, bCentered=true },
+						{ sName = "mod5", sType = "number", sHeading = "Rng 150", sTooltip="Range Modification (150 feet)", nWidth=50, bCentered=true },
+						{ sName = "attacktable.name", sType = "string", sHeading = "Table Used", nWidth=150 },
+						{ sName = "at17_20", sType = "number", sHeading = "AT 17-20", sTooltip="Armor Modification (AT 17-20)", nWidth=60, bCentered=true },
+						{ sName = "at13_16", sType = "number", sHeading = "AT 13-16", sTooltip="Armor Modification (AT 13-16)", nWidth=60, bCentered=true },
+						{ sName = "at9_12", sType = "number", sHeading = "AT 9-12", sTooltip="Armor Modification (AT 9-12)", nWidth=60, bCentered=true },
+						{ sName = "at5_8", sType = "number", sHeading = "AT 5-8", sTooltip="Armor Modification (AT 5-8)", nWidth=60, bCentered=true },
+						{ sName = "at1_4", sType = "number", sHeading = "AT 1-4", sTooltip="Armor Modification (AT 1-4)", nWidth=60, bCentered=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					aGroupValueOrder = { "One-Handed Concussion", "One-Handed Slashing", "Two-Handed Weapon", "Pole Arm", "Missile Weapon", "Thrown Weapon" },
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", tList.sSource);
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_armslaw_additional_weapons">
+		<script>
+			function onInit()
+				local tList = {
+					sRecordType = "item",
+					sSource = getDatabasePath(),
+					sTitle = "Table 02-10: Additional Weapons",
+					aColumns = {
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=200, nSortOrder = 1 },
+						{ sName = "weight_s", sType = "string", sHeading = "Wt", bCentered=true },
+						{ sName = "length_s", sType = "string", sHeading = "Len", bCentered=true },
+						{ sName = "fumble", sType = "number", sHeading = "Fum", nWidth=30, bCentered=true },
+						{ sName = "mod1", sType = "number", sHeading = "Rng 10", sTooltip="Range Modification (10 feet)", nWidth=50, bCentered=true },
+						{ sName = "mod2", sType = "number", sHeading = "Rng 25", sTooltip="Range Modification (25 feet)", nWidth=50, bCentered=true },
+						{ sName = "mod3", sType = "number", sHeading = "Rng 50", sTooltip="Range Modification (50 feet)", nWidth=50, bCentered=true },
+						{ sName = "mod4", sType = "number", sHeading = "Rng 100", sTooltip="Range Modification (100 feet)", nWidth=50, bCentered=true },
+						{ sName = "mod5", sType = "number", sHeading = "Rng 150", sTooltip="Range Modification (150 feet)", nWidth=50, bCentered=true },
+						{ sName = "attacktable.name", sType = "string", sHeading = "Table Used", nWidth=150 },
+						{ sName = "at17_20", sType = "number", sHeading = "AT 17-20", sTooltip="Armor Modification (AT 17-20)", nWidth=60, bCentered=true },
+						{ sName = "at13_16", sType = "number", sHeading = "AT 13-16", sTooltip="Armor Modification (AT 13-16)", nWidth=60, bCentered=true },
+						{ sName = "at9_12", sType = "number", sHeading = "AT 9-12", sTooltip="Armor Modification (AT 9-12)", nWidth=60, bCentered=true },
+						{ sName = "at5_8", sType = "number", sHeading = "AT 5-8", sTooltip="Armor Modification (AT 5-8)", nWidth=60, bCentered=true },
+						{ sName = "at1_4", sType = "number", sHeading = "AT 1-4", sTooltip="Armor Modification (AT 1-4)", nWidth=60, bCentered=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					aGroupValueOrder = { "One-Handed Concussion", "One-Handed Slashing", "Two-Handed Weapon", "Pole Arm", "Missile Weapon", "Thrown Weapon" },
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", tList.sSource);
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="referencearmslawcreatures">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "npc",
+					sSource = DB.getValue(node, "source"),
+					sTitle = DB.getValue(node, "name"),
+					aColumns = {
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=150, nSortOrder=1 },
+						{ sName = "sizecrit", sType = "custom", sCustomKey = "npc_view_sizecrit", sHeading = "Sz/Crt", sTooltip="Size / Crit", bCentered=true },
+						{ sName = "hits", sType = "number", sHeading = "Hits", bCentered=true },
+ 						{ sName = "atdb", sType = "custom", sCustomKey = "npc_view_atdb", sHeading = "AT(DB)", bCentered=true },
+						{ sName = "speed", sType = "custom", sCustomKey = "npc_view_msaq", sHeading = "Speed", sTooltip="Speed (MS/AQ)", bCentered=true },
+						{ sName = "level", sType = "number", sHeading = "Level", bCentered=true },
+						{ sName = "attacks", sType = "custom", sCustomKey = "npc_view_attacks", sHeading = "Attacks", nWidth=350, bWrapped=true },
+						{ sName = "notes", sType = "formattedtext", nMaxLength = -1, sHeading = "Special", nWidth=400, bWrapped=true },
+					},
+					aFilters = { { sDBField = "group", vFilterValue = DB.getValue(node, "group", "") } },
+					aGroups = { { sDBField = "group" } },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_attack_martial_arts">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = getDatabasePath(),
+					sTitle = "Martial Arts Attacks",
+				};
+
+				local w = Interface.openWindow("reference_list", getDatabasePath());
+				ListManager.initSimpleListFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+</root>

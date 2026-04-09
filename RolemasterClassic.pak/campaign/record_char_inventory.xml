@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="charsheet_inventory">
+		<script>
+			function onDrop(x, y, draginfo)
+				return ItemManager.handleAnyDrop(getDatabaseNode(), draginfo);
+			end
+		</script>
+		<sheetdata>
+			<anchor_content_top />
+			<anchor_content_bottom />
+
+			<sub_content_scroll name="content">
+				<class>charsheet_inventory_contents</class>
+			</sub_content_scroll>
+			<scrollbar_content />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charsheet_inventory_contents">
+		<margins control="0,0,0,5" />
+		<sheetdata>
+			<anchor_content_top />
+
+			<area_content_top name="inventorylist_header">
+				<anchored height="45" />
+			</area_content_top>
+			<label_charframetop name="invtitle">
+				<anchored to="inventorylist_header" position="insidetop" offset="-10,0" height="20" />
+				<static textres="char_label_inventory" />
+			</label_charframetop>
+			<genericcontrol name="search_icon">
+				<anchored to="invtitle" position="insidetopleft" offset="0,0" width="20" height="20" />
+				<icon>search</icon>
+			</genericcontrol>
+			<stringcontrol name="typefilter">
+				<anchored to="invtitle" position="insidetopleft" offset="25,0" width="140" height="20" />
+				<frame name="fielddark" offset="10,4,4,4" />
+				<tooltip textres="char_tooltip_filter_inventory" />
+			</stringcontrol>
+			<DropDown name="typefilterdropdown">
+				<target>typefilter</target>
+				<position>0,5</position>
+				<tooltip textres="char_tooltip_filter_inventory" />
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(ItemManager2.TypeList());
+					end
+				</script>
+			</DropDown>
+
+			<list_content_noscroll_alternating_top name="inventorylist">
+				<anchored>
+					<left offset="10" />
+					<right offset="-10" />
+				</anchored>
+				<datasource>.inventorylist</datasource>
+				<class>char_invitem</class>
+				<allowdelete />
+				<filter control="typefilter" />
+				<filteron control="type" />
+				<script file="campaign/scripts/char_invlist.lua" />
+			</list_content_noscroll_alternating_top>
+
+			<anchor_list_content_label_left>
+				<anchored to="inventorylist" />
+			</anchor_list_content_label_left>
+			<anchor_list_content_label_right>
+				<anchored to="inventorylist" />
+			</anchor_list_content_label_right>
+			<spacer_list_content_idelete_label_left name="idelete_header" />
+			<spacer_list_content_link_label_left name="spacer_link" />
+			<label_list_content_number_left name="label_count">
+				<anchored width="20" />
+				<static>#</static>
+			</label_list_content_number_left>
+			<label_list_content_button_right name="label_carried">
+				<icon>char_inv_carried_header</icon>
+				<tooltip textres="char_tooltip_itemcarried" />
+			</label_list_content_button_right>
+			<label_list_content_number_right name="label_weight">
+				<anchored width="70" />
+				<static textres="char_label_itemweight" />
+				<tooltip textres="char_tooltip_itemweight" />
+			</label_list_content_number_right>
+			<label_list_content_string_noframe_right name="label_location">
+				<static textres="char_label_itemlocation" />
+				<center />
+			</label_list_content_string_noframe_right>
+			<label_list_content_noframe name="label_name">
+				<static textres="char_label_itemname" />
+			</label_list_content_noframe>
+
+			<button_iedit name="inventorylist_iedit">
+				<anchored to="invtitle" position="insidetopright" offset="0,0" />
+				<target>inventorylist</target>
+			</button_iedit>
+			<button_iadd name="inventorylist_iadd">
+				<anchored to="inventorylist_iedit" position="lefthigh" offset="0,0" />
+				<target>inventorylist</target>
+			</button_iadd>
+
+			<spacer_content_top>
+				<anchored height="10" />
+			</spacer_content_top>
+			<area_content_top name="currencylist_header">
+				<anchored height="25" />
+			</area_content_top>
+			<label_charframetop name="moneytitle">
+				<anchored to="currencylist_header" position="insidetop" offset="-10,0" height="20" />
+				<static textres="char_label_money" />
+			</label_charframetop>
+			<list_content_noscroll_top name="currencylist">
+				<anchored>
+					<left offset="10" />
+					<right offset="-10" />
+				</anchored>
+				<columns width="105" fillwidth="true" />
+				<class>char_currencyitem</class>
+				<datasource>.coins</datasource>
+				<allowdelete />
+				<script>
+					function onInit()
+						local nodeCurrencyList = getDatabaseNode();
+						if DB.getChildCount(nodeCurrencyList) == 0 then
+							CurrencyManager.populateCharCurrencies(DB.getParent(nodeCurrencyList));
+						end
+					end
+					function onSortCompare(w1, w2)
+						return CurrencyManager.sortCampaignCurrenciesUsingNames(w1.name.getValue(), w2.name.getValue());
+					end
+					function update()
+						local bEditMode = (window.currencylist_iedit.getValue() == 1);
+						if window.idelete_header then
+							window.idelete_header.setVisible(bEditMode);
+						end
+						for _,w in ipairs(getWindows()) do
+							w.idelete.setVisible(bEditMode);
+						end
+					end
+				</script>
+			</list_content_noscroll_top>
+
+			<button_iedit name="currencylist_iedit">
+				<anchored to="moneytitle" position="insidetopright" offset="0,0" />
+				<target>currencylist</target>
+			</button_iedit>
+			<button_iadd name="currencylist_iadd">
+				<anchored to="currencylist_iedit" position="lefthigh" offset="0,0" />
+				<target>currencylist</target>
+			</button_iadd>
+
+			<spacer_content_top>
+				<anchored height="10" />
+			</spacer_content_top>
+			<area_content_top name="encumbrance_header">
+				<anchored height="20" />
+			</area_content_top>
+			<label_charframetop name="encumbrancetitle">
+				<anchored to="encumbrance_header" position="insidetop" offset="-10,0" height="20" />
+				<static textres="char_label_encumbrance" />
+			</label_charframetop>
+			<area_content_top name="encumbrance_content">
+				<anchored height="40" />
+			</area_content_top>
+			<number_static name="encallowance" source="encumbrance.allowance">
+				<anchored to="encumbrance_content" position="insidetopleft" offset="10,20" width="60" height="20" />
+			</number_static>
+			<label_fieldtop name="encallowance_label">
+				<anchored to="encallowance" />
+				<static textres="char_label_encumbrance_allowance" />
+			</label_fieldtop>
+			<number_static name="encumbranceload" source="encumbrance.load">
+				<anchored to="encallowance" position="righthigh" offset="15,0" width="60" height="20" />
+			</number_static>
+			<label_fieldtop name="encumbranceload_label">
+				<anchored to="encumbranceload" />
+				<static textres="char_label_encumbrance_load" />
+			</label_fieldtop>
+			<number_static name="encumbrancepenalty" source="encumbrance.base">
+				<anchored to="encumbranceload" position="righthigh" offset="15,0" width="60" height="20" />
+			</number_static>
+			<label_fieldtop name="encumbrancepenalty_label">
+				<anchored to="encumbrancepenalty" />
+				<static textres="char_label_encumbrance_penalty" />
+			</label_fieldtop>
+			<number_static name="encumbrancestat"  source="encumbrance.stat">
+				<anchored to="encumbrancepenalty" position="righthigh" offset="15,0" width="60" height="20" />
+			</number_static>
+			<label_fieldtop name="encumbrancestat_label">
+				<anchored to="encumbrancestat" />
+				<static textres="char_label_encumbrance_stat" />
+			</label_fieldtop>
+			<number_dropadd name="encumbrancemisc" source="encumbrance.misc">
+				<anchored to="encumbrancestat" position="righthigh" offset="15,0" width="60" height="20" />
+				<hideonvalue>0</hideonvalue>
+			</number_dropadd>
+			<label_fieldtop name="encumbrancemisc_label">
+				<anchored to="encumbrancemisc" />
+				<static textres="char_label_encumbrance_misc" />
+			</label_fieldtop>
+			<number_static name="encumbrancetotal" source="encumbrance.total">
+				<anchored to="encumbrancemisc" position="righthigh" offset="15,0" width="60" height="20" />
+				<script>
+					function onDragStart(button,x,y,dragData)
+						dragData.setType("number");
+						dragData.setSlot(1);
+						dragData.setNumberData(getValue());
+						dragData.setDescription("Encumbrance penalty");
+						return true;
+					end
+				</script>
+			</number_static>
+			<label_fieldtop name="encumbrancetotal_label">
+				<anchored to="encumbrancetotal" />
+				<static textres="char_label_encumbrance_total" />
+			</label_fieldtop>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="char_invitem" merge="join">
+		<sheetdata>
+			<hs name="type" />
+			<number_listitem_left name="count">
+				<script>
+					function onInit()
+						CharEncumbranceManagerRMC.updateTotalWeight(window.getDatabaseNode());
+					end
+					function onValueChanged()
+						CharEncumbranceManagerRMC.updateTotalWeight(window.getDatabaseNode());
+					end
+				</script>
+			</number_listitem_left>
+			<number_static name="totalweight" insertbefore="weight">
+				<anchored width="30" height="20">
+					<top offset="2" />
+					<right parent="rightanchor" anchor="left" relation="relative" offset="-5" />
+				</anchored>
+			</number_static>
+			<number_listitem_right name="weight">
+				<script>
+					function onInit()
+						CharEncumbranceManagerRMC.updateTotalWeight(window.getDatabaseNode());
+					end
+					function onValueChanged()
+						CharEncumbranceManagerRMC.updateTotalWeight(window.getDatabaseNode());
+					end
+				</script>
+			</number_listitem_right>
+		</sheetdata>
+	</windowclass>
+</root>

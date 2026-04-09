@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- General -->
+	<template name="number_ct_RMC">
+		<number_ct>
+			<anchored position="righthigh" offset="10,10" width="25" />
+			<font>sheettext</font>
+			<frame name="textline" offset="0,1,0,0" merge="replace" />
+			<keyeditframe name="rowshade" offset="0,1,0,0" merge="replace" />
+		</number_ct>
+	</template>
+	<template name="number_ct_RMC_redlow">
+		<number_ct_RMC>
+			<script>
+				function update()
+					if getValue() &lt; 0 then
+						setColor(ColorManager.getUIColor("field_error"));
+					else
+						setColor(nil);
+					end
+				end
+			</script>
+		</number_ct_RMC>
+	</template>
+	<template name="diceholder_ct_RMC">
+		<dice_ghost>
+			<anchored width="30" height="20" />
+		</dice_ghost>
+	</template>
+	<template name="number_ct_crosslink_spelladder">
+		<number_spelladdermax>
+			<script file="common/scripts/number_crosslink.lua" />
+		</number_spelladdermax>
+	</template>
+
+	<template name="ct_active_result_roll">
+		<genericcontrol name="result_roll">
+			<anchored to="attacks" position="righthigh" offset="7,5" height="30" width="40" />
+			<icon>d100icon</icon>
+			<script>
+				function action(draginfo)
+					local rActor = ActorManager.resolveActor(window.getDatabaseNode());
+					local sTableID = DB.getValue("combattracker.result_tableid", "");
+					ActionResultTable.performRoll(draginfo, rActor, sTableID);
+					return true;
+				end
+				function onDragStart(button, x, y, draginfo)
+					return action(draginfo);
+				end
+				function onDoubleClick(x,y)
+					return action();
+				end
+			</script>
+		</genericcontrol>
+	</template>
+	<template name="ct_active_result_roll_label">
+		<stringcontrol name="result_roll_label">
+			<anchored to="result_roll" position="above" offset="5,-5" />
+			<static textres="ct_label_result_roll" />
+			<tooltip textres="ct_tooltip_result_roll" />
+			<font>sheetlabelsmallbold</font>
+			<multilinespacing>12</multilinespacing>
+			<center />
+			<script>
+				function onDragStart(button, x, y, draginfo)
+					return window.result_roll.action(draginfo);
+				end
+				function onDoubleClick(x,y)
+					return window.result_roll.action();
+				end
+			</script>
+		</stringcontrol>
+	</template>
+
+	<!-- GM Combat Tracker -->
+	<template name="button_ct_section_move">
+		<button_ct_section>
+			<tooltip textres="ct_tooltip_move" />
+			<state icon="button_move" merge="add" />
+			<state icon="button_move_down" merge="add" />
+			<target>move</target>
+		</button_ct_section>
+	</template>
+
+	<!-- Player Combat Tracker -->
+	<template name="spacer_button_ct_section">
+		<genericcontrol>
+			<anchored to="rightanchor" width="20" height="20">
+				<top />
+				<right anchor="left" relation="relative" offset="0" />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+	<template name="string_clientct_status">
+		<simplestring name="status">
+			<anchored to="rightanchor" width="190" height="20">
+				<top />
+				<right anchor="left" relation="relative" offset="-10" />
+			</anchored>
+			<frame name="fieldlight" offset="7,5,7,5" />
+			<center />
+			<static />
+			<invisible />
+		</simplestring>
+	</template>
+</root>

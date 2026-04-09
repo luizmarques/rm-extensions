@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- Reference Tables Tool Button List -->
+	<windowclass name="referencetablelist">
+		<frame>referencelist</frame>
+		<sizelimits>
+			<minimum width="470" height="470" />
+			<dynamic />
+		</sizelimits>
+		<minimize>minimized_reference</minimize>
+		<tooltip field="description" />
+		<sharable />
+		<script>
+			function onInit()
+				ReferenceManagerRMC.populateReferenceTableList(self);
+			end
+		</script>
+		<sheetdata>
+			<windowtitlebar_referencelist name="title">
+				<static>RM Tables</static>
+			</windowtitlebar_referencelist>
+			<windowmenubar_referencelist name="menubar" />
+
+			<anchor_content_referencelist_top />
+			<anchor_content_referencelist_bottom />
+
+			<list_content_framed_groupbox_alternating name="list">
+				<class>referencetablelistitem</class>
+				<sortby><control>name</control></sortby>
+				<readonly />
+			</list_content_framed_groupbox_alternating>
+			<scrollbar_content_list />
+
+			<resize_referencelist />
+		</sheetdata>
+	</windowclass>
+	<windowclass name="referencetablelistitem">
+		<script>
+			local _bHasData = false;
+
+			function onInit()
+				self.refresh();
+			end
+			function refresh()
+				_bHasData = (list.getWindowCount() ~= 0);
+				status.setVisible(_bHasData);
+				status.setValue(1);
+				list.setVisible(false);
+			end
+			function toggleList()
+				if not _bHasData then
+					return;
+				end
+				if status.getValue() == 0 then
+					status.setValue(1);
+					list.setVisible(false);
+				else
+					status.setValue(0);
+					list.setVisible(true);
+				end
+			end
+		</script>
+		<sheetdata>
+			<anchor_content_top />
+
+			<header_content_framed_rowshade name="name">
+				<script>
+					function onClickDown(button, x, y)
+						return true;
+					end
+					function onClickRelease(button, x, y)
+						window.toggleList();
+						return true;
+					end
+				</script>
+			</header_content_framed_rowshade>
+			<button_collapse_expand_toggle name="status">
+				<anchored to="name" position="lefthigh" offset="-20,0" />
+				<disabled />
+			</button_collapse_expand_toggle>
+
+			<list_content_noscroll_top name="list">
+				<class>referencetableentry</class>
+				<sortby><control>label</control></sortby>
+				<invisible/>
+			</list_content_noscroll_top>
+		</sheetdata>
+	</windowclass>
+	<windowclass name="referencetableentry">
+		<script>
+			function activate()
+				RMTableManager.browseTable(getDatabaseNode());
+			end
+			function drag(button, x, y, dragdata)
+				local customData = {};
+				if not dragdata.getCustomData() then
+					local node = getDatabaseNode();
+					dragdata.setType("string")
+					dragdata.setStringData(Name.getValue()); 
+					customData.type = "RMCTable";
+					customData.tableID = Id.getValue();
+					customData.tableName = Name.getValue();
+					dragdata.setCustomData(customData);
+				end
+				return true;
+			end
+		</script>
+		<sheetdata>
+			<hs name="Id" />
+
+			<anchor_listitem_left />
+			<anchor_listitem_right />
+
+			<buttonc_listitem_left name="link">
+				<icon normal="button_link" pressed="button_link_empty" />
+				<cursor hover="hand" />
+				<script>
+					function activate()
+						window.activate();
+					end
+					function onButtonPress()
+						window.activate();
+						return true;
+					end
+					function onDragStart(...)
+						return window.drag(...);
+					end
+				</script>
+			</buttonc_listitem_left>
+
+			<string_listitem_center_noframe_static_linked name="Name" />
+		</sheetdata>
+	</windowclass>
+
+	<!-- Misc -->
+	<windowclass name="referencetable" copy="referencetextwide">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+				local nDefaultWidth = DB.getValue(node, "placement.size.width");
+				local nDefaultHeight = DB.getValue(node, "placement.size.height");
+				if nDefaultWidth and nDefaultHeight then
+					setSize(nDefaultWidth, nDefaultHeight);
+				end
+			end
+		</script>
+	</windowclass>
+</root>

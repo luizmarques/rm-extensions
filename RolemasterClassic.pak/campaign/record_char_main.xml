@@ -1,0 +1,1690 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="charsheet_main">
+		<margins control="0,0,0,2" />
+		<script>
+			function onDrop(x, y, draginfo)
+				if draginfo.isType("shortcut") then
+					local sClass, sRecord = draginfo.getShortcutData();
+
+					if StringManager.contains({"reference_profession", "reference_race" }, sClass) then
+						CharManager.addInfoDB(getDatabaseNode(), sClass, sRecord);
+						return true;
+					end
+				end
+			end
+		</script>
+		<sheetdata>
+			<frame_char name="frame_overview">
+				<anchored position="insidetop" height="100" />
+			</frame_char>
+
+			<combobox_labeled_RMC name="race">
+				<anchored to="frame_overview" position="insidetopleft" offset="15,10" width="190" height="20" />
+				<labelres>char_label_race</labelres>
+				<script>
+					function onInit()
+						super.onInit();
+						
+						Module.onModuleLoad = ModuleLoadUnload;
+						Module.onModuleUnload = ModuleLoadUnload;
+						
+						ModuleLoadUnload();
+					end
+					
+					function ModuleLoadUnload()
+						getRaceLink();
+						clear();
+						addItems(Rules_Races.List());
+					end
+
+					function onValueChanged()
+						getRaceLink();
+					end
+					
+					function getRaceLink()
+						local sCharNode = DB.getPath(DB.getParent(getDatabaseNode()));
+						Rules_Races.SetRaceLink(getValue(), sCharNode);
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<linkfield name="racelink">
+				<anchored to="race" position="righthigh" width="20" height="20" />
+				<description field="race" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					
+					function onValueChanged()
+						local nodeChar = window.getDatabaseNode();
+						if isEmpty() then
+							setVisible(false);
+							Rules_PC.ClearRace(nodeChar);
+						else
+							setVisible(true);
+						end
+						local _, sRaceNodeName = getValue();
+						local nodeRace = DB.findNode(sRaceNodeName);
+						if nodeRace then
+							Rules_PC.SetRace(nodeChar, nodeRace);
+						end
+					end
+				</script>
+			</linkfield>
+
+			<combobox_labeled_RMC name="realm">
+				<anchored to="race" position="righthigh" offset="25,0" width="190" height="20" />
+				<labelres>char_label_realm</labelres>
+				<readonly />
+				<listmaxsize>9</listmaxsize>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Realm.List());
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<number_labeled name="level">
+				<anchored to="realm" position="righthigh" offset="5,0" width="45" />
+				<labelres>char_label_level</labelres>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						refresh();
+					end
+
+					function onValueChanged()
+						refresh();
+					end
+					
+					function refresh()
+						local nodeChar = window.getDatabaseNode();
+						window.max_pp.setValue(Rules_PC.PowerPoints(nodeChar));
+					end
+				</script>
+			</number_labeled>
+
+			<string_labeled name="senses">
+				<anchored to="frame_overview" position="insidetopleft" offset="15,35" width="285" height="20" />
+				<labelres>char_label_senses</labelres>
+			</string_labeled>
+			<number_labeled name="xp">
+				<anchored to="senses" position="righthigh" offset="5,0" width="80" />
+				<labelres>char_label_current_xp</labelres>
+			</number_labeled>
+			<number_labeled name="nextlevelxp">
+				<anchored to="xp" position="righthigh" offset="5,0" width="80" />
+				<labelres>char_label_next_level_xp</labelres>
+				<script>
+					function onInit()
+						super.onInit();
+						local sLevelPath = DB.getPath(window.level.getDatabaseNode());
+						DB.addHandler(sLevelPath, "onUpdate", refresh);
+						refresh();
+					end
+
+					function onClose()
+						local sLevelPath = DB.getPath(window.level.getDatabaseNode());
+						DB.removeHandler(sLevelPath, "onUpdate", refresh);
+					end
+
+					function refresh()
+						local nLevel = window.level.getValue();
+						setValue(Rules_PC.NextLevelXP(nLevel));
+					end
+				</script>
+			</number_labeled>
+
+			<string_labeled name="gender" source="sex">
+				<anchored to="frame_overview" position="insidetopleft" offset="15,60" width="60" height="20" />
+				<label>gender</label>
+			</string_labeled>
+			<string_labeled name="age">
+				<anchored to="gender" position="righthigh" offset="5,0" width="40" height="20" />
+				<label>age</label>
+			</string_labeled>
+			<string_labeled name="hair">
+				<anchored to="age" position="righthigh" offset="5,0" width="95" height="20" />
+				<label>Hair</label>
+			</string_labeled>
+			<string_labeled name="eyes">
+				<anchored to="hair" position="righthigh" offset="5,0" width="95" height="20" />
+				<label>Eyes</label>
+			</string_labeled>
+			<string_labeled name="height">
+				<anchored to="eyes" position="righthigh" offset="5,0" width="50" height="20" />
+				<label>Height</label>
+				<script>
+					function onValueChanged()
+						local charNode = window.getDatabaseNode();
+						Rules_PC.SetBaseMoveRate(charNode);
+					end
+				</script>
+			</string_labeled>
+			<number_labeled name="weight">
+				<anchored to="height" position="righthigh" offset="5,0" width="50" />
+				<label>Weight</label>
+			</number_labeled>
+			<number_labeled name="appearance">
+				<anchored to="weight" position="righthigh" offset="5,0" width="35" />
+				<label>App</label>
+			</number_labeled>
+
+			<frame_char name="frame_stats">
+				<anchored position="insidetopleft" offset="0,100" width="330" height="290" />
+			</frame_char>
+			<header_section_with_detail name="header_stats">
+				<anchored to="frame_stats" />
+				<static textres="char_heading_stats" />
+			</header_section_with_detail>
+			<button_charsheet_details name="button_details_charsheet_stats">
+				<anchored to="header_stats" />
+			</button_charsheet_details>
+			<label_content_list_column name="statnamelabel">
+				<anchored to="frame_stats" position="insidetopleft" offset="0,25" width="100" />
+				<static textres="char_label_stat_name" />
+			</label_content_list_column>
+			<label_content_list_column name="statabbrlabel">
+				<anchored to="statnamelabel" position="righthigh" offset="10,0" width="35" />
+				<static textres="char_label_stat_abbr" />
+			</label_content_list_column>
+			<label_content_list_column name="stattemplabel">
+				<anchored to="statabbrlabel" position="righthigh" offset="10,0" width="35" />
+				<static textres="char_label_stat_temp" />
+			</label_content_list_column>
+			<label_content_list_column name="statdamagelabel">
+				<anchored to="stattemplabel" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_stat_damage" />
+			</label_content_list_column>
+			<label_content_list_column name="stattempcurrentlabel">
+				<anchored to="statdamagelabel" position="righthigh" offset="2,0" width="38" />
+				<static textres="char_label_stat_temp_current" />
+			</label_content_list_column>
+			<label_content_list_column name="stattotallabel">
+				<anchored to="stattempcurrentlabel" position="righthigh" offset="10,0" width="35" />
+				<static textres="char_label_stat_total" />
+			</label_content_list_column>
+			<windowlist name="list_stats">
+				<anchored to="frame_stats" position="insidetopleft" offset="15,40" width="330" height="265" />
+				<datasource>.abilities</datasource>
+				<class>stat_item_brief</class>
+				<sortby><field>order</field></sortby>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						--[[ load the stat list ]]
+						local statList = Rules_Stats.List();
+						for i = 1, #statList do
+							addEntry(statList[i].name, statList[i].label, statList[i].displayname, statList[i].devStat, statList[i].order);
+						end
+						--[[ force a re-sort ]]
+						applySort();
+					end
+
+					function addEntry(name, label, displayname, dev, order)
+						local node = DB.getChild(getDatabaseNode(), name);
+						local win;
+						if not node then
+							node = DB.createChild(getDatabaseNode(), name);
+						end
+						for i,w in ipairs(getWindows()) do
+							if DB.getName(w.getDatabaseNode())==name then
+								win = w;
+							end
+						end
+						if win then
+							win.abbr.setValue(label);
+							win.label.setValue(displayname);
+							win.label.setTooltipText("Drag or double click to roll a " .. win.label.getValue() .. " stat check");
+							win.total.setTooltipText("Drag or double click to add the " .. win.label.getValue() .. " stat total bonus to the Modifier Stack");
+							win.order.setValue(order);
+						end
+					end
+
+					function onSortCompare(w1, w2)
+						return (w1.order.getValue() &gt; w2.order.getValue());
+					end
+
+				</script>
+			</windowlist>		
+
+			<frame_char name="frame_resistances">
+				<anchored position="insidetopleft" offset="330,100" width="155" height="290" />
+			</frame_char>
+			<header_section_with_detail name="header_resistances">
+				<anchored to="frame_resistances" />
+				<static textres="char_heading_resistances" />
+			</header_section_with_detail>
+			<button_charsheet_details name="button_details_charsheet_resistances">
+				<anchored to="header_resistances" />
+			</button_charsheet_details>
+			<label_content_list_column name="resistance_name_label">
+				<anchored to="frame_resistances" position="insidetopleft" offset="10,25" width="85" />
+				<static textres="char_label_resistance_name" />
+			</label_content_list_column>
+			<label_content_list_column name="statdptotallabel">
+				<anchored to="resistance_name_label" position="righthigh" offset="10,0" width="35" />
+				<static textres="char_label_stat_total" />
+			</label_content_list_column>
+			<windowlist name="list_resistances_base">
+				<anchored to="frame_resistances" position="insidetopleft" offset="15,40" width="150" height="145" />
+				<datasource>.rr.base</datasource>
+				<class>resistance_base_item_brief</class>
+				<sortby>
+					<field>order</field>
+				</sortby>
+				<script file="campaign/scripts/list_resistances_base.lua" />
+			</windowlist>		
+			<windowlist name="list_resistances_hybrid">
+				<anchored to="frame_resistances" position="insidetopleft" offset="15,184" width="150" height="100" />
+				<datasource>.rr.hybrid</datasource>
+				<class>resistance_hybrid_item_brief</class>
+				<sortby>
+					<field>order</field>
+				</sortby>
+				<script file="campaign/scripts/list_resistances_hybrid.lua" />
+			</windowlist>		
+
+			<number_boxed_total_initiative name="initiative_total" source="initiative.total">
+				<invisible />
+			</number_boxed_total_initiative>
+			<frame_char name="frame_move_initiative">
+				<anchored position="insidetopleft" offset="0,390" width="125" height="85" />
+			</frame_char>
+			<header_section_with_detail name="header_move_initiative">
+				<anchored to="frame_move_initiative" />
+				<static textres="char_heading_move_initiative" />
+			</header_section_with_detail>
+			<button_charsheet_details name="button_details_charsheet_move_initiative">
+				<anchored to="header_move_initiative" />
+			</button_charsheet_details>
+			<dice_ghost name="diceholder">
+				<anchored to="frame_move_initiative" position="insidetopleft" offset="15,30" width="55" height="20" />
+			</dice_ghost>
+			<row_heading name="label_move">
+				<anchored to="frame_move_initiative" position="insidetopleft" offset="15,30" width="60" />
+				<readonly />
+				<static textres="char_label_move" />
+				<script>
+					function action(draginfo)
+						local charNode = window.getDatabaseNode();
+						local rActor = ActorManager.resolveActor(charNode);
+						local sSkillName = ActionSkill.MovementMM;
+						local nSkillMod = 0;
+						local nSkillType = ActionSkill.MM;
+						ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<number_readonly name="move" source="bmr.total" >
+				<anchored to="label_move" position="righthigh" offset="0,0" height="20" />
+			</number_readonly>			
+			<dice_ghost name="diceholder">
+				<anchored to="frame_move_initiative" position="insidetopleft" offset="15,55" width="55" height="20" />
+			</dice_ghost>
+			<row_heading name="label_initiative">
+				<anchored to="frame_move_initiative" position="insidetopleft" offset="15,55" width="60" />
+				<readonly />
+				<static textres="char_label_initiative" />
+				<script>
+					function action(draginfo)
+						local charNode = window.getDatabaseNode();
+						local rActor = ActorManager.resolveActor(charNode);
+						ActionInitiative.performRoll(draginfo, rActor);
+
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<number_boxed name="initiative" source="initiative.initresult" >
+				<anchored to="label_initiative" position="righthigh" offset="0,0" height="20" />
+			</number_boxed>			
+
+			<frame_char name="frame_exhaustion">
+				<anchored position="insidetopleft" offset="125,390" width="125" height="85" />
+			</frame_char>
+			<header_section_with_detail name="header_exhaustion">
+				<anchored to="frame_exhaustion" />
+				<static textres="char_heading_exhaustion" />
+			</header_section_with_detail>
+			<button_charsheet_details name="button_details_charsheet_exhaustion">
+				<anchored to="header_exhaustion" />
+			</button_charsheet_details>
+			<hn name="exhaustion_misc" />
+			<row_heading name="label_max_exhaustion">
+				<anchored to="frame_exhaustion" position="insidetopleft" offset="15,30" width="60" />
+				<readonly />
+				<static textres="char_label_max_exhaustion" />
+			</row_heading>
+			<number_readonly name="max_exhaustion" source="exhaustion_total" >
+				<anchored to="label_max_exhaustion" position="righthigh" offset="0,0" height="20" />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						DB.addHandler(DB.getPath(window.getDatabaseNode(), "abilities.constitution.temp_current"), "onUpdate", updateExhaustionTotal);
+						DB.addHandler(DB.getPath(window.getDatabaseNode(), "exhaustion_misc"), "onUpdate", updateExhaustionTotal);
+						
+						updateExhaustionTotal();
+						onValueChanged();
+					end
+
+					function onValueChanged()
+						if getValue() &lt; window.used_exhaustion.getValue() then
+							window.used_exhaustion.setColor(ColorManager.getUIColor("field_error"));
+						else
+							window.used_exhaustion.setColor(nil);
+						end
+					end
+
+					function updateExhaustionTotal()
+						local node = window.getDatabaseNode();
+						local nValue = DB.getValue(node, "abilities.constitution.temp_current", 0);
+						nValue = nValue + DB.getValue(node, "exhaustion_misc", 0);
+						setValue(nValue);
+					end
+				</script>
+			</number_readonly>			
+			<row_heading name="label_used_exhaustion">
+				<anchored to="frame_exhaustion" position="insidetopleft" offset="15,55" width="60" />
+				<readonly />
+				<static textres="char_label_used_exhaustion" />
+			</row_heading>
+			<number_boxed name="used_exhaustion" source="exhaustion" >
+				<anchored to="label_used_exhaustion" position="righthigh" offset="0,0" height="20" />
+				<script>
+					function onValueChanged()
+						if getValue() &lt; 0 or getValue() &gt; window.max_exhaustion.getValue() then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						onValueChanged();
+					end
+				</script>
+			</number_boxed>			
+
+			<frame_char name="frame_hits">
+				<anchored position="insidetopleft" offset="0,475" width="125" height="85" />
+			</frame_char>
+			<header_section name="header_hits">
+				<anchored to="frame_hits" />
+				<static textres="char_heading_hits" />
+			</header_section>
+			<row_heading name="label_max_hits">
+				<anchored to="frame_hits" position="insidetopleft" offset="15,30" width="60" />
+				<readonly />
+				<static textres="char_label_max_hits" />
+			</row_heading>
+			<number_boxed name="max_hits" source="hits.max" >
+				<anchored to="label_max_hits" position="righthigh" offset="0,0" height="20" />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						onValueChanged();
+						OptionsManager.registerCallback("CCHP", refresh);
+						refresh();
+					end
+
+					function onClose()
+						OptionsManager.unregisterCallback("CCHP", refresh);
+					end
+
+					function onValueChanged()
+						if getValue() &lt; window.damage.getValue() then
+							window.damage.setColor(ColorManager.getUIColor("field_error"));
+						else
+							window.damage.setColor(nil);
+						end
+					end
+
+					function refresh()
+						if string.lower(OptionsManager.getOption("CCHP")) == string.lower(Interface.getString("option_val_on")) then
+							setValue(Rules_PC.Hits(window.getDatabaseNode()));
+							setReadOnly(true);
+							setFrame("fieldlight",4,4,4,4)
+						else
+							setReadOnly(false);
+							setFrame("fielddark",4,4,4,4)
+						end
+					end
+				</script>
+			</number_boxed>			
+			<row_heading name="label_damage">
+				<anchored to="frame_hits" position="insidetopleft" offset="15,55" width="60" />
+				<readonly />
+				<static textres="char_label_damage" />
+			</row_heading>
+			<number_boxed name="damage" source="hits.damage" >
+				<anchored to="label_damage" position="righthigh" offset="0,0" height="20" />
+				<script>
+					function onValueChanged()
+						if getValue() &lt; 0 or getValue() &gt; window.max_hits.getValue() then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						onValueChanged();
+					end
+				</script>
+			</number_boxed>			
+
+			<frame_char name="frame_powerpoints">
+				<anchored position="insidetopleft" offset="125,475" width="125" height="85" />
+			</frame_char>
+			<header_section name="header_powerpoints">
+				<anchored to="frame_powerpoints" offset="15,10" />
+				<static textres="char_heading_pp" />
+			</header_section>
+			<row_heading name="label_max_pp">
+				<anchored to="frame_powerpoints" position="insidetopleft" offset="15,30" width="60" />
+				<readonly />
+				<static textres="char_label_max_pp" />
+			</row_heading>
+			<row_heading name="label_pp_mult">
+				<anchored to="frame_powerpoints" position="insidetopleft" offset="55,30" width="10" />
+				<readonly />
+				<static>x</static>
+			</row_heading>
+			<numberfield name="pp_mult" source="pp.mult" >
+				<anchored to="label_max_pp" position="righthigh" offset="-17,0" width="15" height="20" />
+				<font>sheettext</font>
+				<readonly />
+				<default>1</default>
+				<script>
+					function onInit()
+						local nodeChar = window.getDatabaseNode();
+						local sAdderMultName = DB.getValue(nodeChar, "equipped_adder_multiplier", "");
+						Rules_PC.PPMult(nodeChar, sAdderMultName);
+					end
+				</script>
+			</numberfield>			
+			<number_boxed name="max_pp" source="pp.max" >
+				<anchored to="label_max_pp" position="righthigh" offset="0,0" height="20" />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						OptionsManager.registerCallback("CCPP", refresh);
+						OptionsManager.registerCallback("CL01", refresh);
+						OptionsManager.registerCallback("CL16", refresh);
+						OptionsManager.registerCallback("SL04", refresh);
+						OptionsManager.registerCallback("RC44P", refresh);
+						OptionsManager.registerCallback("RC48P", refresh);
+
+						local nodeChar = window.getDatabaseNode();
+						local sLevelPath = DB.getPath(nodeChar, "level");
+						local sRealmPath = DB.getPath(nodeChar, "realm");
+						local sEmpathyPath = DB.getPath(nodeChar, "abilities.empathy.temp_current");
+						local sIntuitionPath = DB.getPath(nodeChar, "abilities.intuition.temp_current");
+						local sPresencePath = DB.getPath(nodeChar, "abilities.presence.temp_current");
+						local sPPMultPath = DB.getPath(nodeChar, "pp.mult");
+						DB.addHandler(sLevelPath, "onIntegrityChange", onUpdate);
+						DB.addHandler(sRealmPath, "onUpdate", onUpdate);
+						DB.addHandler(sEmpathyPath, "onUpdate", onUpdate);
+						DB.addHandler(sIntuitionPath, "onUpdate", onUpdate);
+						DB.addHandler(sPresencePath, "onUpdate", onUpdate);
+						DB.addHandler(sPPMultPath, "onUpdate", onUpdate);
+
+						onValueChanged();
+						refresh();
+					end
+
+					function onClose()
+						OptionsManager.unregisterCallback("CCPP", refresh);
+						OptionsManager.unregisterCallback("CL01", refresh);
+						OptionsManager.unregisterCallback("CL16", refresh);
+						OptionsManager.unregisterCallback("SL04", refresh);
+						OptionsManager.unregisterCallback("RC44P", refresh);
+						OptionsManager.unregisterCallback("RC48P", refresh);
+					end
+
+					function onValueChanged()
+						if getValue() &lt; window.used_pp.getValue() then
+							window.used_pp.setColor(ColorManager.getUIColor("field_error"));
+						else
+							window.used_pp.setColor(nil);
+						end
+					end
+
+					function onUpdate()
+						refresh();
+					end
+
+					function refresh()
+						if string.lower(OptionsManager.getOption("CCPP")) == string.lower(Interface.getString("option_val_on")) then
+							setValue(Rules_PC.PowerPoints(window.getDatabaseNode()));
+							setReadOnly(true);
+							setFrame("fieldlight",4,4,4,4)
+						else
+							setReadOnly(false);
+							setFrame("fielddark",4,4,4,4)
+						end
+					end
+				</script>
+			</number_boxed>			
+			<number_spelladdermax name="max_spell_adder" source="pp.spelladdermax" >
+				<anchored to="max_pp" />
+				<tooltip textres="tooltip_max_spell_adder" />
+				<script>
+					function onInit()
+						local nodeChar = window.getDatabaseNode();
+						local sAdderMultName = DB.getValue(nodeChar, "equipped_adder_multiplier", "");
+						Rules_PC.SpellAdder(nodeChar, sAdderMultName);
+						onValueChanged();
+					end
+
+					function onValueChanged()
+						if getValue() &lt; window.used_spell_adder.getValue() then
+							window.used_spell_adder.setColor(ColorManager.getUIColor("field_error"));
+						else
+							window.used_spell_adder.setColor(nil);
+						end
+					end
+				</script>
+			</number_spelladdermax>			
+			<row_heading name="label_used_pp">
+				<anchored to="frame_powerpoints" position="insidetopleft" offset="15,55" width="60" />
+				<readonly />
+				<static textres="char_label_used_pp" />
+			</row_heading>
+			<number_boxed name="used_pp" source="pp.used" >
+				<anchored to="label_used_pp" position="righthigh" offset="0,0" height="20" />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						onValueChanged();
+					end
+
+					function onValueChanged()
+						if getValue() &lt; 0 or getValue() &gt; window.max_pp.getValue() then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+				</script>
+			</number_boxed>			
+			<number_spelladder name="used_spell_adder" source="pp.spelladderused" >
+				<anchored to="used_pp" />
+				<tooltip textres="tooltip_used_spell_adder" />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						onValueChanged();
+					end
+
+					function onValueChanged()
+						if getValue() &lt; 0 or getValue() &gt; window.max_spell_adder.getValue() then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+				</script>
+			</number_spelladder>			
+
+			<frame_char name="frame_language">
+				<anchored position="insidetopleft" offset="250,390" width="235" height="170" />
+			</frame_char>
+			<header_section>
+				<anchored to="frame_language" offset="15,10" />
+				<static textres="char_heading_languages" />
+			</header_section>
+			<list_language name="languages">
+				<anchored to="frame_language">
+					<top offset="45" />
+					<left offset="15" />
+					<right offset="-10" />
+					<bottom offset="-15" />
+				</anchored>
+			</list_language>
+			<scrollbar_list>
+				<anchored to="languages" />
+				<target>languages</target>
+			</scrollbar_list>
+			<button_iedit name="languages_iedit">
+				<anchored to="languages" position="aboveright" offset="5,15" />
+				<target>languages</target>
+			</button_iedit>
+			<button_iadd name="languages_iadd">
+				<anchored to="languages" position="aboveright" offset="30,15" />
+				<target>languages</target>
+			</button_iadd>
+			<label_content_list_column name="languagelabel">
+				<anchored to="frame_language" position="insidetopleft" offset="5,30">
+					<right offset="-85" />
+				</anchored>
+				<static>Language</static>
+			</label_content_list_column>
+			<label_content_list_column name="writtenlabel">
+				<anchored to="languagelabel" position="righthigh" offset="0,0" width="30" />
+				<static textres="char_label_language_write" />
+			</label_content_list_column>
+			<label_content_list_column name="spokenlabel">
+				<anchored to="writtenlabel" position="righthigh" offset="10,0" width="30" />
+				<static textres="char_label_language_speak" />
+			</label_content_list_column>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charsheet_stats" copy="charsheethelper_base">
+		<sizelimits>
+			<minimum width="575" height="390" />
+		</sizelimits>
+		<helplinkres>help_charsheet_stats</helplinkres>
+		<sheetdata>
+			<windowtitlebar_charsheethelper name="title">
+				<prefix>char_heading_stats</prefix>
+			</windowtitlebar_charsheethelper>
+
+			<!-- FOOTER -->
+			<area_content_framed_groupbox_narrow_bottom name="footerframe">
+				<anchored height="40" />
+			</area_content_framed_groupbox_narrow_bottom>
+			<button_text name="button_statgen">
+				<anchored to="footerframe" position="insidetopleft" offset="10,10" width="130" />
+				<state textres="char_label_stat_init_generation" />
+				<tooltip textres="char_tooltip_stat_init_generation" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("charassist_statgen", window.getDatabasePath());
+					end
+				</script>
+			</button_text>
+			<button_text name="button_statgain">
+				<anchored to="button_statgen" position="righthigh" offset="30,0" width="100" />
+				<state textres="char_label_stat_gain" />
+				<tooltip textres="char_tooltip_stat_gain" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("charassist_statgain", window.getDatabasePath());
+					end
+				</script>
+			</button_text>
+			<number_static name="dptotal">
+				<anchored to="footerframe" position="insidetopleft" offset="394,10" width="35" height="20" />
+			</number_static>
+			<label name="statdptotallabel">
+				<anchored to="dptotal" position="lefthigh" offset="10,0" />
+				<static textres="char_label_stat_dp_total" />
+			</label>
+
+			<!-- CONTENT -->
+			<area_content_framed_groupbox name="frame_stats" />
+			<label_content_list_column name="statnamelabel">
+				<anchored to="frame_stats" position="insidetopleft" offset="0,0" width="80" />
+				<static textres="char_label_stat_name" />
+			</label_content_list_column>
+			<label_content_list_column name="statabbrlabel">
+				<anchored to="statnamelabel" position="righthigh" offset="10,0" width="35" />
+				<static textres="char_label_stat_abbr" />
+			</label_content_list_column>
+			<label_content_list_column name="stattemplabel">
+				<anchored to="statabbrlabel" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_stat_temp" />
+			</label_content_list_column>
+			<label_content_list_column name="statpotlabel">
+				<anchored to="stattemplabel" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_stat_pot" />
+			</label_content_list_column>
+
+			<label_content_list_column name="statbonuslabel">
+				<anchored to="statpotlabel" position="righthigh" offset="15,0" width="35" />
+				<static textres="char_label_stat_bonus" />
+			</label_content_list_column>
+			<label_content_list_column name="statracelabel">
+				<anchored to="statbonuslabel" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_stat_race" />
+			</label_content_list_column>
+			<label_content_list_column name="statspeclabel">
+				<anchored to="statracelabel" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_stat_spec" />
+			</label_content_list_column>
+			<label_content_list_column name="stattotallabel">
+				<anchored to="statspeclabel" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_stat_total" />
+			</label_content_list_column>
+
+			<label_content_list_column name="statdplabel">
+				<anchored to="stattotallabel" position="righthigh" offset="15,0" width="35" />
+				<static textres="char_label_stat_dp" />
+			</label_content_list_column>
+
+			<label_content_list_column name="statdamagelabel">
+				<anchored to="stattotallabel" position="righthigh" offset="65,0" width="35" />
+				<static textres="char_label_stat_damage" />
+			</label_content_list_column>
+			<label_content_list_column name="stattempcurrentlabel">
+				<anchored to="statdamagelabel" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_stat_temp_current" />
+			</label_content_list_column>
+
+			<windowlist name="list_stats">
+				<anchored to="frame_stats" position="insidetop" offset="0,20">
+					<bottom />
+				</anchored>
+				<datasource>.abilities</datasource>
+				<class>stat_item_detail</class>
+				<sortby><field>order</field></sortby>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						--[[ load the stat list ]]
+						local statList = Rules_Stats.List();
+						for i = 1, #statList do
+							addEntry(statList[i].name, statList[i].label, statList[i].displayname, statList[i].devStat, statList[i].order);
+						end
+						--[[ force a re-sort ]]
+						applySort();
+					end
+
+					function addEntry(name, label, displayname, dev, order)
+						local node = DB.getChild(getDatabaseNode(), name);
+						local win;
+						if not node then
+							node = DB.createChild(getDatabaseNode(), name);
+						end
+						for i,w in ipairs(getWindows()) do
+							if DB.getName(w.getDatabaseNode())==name then
+								win = w;
+							end
+						end
+						if win then
+							win.abbr.setValue(label);
+							win.label.setValue(displayname);
+							win.label.setTooltipText("Drag or double click to roll a " .. win.label.getValue() .. " stat check");
+							win.total.setTooltipText("Drag or double click to add the " .. win.label.getValue() .. " stat total bonus to the Modifier Stack");
+							win.order.setValue(order);
+							if dev == true then
+								win.dev.setValue(1);
+							else
+								win.dev.setValue(0);
+							end
+						end
+					end
+
+					function onSortCompare(w1, w2)
+						return (w1.order.getValue() &gt; w2.order.getValue());
+					end
+
+					function setDPs()
+						local charNode = window.getDatabaseNode();
+						window.dptotal.setValue(Rules_PC.TotalDP(charNode));
+					end
+				</script>
+			</windowlist>		
+		</sheetdata>
+	</windowclass>
+	<windowclass name="stat_item_brief">
+		<script>
+			function onInit()
+				OptionsManager.registerCallback("RC44B", refresh);
+				OptionsManager.registerCallback("RC48B", refresh);
+
+				local node = getDatabaseNode();
+				DB.addHandler(DB.getPath(node, "temp"), "onUpdate", self.refresh);
+				DB.addHandler(DB.getPath(node, "damage"), "onUpdate", self.refresh);
+				self.refresh();
+			end
+
+			function onClose()
+				OptionsManager.unregisterCallback("RC44B", refresh);
+				OptionsManager.unregisterCallback("RC48B", refresh);
+			end
+
+			function refresh()
+				local statNode = getDatabaseNode();
+				temp_current.setValue(temp.getValue() - damage.getValue());
+				DB.setValue(statNode, "bonus", "number", Rules_Stats.Bonus(temp_current.getValue()));
+			end
+		</script>
+		<sheetdata>
+			<hnc name="order" />
+			<hn name="dev" />
+			<dice_ghost name="diceholder">
+				<anchored position="insidetopleft" offset="0,4" width="90" height="20" />
+			</dice_ghost>
+			<row_heading name="label">
+				<anchored position="insidetopleft" offset="0,4" width="90" height="20" />
+				<readonly />
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+						ActionStat.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, window.abbr.getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<row_heading name="abbr">
+				<anchored position="insidetopleft" offset="95,4" width="35" height="20" />
+				<center />
+			</row_heading>
+			<number_boxed name="temp">
+				<anchored to="abbr" position="righthigh" offset="10,0" height="20" />
+			</number_boxed>			
+			<number_boxed name="damage">
+				<anchored to="temp" position="righthigh" offset="5,0" height="20" />
+			</number_boxed>			
+			<number_readonly name="temp_current">
+				<anchored to="damage" position="righthigh" offset="5,0" height="20" />
+			</number_readonly>			
+			<number_boxed_total_stat name="total">
+				<anchored to="temp_current" position="righthigh" height="20" />
+			</number_boxed_total_stat>			
+		</sheetdata>
+	</windowclass>
+	<windowclass name="stat_item_detail">
+		<script>
+			function onInit()
+				OptionsManager.registerCallback("CL111", refresh);
+				OptionsManager.registerCallback("CL112", refresh);
+				OptionsManager.registerCallback("RC44B", refresh);
+				OptionsManager.registerCallback("RC44D", refresh);
+				OptionsManager.registerCallback("RC48B", refresh);
+				OptionsManager.registerCallback("RC48D", refresh);
+				OptionsManager.registerCallback("RC552", refresh);
+
+				local node = getDatabaseNode();
+				DB.addHandler(DB.getPath(node, "temp"), "onUpdate", self.refresh);
+				DB.addHandler(DB.getPath(node, "race"), "onUpdate", self.refresh);
+				DB.addHandler(DB.getPath(node, "special"), "onUpdate", self.refresh);
+				DB.addHandler(DB.getPath(node, "damage"), "onUpdate", self.refresh);
+				self.refresh();
+			end
+
+			function onClose()
+				OptionsManager.unregisterCallback("CL111", refresh);
+				OptionsManager.unregisterCallback("CL112", refresh);
+				OptionsManager.unregisterCallback("RC44B", refresh);
+				OptionsManager.unregisterCallback("RC44D", refresh);
+				OptionsManager.unregisterCallback("RC48B", refresh);
+				OptionsManager.unregisterCallback("RC48D", refresh);
+				OptionsManager.unregisterCallback("RC552", refresh);
+			end
+
+			function refresh()
+				local statNode = getDatabaseNode();
+				temp_current.setValue(temp.getValue() - damage.getValue());
+				DB.setValue(statNode, "bonus", "number", Rules_Stats.Bonus(temp_current.getValue()));
+				if string.lower(OptionsManager.getOption("CL112")) == string.lower(Interface.getString("option_val_off")) then 
+					local nTemp = temp.getValue();
+					local nTotalBonus = total.getValue();
+					dp.setValue(Rules_Stats.DPs(nTemp, nTotalBonus));
+					
+					if string.lower(OptionsManager.getOption("RC552")) == string.lower(Interface.getString("option_val_off")) then 
+						if dev.getValue() == 1 then
+							dp.setVisible(true);
+						else
+							dp.setVisible(false);
+						end
+					else
+						dp.setVisible(true);
+					end
+				else
+					dp.setVisible(false);
+				end
+
+				windowlist.setDPs();
+			end
+		</script>
+		<sheetdata>
+			<hnc name="order" />
+			<hn name="dev" />
+			<dice_ghost name="diceholder">
+				<anchored position="insidetopleft" offset="0,4" width="85" height="20" />
+			</dice_ghost>
+			<row_heading name="label">
+				<anchored position="insidetopleft" offset="0,4" width="85" />
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+						ActionStat.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, window.abbr.getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<row_heading name="abbr">
+				<anchored position="insidetopleft" offset="90,4" width="35" />
+				<center />
+			</row_heading>
+			<number_boxed name="temp">
+				<anchored to="abbr" position="righthigh" offset="5,0" height="20" />
+			</number_boxed>			
+			<number_boxed name="potential">
+				<anchored to="temp" position="righthigh" offset="5,0" height="20" />
+			</number_boxed>			
+
+			<number_readonly name="bonus">
+				<anchored to="potential" position="righthigh" offset="15,0" height="20" />
+				<displaysign />
+			</number_readonly>			
+			<number_boxed name="race">
+				<anchored to="bonus" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed>			
+			<number_boxed name="special">
+				<anchored to="race" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed>			
+			<number_boxed_total_stat name="total">
+				<anchored to="special" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed_total_stat>			
+
+			<number_readonly name="dp">
+				<anchored to="total" position="righthigh" offset="15,0" height="20" />
+			</number_readonly>			
+
+			<number_boxed name="damage">
+				<anchored to="total" position="righthigh" offset="65,0" height="20" />
+			</number_boxed>			
+			<number_readonly name="temp_current">
+				<anchored to="damage" position="righthigh" offset="5,0" height="20" />
+			</number_readonly>			
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charsheet_resistances" copy="charsheethelper_base">
+		<sizelimits>
+			<minimum width="445" height="435" />
+		</sizelimits>
+		<helplinkres>help_charsheet_resistances</helplinkres>
+		<sheetdata>
+			<windowtitlebar_charsheethelper name="title">
+				<prefix>char_heading_resistances</prefix>
+			</windowtitlebar_charsheethelper>
+
+			<area_content_framed_groupbox_top name="frame_resistances_base">
+				<anchored height="200" />
+			</area_content_framed_groupbox_top>
+			<label name="header_resistances_base">
+				<anchored to="frame_resistances_base" position="insidetop" />
+				<static textres="char_heading_base_resistances" />
+				<center />
+			</label>
+			<label_content_list_column name="resistance_name_label">
+				<anchored to="frame_resistances_base" position="insidetopleft" offset="0,20" width="80" />
+				<static textres="char_label_resistance_name" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_stat_abbr_label">
+				<anchored to="resistance_name_label" position="righthigh" offset="15,0" width="35" />
+				<static textres="char_label_resistance_stat_abbr" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_stat_bonus_label">
+				<anchored to="resistance_stat_abbr_label" position="righthigh" offset="20,0" width="35" />
+				<static textres="char_label_resistance_stat_bonus" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_race_bonus_label">
+				<anchored to="resistance_stat_bonus_label" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_resistance_race_bonus" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_item_bonus_label">
+				<anchored to="resistance_race_bonus_label" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_resistance_item_bonus" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_special_bonus_label">
+				<anchored to="resistance_item_bonus_label" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_resistance_special_bonus" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_misc_bonus_label">
+				<anchored to="resistance_special_bonus_label" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_resistance_misc_bonus" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_total_bonus_label">
+				<anchored to="resistance_misc_bonus_label" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_resistance_total_bonus" />
+			</label_content_list_column>
+
+			<windowlist name="list_resistances_base">
+				<anchored to="frame_resistances_base" position="insidetop" offset="0,40">
+					<bottom />
+				</anchored>
+				<datasource>.rr.base</datasource>
+				<class>resistance_base_item_detail</class>
+				<sortby><field>order</field></sortby>
+				<script file="campaign/scripts/list_resistances_base.lua" />
+			</windowlist>		
+
+			<area_content_framed_groupbox name="frame_resistances_hybrid" />
+			<label name="header_resistances_hybrid">
+				<anchored to="frame_resistances_hybrid" position="insidetop" />
+				<static textres="char_heading_hybrid_resistances" />
+				<center />
+			</label>
+			<label_content_list_column name="resistance_hybrid_name_label">
+				<anchored to="frame_resistances_hybrid" position="insidetopleft" offset="0,20" width="80" />
+				<static textres="char_label_resistance_name" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_hybrid_resistances_label">
+				<anchored to="resistance_hybrid_name_label" position="righthigh" offset="0,0" width="180" />
+				<static textres="char_label_resistance_resistances" />
+				<center />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_hybrid_item_bonus_label">
+				<anchored to="resistance_hybrid_resistances_label" position="righthigh" offset="10,0" width="35" />
+				<static textres="char_label_resistance_item_bonus" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_hybrid_misc_bonus_label">
+				<anchored to="resistance_hybrid_item_bonus_label" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_resistance_misc_bonus" />
+			</label_content_list_column>
+			<label_content_list_column name="resistance_hybrid_total_bonus_label">
+				<anchored to="resistance_hybrid_misc_bonus_label" position="righthigh" offset="5,0" width="35" />
+				<static textres="char_label_resistance_total_bonus" />
+			</label_content_list_column>
+
+			<windowlist name="list_resistances_hybrid">
+				<anchored to="frame_resistances_hybrid" position="insidetop" offset="0,40">
+					<bottom />
+				</anchored>
+				<datasource>.rr.hybrid</datasource>
+				<class>resistance_hybrid_item_detail</class>
+				<sortby><field>order</field></sortby>
+				<script file="campaign/scripts/list_resistances_hybrid.lua" />
+			</windowlist>		
+		</sheetdata>
+	</windowclass>
+	<windowclass name="resistance_base_item_brief">
+		<script>
+			local statNode = nil;
+			function onInit()
+				refresh();
+			end
+			function refresh()
+				if statNode then
+					DB.setValue(getDatabaseNode(), "stat", "number", DB.getValue(statNode));
+				end
+			end
+			function setStat(name)
+				if name then
+					statNode = DB.getChild(windowlist.window.getDatabaseNode(), "abilities." .. name .. ".total");
+					if statNode then
+						DB.addHandler(DB.getPath(statNode), "onUpdate", self.refresh);
+					end
+					refresh();
+				end
+			end
+		</script>
+		<sheetdata>
+			<hnc name="order" />
+			<hs name="resistancetype" />
+			<hs name="resistances" />
+			<dice_ghost name="diceholder">
+				<anchored position="insidetopleft" offset="0,4" width="85" height="20" />
+			</dice_ghost>
+			<row_heading name="label">
+				<anchored position="insidetopleft" offset="0,4" width="85" />
+				<readonly />
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "....");
+						local rActor = ActorManager.resolveActor(charNode);
+						local nodeRR = window.getDatabaseNode();
+
+						ActionResistance.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, nodeRR, window.label.getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<number_boxed_total_resistance_base name="total">
+				<anchored to="label" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed_total_resistance_base>			
+		</sheetdata>
+	</windowclass>
+	<windowclass name="resistance_hybrid_item_brief">
+		<sheetdata>
+			<hnc name="order" />
+			<hs name="resistancetype" />
+			<hs name="resistances" />
+			<dice_ghost name="diceholder">
+				<anchored position="insidetopleft" offset="0,4" width="85" height="20" />
+			</dice_ghost>
+			<row_heading name="label">
+				<anchored position="insidetopleft" offset="0,4" width="85" />
+				<readonly />
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "....");
+						local rActor = ActorManager.resolveActor(charNode);
+						local nodeRR = window.getDatabaseNode();
+						ActionResistance.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, nodeRR, window.label.getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<number_boxed_total_resistance_hybrid name="total">
+				<anchored to="label" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed_total_resistance_hybrid>			
+		</sheetdata>
+	</windowclass>
+	<windowclass name="resistance_base_item_detail">
+		<script>
+			local statNode = nil;
+			function onInit()
+				refresh();
+			end
+			function refresh()
+				if statNode then
+					DB.createChild(getDatabaseNode(), "stat", "number", statNode.getValue())
+				end
+			end
+			function setStat(name)
+				statNode = DB.getChild(windowlist.window.getDatabaseNode(), "abilities." .. name .. ".total");
+				if statNode then
+					DB.addHandler(DB.getPath(statNode), "onUpdate", self.refresh);
+					for i, onestat in pairs(Rules_Stats.List()) do
+						if onestat.name == name then
+							abbr.setValue(onestat.label);
+						end
+					end
+				end
+				refresh();
+			end
+		</script>
+		<sheetdata>
+			<hnc name="order" />
+			<hs name="resistancetype" />
+			<hs name="resistances" />
+			<dice_ghost name="diceholder">
+				<anchored position="insidetopleft" offset="0,4" width="75" height="20" />
+			</dice_ghost>
+			<row_heading name="label">
+				<anchored position="insidetopleft" offset="0,4" width="75" />
+				<readonly />
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "....");
+						local rActor = ActorManager.resolveActor(charNode);
+						local nodeRR = window.getDatabaseNode();
+						ActionResistance.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, nodeRR, window.label.getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<row_heading name="abbr">
+				<anchored position="insidetopleft" offset="95,4" width="35" />
+				<center />
+			</row_heading>
+			<number_readonly name="stat">
+				<anchored to="abbr" position="righthigh" offset="20,0" height="20" />
+				<displaysign />
+				<center />
+			</number_readonly>			
+			<number_boxed name="race">
+				<anchored to="stat" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed>			
+			<number_boxed name="item">
+				<anchored to="race" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed>			
+			<number_boxed name="special">
+				<anchored to="item" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed>			
+			<number_boxed name="misc">
+				<anchored to="special" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed>			
+			<number_boxed_total_resistance_base name="total">
+				<anchored to="misc" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed_total_resistance_base>			
+		</sheetdata>
+	</windowclass>
+	<windowclass name="resistance_hybrid_item_detail">
+		<sheetdata>
+			<hnc name="order" />
+			<hs name="resistancetype" />
+			<dice_ghost name="diceholder">
+				<anchored position="insidetopleft" offset="0,4" width="75" height="20" />
+			</dice_ghost>
+			<row_heading name="label">
+				<anchored position="insidetopleft" offset="0,4" width="75" />
+				<readonly />
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "....");
+						local rActor = ActorManager.resolveActor(charNode);
+						local nodeRR = window.getDatabaseNode();
+						ActionResistance.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, nodeRR, window.label.getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<row_heading name="resistances">
+				<anchored position="insidetopleft" offset="75,4" width="190" />
+				<center />
+			</row_heading>
+			<number_boxed name="item">
+				<anchored to="resistances" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed>			
+			<number_boxed name="misc">
+				<anchored to="item" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed>			
+			<number_boxed_total_resistance_hybrid name="total">
+				<anchored to="misc" position="righthigh" offset="5,0" height="20" />
+				<displaysign />
+			</number_boxed_total_resistance_hybrid>			
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charsheet_move_initiative" copy="charsheethelper_base">
+		<sizelimits>
+			<minimum width="300" height="375" />
+		</sizelimits>
+		<helplinkres>help_charsheet_move_initiative</helplinkres>
+		<sheetdata>
+			<windowtitlebar_charsheethelper name="title">
+				<prefix>char_heading_move_initiative</prefix>
+			</windowtitlebar_charsheethelper>
+
+			<area_content_framed_groupbox_top name="bmrframe">
+				<anchored height="140" />
+			</area_content_framed_groupbox_top>
+			<label name="bmr_label">
+				<anchored to="bmrframe" position="insidetop" />
+				<static textres="char_label_bmr" />
+				<center />
+			</label>
+			<row_heading name="bmrrace_label">
+				<anchored to="bmrframe" position="insidetopleft" offset="0,20" width="75" />
+				<static textres="char_label_bmr_race" />
+			</row_heading>
+			<number_readonly name="bmrrace" source="bmr.race">
+				<anchored to="bmrrace_label" position="righthigh" offset="15,0" height="20" />
+				<default>50</default>
+			</number_readonly>			
+			<row_heading name="bmrstat_label">
+				<anchored to="bmrframe" position="insidetopleft" offset="0,45" width="75" />
+				<static textres="char_label_bmr_stat" />
+			</row_heading>
+			<number_readonly name="bmrstat" source="bmr.stat">
+				<anchored to="bmrstat_label" position="righthigh" offset="15,0" height="20" />
+				<displaysign/>
+			</number_readonly>
+			<genericcontrol name="bmrstat_info">
+				<anchored to="bmrstat" position="righthigh" offset="-7,-5" height="12" width="12" />
+				<icon>icon_info</icon>
+				<tooltip textres="tooltip_move_stat_bonus_reduced" />
+				<invisible />
+			</genericcontrol>
+			<row_heading name="bmrencbrance_label">
+				<anchored to="bmrframe" position="insidetopleft" offset="0,70" width="85" />
+				<static textres="char_label_bmr_encumbrance" />
+			</row_heading>
+			<number_readonly name="bmrencumbrance" source="encumbrance.total">
+				<anchored to="bmrencbrance_label" position="righthigh" offset="5,0" height="20" />
+				<displaysign/>
+			</number_readonly>
+			<number_readonly name="bmrencumbrance_off" >
+				<anchored to="bmrencbrance_label" position="righthigh" offset="5,0" height="20" />
+				<displaysign/>
+				<default>0</default>
+				<invisible />
+			</number_readonly>
+			<genericcontrol name="bmrencumbrance_off_info">
+				<anchored to="bmrencumbrance_off" position="righthigh" offset="-7,-5" height="12" width="12" />
+				<icon>icon_info</icon>
+				<tooltip textres="tooltip_move_encumbrance_off" />
+				<invisible />
+			</genericcontrol>
+			<row_heading name="bmrmisc_label">
+				<anchored to="bmrframe" position="insidetopleft" offset="0,95" width="75" />
+				<static textres="char_label_bmr_misc" />
+			</row_heading>
+			<number_boxed name="bmrmisc" source="bmr.misc">
+				<anchored to="bmrmisc_label" position="righthigh" offset="15,0" height="20" />
+				<displaysign/>
+			</number_boxed>
+			<dice_ghost name="bmr_diceholder">
+				<anchored to="bmrmisc_label" position="below" offset="0,5" height="20" />
+			</dice_ghost>
+			<row_heading name="bmrtotal_label">
+				<anchored to="bmrframe" position="insidetopleft" offset="0,120" width="75" />
+				<static textres="char_label_bmr_total" />
+				<script>
+					function action(draginfo)
+						local charNode = window.getDatabaseNode();
+						local rActor = ActorManager.resolveActor(charNode);
+						local sSkillName = ActionSkill.MovementMM;
+						local nSkillMod = 0;
+						local nSkillType = ActionSkill.MM;
+						ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<number_readonly name="bmrtotal" source="bmr.total">
+				<anchored to="bmrtotal_label" position="righthigh" offset="15,0" height="20" />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						
+						local nodeChar = window.getDatabaseNode();
+						OptionsManager.registerCallback("CEMV", refresh);
+						DB.addHandler(DB.getPath(Rules_PC.BMRStatNode(nodeChar)), "onUpdate", refresh);
+						DB.addHandler(DB.getPath(nodeChar, "bmrrace"), "onUpdate", refresh);
+						DB.addHandler(DB.getPath(nodeChar, "bmrencumbrance"), "onUpdate", refresh);
+						DB.addHandler(DB.getPath(nodeChar, "bmrmisc"), "onUpdate", refresh);
+						DB.addHandler(DB.getPath(nodeChar, "dbpen"), "onUpdate", refresh);
+						
+						refresh();
+					end
+					function onClose()
+						local nodeChar = window.getDatabaseNode();
+						OptionsManager.unregisterCallback("CEMV", refresh);
+						DB.removeHandler(DB.getPath(Rules_PC.BMRStatNode(nodeChar)), "onUpdate", refresh);
+						DB.removeHandler(DB.getPath(nodeChar, "bmrrace"), "onUpdate", refresh);
+						DB.removeHandler(DB.getPath(nodeChar, "bmrencumbrance"), "onUpdate", refresh);
+						DB.removeHandler(DB.getPath(nodeChar, "bmrmisc"), "onUpdate", refresh);
+						DB.removeHandler(DB.getPath(nodeChar, "dbpen"), "onUpdate", refresh);
+					end
+
+					function refresh()
+						local nodeChar = window.getDatabaseNode();
+						local nBMRTotal, nBMRStat, bShowBMRStatInfo, bShowBMREncumbranceInfo = Rules_PC.GetTotalBMR(nodeChar);
+						
+						setValue(nBMRTotal);
+						window.bmrstat.setValue(nBMRStat);
+						window.bmrstat_info.setVisible(bShowBMRStatInfo);	
+						window.bmrencumbrance_off_info.setVisible(bShowBMREncumbranceInfo);
+						
+						if string.lower(OptionsManager.getOption("CEMV")) == string.lower(Interface.getString("option_val_on")) then 
+							window.bmrencumbrance.setVisible(true);
+							window.bmrencumbrance_off.setVisible(false);
+							window.bmrencumbrance_off_info.setVisible(false);
+						else
+							window.bmrencumbrance.setVisible(false);
+							window.bmrencumbrance_off.setVisible(true);
+						end
+					end
+				</script>
+			</number_readonly>
+
+			<area_content_framed_groupbox_top name="initiativeframe">
+				<anchored height="140" />
+			</area_content_framed_groupbox_top>
+			<label name="initiative_label">
+				<anchored to="initiativeframe" position="insidetop" />
+				<static textres="char_heading_initiative" />
+				<center />
+			</label>
+			<row_heading name="initiative_stat_label">
+				<anchored to="initiativeframe" position="insidetopleft" offset="0,20" width="95" />
+				<static textres="char_label_initiative_stat" />
+			</row_heading>
+			<number_readonly name="initiative_stat" source="abilities.quickness.total">
+				<anchored to="initiative_stat_label" position="righthigh" offset="15,0" height="20" />
+				<displaysign/>
+			</number_readonly>
+			<row_heading name="initiative_misc_label">
+				<anchored to="initiativeframe" position="insidetopleft" offset="0,45" width="95" />
+				<static textres="char_label_initiative_misc" />
+			</row_heading>
+			<number_boxed name="initiative_misc" source="initiative.misc">
+				<anchored to="initiative_misc_label" position="righthigh" offset="15,0" height="20" />
+				<displaysign/>
+			</number_boxed>
+			<row_heading name="initiative_total_label">
+				<anchored to="initiativeframe" position="insidetopleft" offset="0,70" width="95" />
+				<static textres="char_label_initiative_total" />
+			</row_heading>
+			<number_boxed_total_initiative name="initiative_total" source="initiative.total">
+				<anchored to="initiative_total_label" position="righthigh" offset="15,0" height="20" />
+			</number_boxed_total_initiative>
+			<dice_ghost name="initiative_diceholder">
+				<anchored to="initiative_total_label" position="below" offset="0,30" height="20" />
+			</dice_ghost>
+			<row_heading name="initiative_initresult_label">
+				<anchored to="initiativeframe" position="insidetopleft" offset="0,120" width="95" />
+				<static textres="char_label_initresult_total" />
+				<script>
+					function action(draginfo)
+						local charNode = window.getDatabaseNode();
+						local rActor = ActorManager.resolveActor(charNode);
+						local bModified = false;
+						ActionInitiative.performRoll(draginfo, rActor);
+
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</row_heading>
+			<number_boxed name="initiative_initresult" source="initiative.initresult">
+				<anchored to="initiative_initresult_label" position="righthigh" offset="15,0" height="20" />
+			</number_boxed>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charsheet_exhaustion" copy="charsheethelper_base">
+		<sizelimits>
+			<minimum width="300" height="290" />
+		</sizelimits>
+		<helplinkres>help_charsheet_move_initiative</helplinkres>
+		<sheetdata>
+			<windowtitlebar_charsheethelper name="title">
+				<prefix>char_heading_exhaustion</prefix>
+			</windowtitlebar_charsheethelper>
+
+			<area_content_framed_groupbox_top name="exhaustion_max_frame">
+				<anchored height="100" />
+			</area_content_framed_groupbox_top>
+			<label name="exhaustion_max_header">
+				<anchored to="exhaustion_max_frame" position="insidetop" />
+				<static textres="char_heading_exhaustion_max" />
+				<center />
+			</label>
+			<row_heading name="exhaustion_constitution_label">
+				<anchored to="exhaustion_max_frame" position="insidetopleft" offset="0,20" width="75" />
+				<static textres="char_label_exhaustion_constitution" />
+			</row_heading>
+			<number_readonly name="exhaustion_constitution" source="abilities.constitution.temp_current">
+				<anchored to="exhaustion_constitution_label" position="righthigh" offset="15,0" height="20" />
+				<default>50</default>
+			</number_readonly>			
+			<row_heading name="exhaustion_misc_label">
+				<anchored to="exhaustion_max_frame" position="insidetopleft" offset="0,45" width="75" />
+				<static textres="char_label_exhaustion_misc" />
+			</row_heading>
+			<number_boxed name="exhaustion_misc" source="exhaustion_misc">
+				<anchored to="exhaustion_misc_label" position="righthigh" offset="15,0" height="20" />
+				<displaysign/>
+			</number_boxed>
+			<row_heading name="exhaustion_total_label">
+				<anchored to="exhaustion_max_frame" position="insidetopleft" offset="0,70" width="75" />
+				<static textres="char_label_exhaustion_total" />
+			</row_heading>
+			<number_boxed name="exhaustion_total" source="exhaustion_total">
+				<anchored to="exhaustion_total_label" position="righthigh" offset="15,0" height="20" />
+			</number_boxed>
+
+			<area_content_framed_groupbox_top name="exhaustion_used_frame">
+				<anchored height="100" />
+			</area_content_framed_groupbox_top>
+			<label name="exhaustion_used_header">
+				<anchored to="exhaustion_used_frame" position="insidetop" />
+				<static textres="char_heading_exhaustion_used" />
+				<center />
+			</label>
+			<row_heading name="exhaustion_used_label">
+				<anchored to="exhaustion_used_frame" position="insidetopleft" offset="0,20" width="75" />
+				<static textres="char_label_exhaustion_used" />
+			</row_heading>
+			<number_boxed name="exhaustion_used" source="exhaustion">
+				<anchored to="exhaustion_used_label" position="righthigh" offset="15,0" height="20" />
+				<default>50</default>
+				<script>
+					function onInit()
+						local nodeChar = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(nodeChar, "exhaustion_total"), "onUpdate", updatePenaltyInfo);
+						updatePenaltyInfo();
+					end
+					
+					function onValueChanged()
+						updatePenaltyInfo();
+					end
+					
+					function updatePenaltyInfo()
+						local nodeChar = window.getDatabaseNode();
+						local sDescription, nPenalty = Rules_Modifiers.Exhaustion(nodeChar);
+						window.exhaustion_penalty.setValue(nPenalty);
+						window.exhaustion_penalty_description.setValue(sDescription);						
+					end
+				</script>
+			</number_boxed>			
+			<row_heading name="exhaustion_penalty_label">
+				<anchored to="exhaustion_used_frame" position="insidetopleft" offset="0,45" width="75" />
+				<static textres="char_label_exhaustion_penalty" />
+			</row_heading>
+			<numberc_static name="exhaustion_penalty">
+				<anchored to="exhaustion_penalty_label" position="righthigh" offset="15,0" width="35" height="20" />
+			</numberc_static>
+			<row_heading name="exhaustion_penalty_description">
+				<anchored to="exhaustion_used_frame" position="insidetopleft" offset="0,70" width="135" />
+				<center />
+			</row_heading>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="char_language">
+		<margins control="0,0,0,2" />
+		<sheetdata>
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<button_listitem_idelete_left name="idelete" />
+
+			<number_listitem_right name="spoken">
+				<anchored width="30" />
+				<tabtarget prev="written" next="name" />
+			</number_listitem_right>
+			<number_listitem_right name="written">
+				<anchored width="30" />
+				<tabtarget prev="name" next="spoken" />
+			</number_listitem_right>
+
+			<string_listitem_center name="name" />
+			<DropDown name="languagedropdown">
+				<target>name</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Utilities.LanguageList());
+					end
+				</script>
+			</DropDown>
+		</sheetdata>
+	</windowclass>
+</root>

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- DESKTOP PANELS -->
+
+	<!-- Frame: chatbox -->
+	<template name="resize_chatbox">
+		<resize>
+			<anchored>
+				<right offset="-17" />
+				<bottom offset="-7" />
+			</anchored>
+		</resize>
+	</template>
+	<template name="anchor_content_chatbox_top">
+		<genericcontrol name="contentanchor">
+			<anchored height="0">
+				<top offset="26" />
+				<left offset="22" />
+				<right offset="-36" />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+	<template name="anchor_content_chatbox_bottom">
+		<genericcontrol name="bottomanchor">
+			<anchored to="contentanchor" height="23">
+				<bottom parent="" />
+				<left />
+				<right />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+
+	<!-- FLOATING WINDOWS - UTILITY -->
+
+	<!-- Frame: tokenbag -->
+	<template name="windowtitlebar_tokenbag">
+		<windowtitlebar>
+			<anchored offset="0,0" />
+		</windowtitlebar>
+	</template>
+	<template name="windowmenubar_tokenbag">
+		<windowmenubar>
+			<anchored offset="-7,7">
+				<left offset="6" />
+			</anchored>
+		</windowmenubar>
+	</template>
+	<template name="resize_tokenbag">
+		<resize>
+			<anchored>
+				<right offset="-5" />
+				<bottom offset="-1" />
+			</anchored>
+		</resize>
+	</template>
+	<template name="anchor_content_tokenbag_top">
+		<genericcontrol name="contentanchor">
+			<anchored height="0">
+				<top offset="45" />
+				<left offset="30" />
+				<right offset="-33" />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+	<template name="anchor_content_tokenbag_bottom">
+		<genericcontrol name="bottomanchor">
+			<anchored to="contentanchor" height="20">
+				<bottom parent="" />
+				<left />
+				<right />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+
+	<!-- Frame: ctbox -->
+	<template name="windowtitlebar_ctbox">
+		<windowtitlebar>
+			<anchored offset="0,0" />
+		</windowtitlebar>
+	</template>
+	<template name="windowmenubar_ctbox">
+		<windowmenubar>
+			<anchored offset="-4,0">
+				<left offset="0" />
+			</anchored>
+		</windowmenubar>
+	</template>
+	<template name="anchor_content_ctbox_top">
+		<genericcontrol name="contentanchor">
+			<anchored height="0">
+				<top offset="45" />
+				<left offset="17" />
+				<right offset="-15" />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+	<template name="anchor_content_ctbox_bottom">
+		<genericcontrol name="bottomanchor">
+			<anchored to="contentanchor" height="25">
+				<bottom parent="" />
+				<left />
+				<right />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+	<template name="resize_ctbox">
+		<resize>
+			<anchored>
+				<right offset="-4" />
+				<bottom offset="-5" />
+			</anchored>
+		</resize>
+	</template>
+
+	<!-- Frame: partysheet -->
+	<template name="windowtitlebar_partysheet">
+		<windowtitlebar>
+			<anchored offset="0,5" />
+		</windowtitlebar>
+	</template>
+	<template name="windowmenubar_partysheet">
+		<windowmenubar>
+			<anchored offset="-5,5" />
+		</windowmenubar>
+	</template>
+	<template name="anchor_content_partysheet_top">
+		<genericcontrol name="contentanchor">
+			<anchored height="0">
+				<top offset="50" />
+				<left offset="30" />
+				<right offset="-25" />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+	<template name="anchor_content_partysheet_bottom">
+		<genericcontrol name="bottomanchor">
+			<anchored to="contentanchor" height="30">
+				<bottom parent="" />
+				<left />
+				<right />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+	<template name="resize_partysheet">
+		<resize>
+			<anchored>
+				<right offset="-5" />
+				<bottom offset="-8" />
+			</anchored>
+		</resize>
+	</template>
+	<template name="tabs_partysheet">
+		<buttongroup_tabs name="tabs">
+			<anchored width="18" height="92">
+				<top offset="50" />
+				<right offset="0" />
+			</anchored>
+		</buttongroup_tabs>
+	</template>
+
+	<!-- FLOATING WINDOWS - RECORDS -->
+
+	<!-- Frame: imagebox -->
+	<template name="windowmenubar_imagebox">
+		<windowmenubar>
+			<anchored offset="-3,3" />
+		</windowmenubar>
+	</template>
+	<template name="anchor_content_imagebox_top">
+		<genericcontrol name="contentanchor">
+			<anchored height="0">
+				<top offset="27" />
+				<left offset="17" />
+				<right offset="-18" />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+	<template name="anchor_content_imagebox_bottom">
+		<genericcontrol name="bottomanchor">
+			<anchored to="contentanchor" height="15">
+				<bottom parent="" />
+				<left />
+				<right />
+			</anchored>
+			<disabled />
+		</genericcontrol>
+	</template>
+	<template name="resize_imagebox">
+		<resize>
+			<anchored>
+				<right offset="-5" />
+				<bottom offset="-7" />
+			</anchored>
+		</resize>
+	</template>
+</root>

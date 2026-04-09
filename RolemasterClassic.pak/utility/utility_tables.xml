@@ -1,0 +1,1373 @@
+﻿<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- Show a simple view of a table (attack or critical) -->
+	<windowclass name="tablebrowser">
+		<frame>referencelist</frame>
+		<placement>
+			<size width="570" height="575" />
+		</placement>
+		<sizelimits>
+			<minimum width="400" height="400" />
+			<dynamic />
+		</sizelimits>
+		<sheetdata>
+			<windowmenubar_referencelist name="menubar" />
+
+			<anchor_content_referencelist_top />
+			<anchor_content_referencelist_bottom />
+
+			<!-- NAME -->
+			<area_content_framed_groupbox_top name="nameframe">
+				<anchored height="20" />
+			</area_content_framed_groupbox_top>
+			<linkcontrol name="open">
+				<anchored to="nameframe" position="insidetopleft" offset="0,0" width="20" height="20" />
+				<class>tablebrowser</class>
+				<closetoggle/>
+				<script>
+					function onDragStart(button,x,y,dragdata)
+						local customData = {};
+						local tablename = window.grid.getTableName();
+						local tableid = window.grid.getTableID();
+						local tabletype = window.grid.getTableType();
+						if tablename=="" or tableid=="" then
+							return;
+						end
+
+						if not dragdata.getCustomData() then
+							dragdata.setType("string")
+							dragdata.setStringData(tablename); 
+							customData.type = "RMCTable";
+							customData.tableID = tableid;
+							customData.tableName = tablename;
+							dragdata.setCustomData(customData);
+						end
+						return true;
+					end
+				</script>
+			</linkcontrol>
+			<stringcontrolX name="name">
+				<anchored to="nameframe" position="insidetop" offset="0,0" height="20">
+					<left offset="30" />
+				</anchored>
+				<font>sheettext</font>
+				<static />
+				<empty>(Table)</empty>
+				<script>
+					function onDragStart(...)
+						return window.open.onDragStart(...);
+					end
+				</script>
+			</stringcontrolX>
+
+			<!-- TABLE -->
+			<area_content_framed_groupbox name="contentframe" />
+			<tableview name="grid">
+				<anchored to="contentframe" position="over" />
+				<notitle/>
+				<script>
+					function bound(nodeTable)
+						window.name.setValue(RMTableManager.getTableName(nodeTable));
+					end
+					function instanceCreated(source)
+						setActive(false);
+					end
+				</script>
+			</tableview>
+
+			<resize_referencelist />
+		</sheetdata>
+	</windowclass>
+
+	<!-- Allow a roll to be resolved -->
+	<windowclass name="tableresolver">
+		<frame>referencelist</frame>
+		<sizelimits>
+			<minimum width="570" height="625" />
+			<dynamic />
+		</sizelimits>
+		<softclose />
+		<script>
+			local fudgemod = nil;
+
+			function onInit()
+				if not Session.IsHost or not StackManager.isActive() then
+					modlist.setAnchor("bottom","contentframe","bottom","absolute",0);
+					stack.setVisible(false);
+					stackscroller.setVisible(false);
+				end
+			end
+
+			function setFudge(newtotal)
+				local delta = newtotal - total.getValue();
+				if fudgemod then
+					delta = delta + fudgemod.bonus.getValue();
+				end
+				if not fudgemod then
+					fudgemod = modlist.createWindow();
+					fudgemod.label.setValue("Fudge");
+				end
+				if delta then
+					fudgemod.bonus.setValue(delta);
+					fudgemod.include.setValue(1);
+				else
+					fudgemod.close();
+					fudgemod = nil;
+				end
+			end
+
+			function checkFudge()
+				if not fudgemod then
+					return;
+				end
+				for i,win in ipairs(modlist.getWindows()) do
+					if win==fudgemod then
+						return;
+					end
+				end
+				fudgemod = nil;
+			end
+
+			function setResultVisible(status)
+				resultgrid.setVisible(status);
+				if status then
+					attackgrid.setResizePending();
+					attackgrid.setAnchor("bottom", "contentframe", "bottom", "absolute", -220);
+					attackgrid.showSelection();
+				else
+					attackgrid.setResizePending();
+					attackgrid.setAnchor("bottom", "contentframe", "bottom", "absolute", 0);
+				end
+			end
+
+			function resolve(customData,entry)
+				local tableid = customData.tableID;
+				local node = RMTableManager.getNode(tableid);
+				local clearentry = string.lower(OptionsManager.getOption("TRCS"));
+				local nFumble = customData.fumbleValue;
+
+				if not node then
+					Comm.deliverChatMessage({text="ERROR: Unable to find table. Please load the appropriate module.", font="systemfont", icon = "error"});
+					return;
+				end
+
+				attackerNodeName.setValue(customData.attackerNodeName);
+				attackNodeName.setValue(customData.attackDBNodeName);
+				defenderNodeName.setValue(customData.defenderNodeName);
+				critTableID.setValue(customData.critTableID);
+				critTableName.setValue(customData.critTableName);
+				largeColumnName.setValue(customData.largeColumnName);
+				crit_mod.setValue(0);
+
+				--[[ set the hits multiplier ]]
+				local nHitsMult = customData.hitsMultiplier;
+				if nHitsMult == 0 then
+					nHitsMult = 1;
+				end
+				RMTableManager.SetHitsMultiplier(nHitsMult);
+				multiplier.setValue(nHitsMult);
+
+				--[[ change the window title ]]
+				name.setValue(customData.title);
+				--[[ clear the results grid ]]
+				resultgrid.bind(nil);
+				--[[ bind the attack grid to this table - check if table needs to be adjusted for the weapon fumble]]
+				if nFumble and nFumble > 0 then
+					attackgrid.bind(node, nFumble, "attackgrid");
+				else
+					attackgrid.bind(node, nil, "attackgrid");
+				end
+				--[[ set the basic roll ]]
+				roll.setValue(customData.dieResult);
+				--[[ set the maximum result ]]
+				maximum.setValue(Rules_Combat.GetMaxResultTotal(customData.maxResultLevel));
+				--[[ set the unmodified roll ]]
+				unmodified.setValue(Rules_Combat.nUnmodifiedRoll);
+
+
+				--[[ add items in the modifier stack ]]
+				if not customData.modifiers then
+					customData.modifiers = {};
+				end
+
+				fudgemod = nil;
+				modlist.closeAll();
+				for i,mod in ipairs(customData.modifiers) do
+					local win = modlist.createWindow();
+					win.label.setValue(mod.description);
+					win.label.setTooltipText(mod.description);
+					win.bonus.setValue(mod.number);
+					win.include.setValue(1);
+				end
+				modlist.applySort();
+
+				--[[ select the armour type ]]
+				if customData.tableColumn and customData.tableID ~= Rules_Constants.BaseSpellAttackTableID and customData.tableID ~= Rules_Constants.SpellFailureNonAttackTableID then
+					attackgrid.selectColumn(customData.tableColumn);
+					attackgrid.showSelection();
+				elseif customData.columnTitle then
+				--[[ select column title ]]
+					attackgrid.selectColumn(customData.columnTitle);
+					attackgrid.showSelection();
+				end
+				--[[ clear the stack entry ]]
+				if entry and clearentry and clearentry == string.lower(Interface.getString("option_val_on")) then
+					entry.deleteflag.setValue(1);
+					stack.applyFilter();
+				end
+				if attackgrid.getTableID() == Rules_Constants.RRTableID and Rules_Combat.nLevelActor &gt; 0 then
+					attackgrid.selectRow(Rules_Combat.nLevelActor, Rules_Combat.nLevelActor);
+					attackgrid.selectColumn(Rules_Combat.nLevelActor);
+				end
+
+			end
+		</script> 
+		<sheetdata>
+			<windowtitlebar_referencelist name="title">
+				<resource>tr_window_title</resource>
+			</windowtitlebar_referencelist>
+			<windowmenubar_referencelist name="menubar" />
+
+			<anchor_content_referencelist_top />
+			<anchor_content_referencelist_bottom />
+
+			<hsc name="attackerNodeName">
+				<script>
+					function onValueChanged()
+						local nodeAttacker = DB.findNode(getValue());
+						if nodeAttacker then
+							local rActor = ActorManager.resolveActor(nodeAttacker);
+							if rActor then
+								window.attacker_link.setValue(ActorManager.getRecordType(rActor), ActorManager.getCreatureNodeName(rActor));
+								window.attacker_link.setVisible(true);
+							else
+								window.attacker_link.setValue(nil);
+								window.attacker_link.setVisible(false);
+							end
+							window.attacker_name.setValue(DB.getValue(nodeAttacker, "name", ""));
+						else
+							window.attacker_link.setValue(nil);
+							window.attacker_link.setVisible(false);
+							window.attacker_name.setValue("");
+						end
+					end
+				</script>
+			</hsc>
+			<hsc name="attackNodeName" />
+			<hsc name="defenderNodeName">
+				<script>
+					function onValueChanged()
+						local nodeDefender = DB.findNode(getValue());
+						if nodeDefender then
+							local rActor = ActorManager.resolveActor(nodeDefender);
+							if rActor then
+								window.defender_link.setValue(ActorManager.getRecordType(rActor), ActorManager.getCreatureNodeName(rActor));
+								window.defender_link.setVisible(true);
+							else
+								window.defender_link.setValue(nil);
+								window.defender_link.setVisible(false);
+							end
+							window.defender_name.setValue(DB.getValue(nodeDefender, "name", ""));
+							window.crit_mod_description.setValue(DB.getValue(nodeDefender, "critmod", ""));
+							window.crit_mod.setValue(0);
+						else
+							window.defender_link.setValue(nil);
+							window.defender_link.setVisible(false);
+							window.defender_name.setValue("");
+							window.crit_mod_description.setValue("");
+							window.crit_mod.setValue(0);
+						end
+					end
+				</script>
+			</hsc>
+			<hsc name="critTableID" />
+			<hsc name="critTableName" />
+			<hsc name="largeColumnName" />
+		
+			<!-- NAME CONTENT -->
+			<area_content_framed_groupbox_top name="nameframe">
+				<anchored height="10"/>
+			</area_content_framed_groupbox_top>
+			<stringcontrolX name="name">
+				<anchored to="nameframe" position="insidetopleft" offset="0,-5" height="20">
+					<right offset="10" />
+				</anchored>
+				<font>sheettext</font>
+				<static />
+				<empty>(Table Resolver)</empty>
+			</stringcontrolX>
+
+			<button_text name="button_reset">
+				<anchored to="nameframe" position="aboveleft" offset="-5,20" width="50" height="20" />
+				<state textres="tr_label_reset" />
+				<tooltip textres="tr_tooltip_reset" />
+				<script>
+					function onButtonPress()
+						window.name.setValue("(Table Resolver)");
+						window.attackgrid.subwindow.clear();
+						window.resultgrid.bind(nil);
+						window.modlist.closeAll();
+						window.roll.setValue(0);
+						window.unmodified.setValue(0);
+						window.multiplier.setValue(1);
+						window.attackerNodeName.setValue("");
+						window.defenderNodeName.setValue("");
+						window.crit_mod_description.setValue("");
+						window.crit_mod.setValue(0);
+						window.result_roll.setValue(1);
+						window.resultlist.closeAll();
+					end
+				</script>
+			</button_text>
+
+			<!-- WINDOW CONTENT -->
+			<area_content_framed_groupbox name="contentframe" />
+
+			<!-- ATTACK GRID INFO -->
+			<header_section_tableresolver name="header_attack">
+				<static textres="tr_ag_header_attack_grid" />
+				<tooltip textres="tr_ag_tooltip_attack_grid" />
+			</header_section_tableresolver>
+			<!-- ROLL, MOD AND TOTAL -->
+			<numberc_tableresolver name="roll">
+				<anchored to="header_attack" position="belowleft" offset="6,12" height="18" />
+				<script>
+					function onValueChanged()
+						if window.total and window.total.recalc then
+							window.total.recalc();
+						end
+					end
+
+					function onDrop(x, y, draginfo)
+						if draginfo.getType() == "rmdice" then
+							setValue(draginfo.getNumberData());
+						end
+					end
+				</script>
+			</numberc_tableresolver>
+			<stringc_labeltop_tableresolver name="roll_label">
+				<anchored to="roll" />
+				<static textres="tr_ag_label_roll" />
+				<tooltip textres="tr_ag_tooltip_roll" />
+			</stringc_labeltop_tableresolver>
+			<numberc_tableresolver name="mods">
+				<anchored to="roll" />
+				<displaysign/>
+				<readonly/>
+				<frame name="fielddark" offset="4,4,4,4" />
+			</numberc_tableresolver>
+			<stringc_labeltop_tableresolver name="mods_label">
+				<anchored to="mods" />
+				<static textres="tr_ag_label_mods" />
+				<tooltip textres="tr_ag_tooltip_mods" />
+			</stringc_labeltop_tableresolver>
+			<numberc_tableresolver name="total">
+				<anchored to="mods" />
+				<readonly/>
+				<frame name="fielddark" offset="4,4,4,4" />
+				<script>
+					local nOldTotal = 0;
+					local nOldUnmodified = 0;
+
+					function recalc()
+						local nRoll = window.roll.getValue();
+						local nMod = window.mods.getValue();
+						local nTotal = nRoll + nMod;
+						local nMax = window.maximum.getValue();
+						local nUnmodified = window.unmodified.getValue();
+
+						if nTotal &gt; nMax and nMax &lt; 150 then
+							nTotal = nMax;
+						end
+						if nTotal &gt; 150 then
+							local nAmountOver = nTotal - 150;
+						end
+						setValue(nTotal);
+						--[[ update the attack grid highlighting ]]
+						if window.attackgrid and (nOldTotal ~= nTotal or nOldUnmodified ~= nUnmodified) then
+							nOldTotal = nTotal;
+							nOldUnmodified = nUnmodified;
+							window.attackgrid.selectRow(nUnmodified, nTotal);
+							window.attackgrid.showSelection();
+						end
+					end
+				</script>
+			</numberc_tableresolver>
+			<stringc_labeltop_tableresolver name="total_label">
+				<anchored to="total" />
+				<static textres="tr_ag_label_total" />
+				<tooltip textres="tr_ag_tooltip_total" />
+			</stringc_labeltop_tableresolver>
+
+			<numberc_tableresolver name="unmodified">
+				<anchored to="roll" position="belowleft" offset="0,12" height="18" />
+				<script>
+					function onValueChanged()
+						Rules_Combat.nUnmodifiedRoll = getValue();
+						if window.total and window.total.recalc then
+							window.total.recalc();
+						end
+					end
+				</script>
+			</numberc_tableresolver>
+			<stringc_labeltop_tableresolver name="unmodified_label">
+				<anchored to="unmodified" />
+				<static textres="tr_ag_label_unmodified" />
+				<tooltip textres="tr_ag_tooltip_unmodified" />
+			</stringc_labeltop_tableresolver>
+			<numberc_tableresolver name="multiplier">
+				<anchored to="unmodified" />
+				<frame name="fielddark" offset="4,4,4,4" />
+				<default>1</default>
+				<readonly/>
+			</numberc_tableresolver>
+			<stringc_labeltop_tableresolver name="multiplier_label">
+				<anchored to="multiplier" />
+				<static textres="tr_ag_label_multiplier" />
+				<tooltip textres="tr_ag_tooltip_multiplier" />
+			</stringc_labeltop_tableresolver>
+			<numberc_tableresolver name="maximum">
+				<anchored to="multiplier" />
+				<script>
+					function onValueChanged()
+						if window.total and window.total.recalc then
+							window.total.recalc();
+						end
+					end
+				</script>
+			</numberc_tableresolver>
+			<stringc_labeltop_tableresolver name="maximum_label">
+				<anchored to="maximum" />
+				<static textres="tr_ag_label_maximum" />
+				<tooltip textres="tr_ag_tooltip_maximum" />
+			</stringc_labeltop_tableresolver>
+
+			<!-- ATTACKER, DEFENDER AND CRIT MOD -->
+			<stringc_labeled_tr name="attacker_name">
+				<anchored to="unmodified" position="belowleft" offset="-5,-1" width="116" height="20" />
+				<labelres>tr_ag_label_attacker</labelres>
+				<tooltip textres="tr_ag_tooltip_attacker" />
+				<script>
+					function onDrop(x, y, draginfo)
+						local nodeAttacker = DB.findNode(window.attackerNodeName.getValue());
+						if nodeAttacker then
+							local nodeCT = ActorManager.getCTNode(nodeAttacker);
+							if nodeCT then
+								CombatManager2.CTNodeOnDrop(nodeCT, draginfo);
+							end
+						end
+					end
+				</script>
+			</stringc_labeled_tr>
+			<linkfield_tableresolver name="attacker_link">
+				<anchored to="attacker_name" />
+				<description field="attacker_name" />
+			</linkfield_tableresolver>
+			<stringc_labeled_tr name="defender_name">
+				<anchored to="attacker_name" position="belowleft" offset="0,4" width="116" height="20" />
+				<labelres>tr_ag_label_defender</labelres>
+				<tooltip textres="tr_ag_tooltip_defender" />
+				<script>
+					function onDrop(x, y, draginfo)
+						local nodeDefender = DB.findNode(window.defenderNodeName.getValue());
+						if nodeDefender then
+							local nodeCT = ActorManager.getCTNode(nodeDefender);
+							if nodeCT then
+								CombatManager2.CTNodeOnDrop(nodeCT, draginfo);
+							end
+						end
+					end
+				</script>
+			</stringc_labeled_tr>
+			<linkfield_tableresolver name="defender_link">
+				<anchored to="defender_name" />
+				<description field="defender_name" />
+			</linkfield_tableresolver>
+
+			<!-- MODIFIER LIST -->
+			<header_section_tableresolver name="header_modifiers">
+				<anchored>
+					<top parent="defender_name" anchor="bottom" offset="9" />
+				</anchored> 
+				<static textres="tr_mod_header_modifiers" />
+				<tooltip textres="tr_mod_tooltip_modifiers" />
+			</header_section_tableresolver>
+			<windowlist name="modlist">
+				<anchored to="header_modifiers" position="belowleft" offset="1,2" width="137" height="100" />
+				<frame name="rowshade" />
+				<class>tableview_modentry</class>
+				<sortby>
+					<control>label</control>
+					<field>bonus</field>
+				</sortby>
+				<allowcreate />
+				<allowdelete />
+				<script>
+					function onInit()
+						update();
+					end
+
+					function onMenuSelection(level1)
+						if level1==7 then
+							closeAll();
+						end
+					end
+
+					function update()
+						resetMenuItems();
+						if #(getWindows())~=0 then
+							registerMenuItem("Clear All","clearall",7);
+						end
+
+						--[[ recalc the modlist total ]]
+						local total = 0;
+						for i,mod in ipairs(getWindows()) do
+							if mod.include.getValue() == 1 then
+								total = total + mod.bonus.getValue();
+							end
+						end
+						window.mods.setValue(total);
+						window.total.recalc();
+					end
+
+					function onListRearranged(changed)
+						if changed then
+							window.checkFudge();
+							update();
+						end
+					end
+
+					function onDrop(x,y,dragdata)
+						if dragdata.isType("number") then
+
+							local win = createWindow();
+							if dragdata.getNumberData() then
+								win.bonus.setValue(dragdata.getNumberData());
+							end
+							if dragdata.getDescription() then
+								win.label.setValue(dragdata.getDescription());
+							elseif dragdata.getStringData() then
+								win.label.setValue(dragdata.getStringData());
+							end
+							win.include.setValue(1);
+							return true;
+						else
+							return false;
+						end
+					end
+				</script>
+			</windowlist>
+			<RMC_scrollbar name="modscroller">
+				<anchored>
+					<to>modlist</to>
+					<position>right</position>
+					<offset>-9,-4</offset>
+				</anchored>
+				<target>modlist</target>
+			</RMC_scrollbar>
+
+			<!-- RESULT GRID INFO -->
+			<hsc name="resultgrid_resulttable" />
+			<hsc name="resultgrid_name" />
+			<hsc name="resultgrid_code" />
+			<hsc name="resultgrid_severity" />
+			<header_section_tableresolver name="header_result">
+				<anchored>
+					<top parent="modlist" anchor="bottom" offset="2" />
+				</anchored> 
+				<static textres="tr_rg_header_result_grid" />
+				<tooltip textres="tr_rg_tooltip_result_grid" />
+			</header_section_tableresolver>
+			<numberc_tableresolver name="result_roll">
+				<anchored to="header_result" position="belowleft" offset="6,12" height="18" />
+				<default>1</default>
+				<script>
+					function onValueChanged()
+						window.result_total.recalc();
+					end
+
+					function onDrop(x, y, draginfo)
+						if draginfo.getType() == "rmdice" or draginfo.getType() == "resulttable" then
+							setValue(draginfo.getNumberData());
+						end
+					end
+
+					function action(draginfo)
+						local rActor = ActorManager.resolveActor(nil);
+						local sTableID = window.resultgrid.getTableID();
+
+						ActionResultTable.performRoll(draginfo, rActor, sTableID);
+
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</numberc_tableresolver>
+			<stringc_labeltop_tableresolver name="result_roll_label">
+				<anchored to="result_roll" />
+				<static textres="tr_rg_label_roll" />
+				<tooltip textres="tr_rg_tooltip_roll" />
+			</stringc_labeltop_tableresolver>
+			<dice_ghost name="diceholder">
+				<anchored to="result_roll" position="over" />
+				<disabled />
+			</dice_ghost>
+			<numberc_tableresolver name="crit_mod">
+				<anchored to="result_roll" />
+				<labelres>tr_label_crit_mod</labelres>
+				<script>
+					function onValueChanged()
+						window.result_total.recalc();
+					end
+				</script>
+			</numberc_tableresolver>
+			<stringc_labeltop_tableresolver name="crit_mod_label">
+				<anchored to="crit_mod" />
+				<static textres="tr_rg_label_crit_mod" />
+				<tooltip textres="tr_rg_tooltip_crit_mod" />
+			</stringc_labeltop_tableresolver>
+			<numberc_tableresolver name="result_total">
+				<anchored to="crit_mod" />
+				<readonly/>
+				<frame name="fielddark" offset="4,4,4,4" />
+				<script>
+					local nOldTotal = 0;
+					
+					function onInit()
+						recalc();
+					end
+
+					function recalc()
+						local nResultRoll = window.result_roll.getValue();
+						local nCritMod = window.crit_mod.getValue();
+						local nResultTotal  = nResultRoll + nCritMod;
+						
+						if nResultTotal &lt; 1 then
+							nResultTotal = 1;
+						end
+						
+						setValue(nResultTotal);
+						
+						--[[ update the result grid ]]
+						if window.resultgrid and (nOldTotal ~= nResultTotal) then
+							nOldTotal = nResultTotal;
+							window.resultgrid.selectRow(nResultTotal, nResultTotal);
+							window.resultgrid.showSelection();
+						end
+					end
+				</script>
+			</numberc_tableresolver>
+			<stringc_labeltop_tableresolver name="result_total_label">
+				<anchored to="result_total" />
+				<static textres="tr_rg_label_total" />
+				<tooltip textres="tr_rg_tooltip_total" />
+			</stringc_labeltop_tableresolver>
+		
+			<stringc_labeled_tr name="crit_mod_description">
+				<anchored to="result_roll" position="belowleft" offset="-5,-1" width="136" height="20" />
+				<labelres>tr_rg_label_crit_mod_description</labelres>
+				<tooltip textres="tr_rg_tooltip_crit_mod_description" />
+			</stringc_labeled_tr>
+
+			<stringcontrol name="resultlist_label">
+				<anchored to="crit_mod_description" position="belowleft" offset="0,6" width="100" height="20" />
+				<font>sheetlabelsmall</font>
+				<static textres="tr_rg_label_result_grid_list" />
+				<tooltip textres="tr_rg_tooltip_result_grid_list" />
+			</stringcontrol>
+			<windowlist name="resultlist">
+				<anchored to="resultlist_label" position="belowleft" offset="0,-4" width="137" height="55" />
+				<frame name="rowshade" />
+				<class>tableview_resultlist_item</class>
+			</windowlist>
+			<RMC_scrollbar name="resultlistscroller">
+				<anchored>
+					<to>resultlist</to>
+					<position>right</position>
+					<offset>-9,-4</offset>
+				</anchored>
+				<target>resultlist</target>
+			</RMC_scrollbar>
+
+			<!-- ROLL STACK -->
+			<header_section_tableresolver name="header_roll_stack">
+				<anchored>
+					<top parent="resultlist" anchor="bottom" offset="2" />
+				</anchored> 
+				<static textres="tr_rs_header_roll_stack" />
+				<tooltip textres="tr_rs_tooltip_roll_stack" />
+			</header_section_tableresolver>
+			<windowlist name="stack">
+				<anchored to="header_roll_stack" position="belowleft" offset="1,2" width="138">
+					<bottom parent="contentframe" anchor="bottom" />
+				</anchored>
+				<frame>
+					<name>rowshade</name>
+				</frame>
+				<datasource>stack</datasource>
+				<class>tableview_stackentry</class>
+				<allowdelete/>
+				<script>
+					function onInit()
+						for _,node in ipairs(DB.getChildList(getDatabaseNode())) do
+							if DB.getValue(node, "deleteflag", 0) == 1 then
+								DB.deleteNode(node);
+							end
+						end
+						checkMenu();
+					end
+
+					function checkMenu()
+						resetMenuItems();
+						if #(getWindows())~=0 then
+							registerMenuItem("Clear Stack","clearstack",7);
+						end
+					end
+
+					function onListRearranged(changed)
+						if changed then
+							checkMenu();
+						end
+					end
+
+					function onMenuSelection(selection)
+						if selection == 7 then
+							DB.deleteChildren(getDatabaseNode());
+						end
+					end
+
+					function onFilter(win)
+						if win.deleteflag.getValue()==1 then
+							return false;
+						else
+							return true;
+						end
+					end
+				</script>
+			</windowlist>
+			<RMC_scrollbar name="stackscroller">
+				<anchored>
+					<to>stack</to>
+					<position>right</position>
+					<offset>-9,-4</offset>
+				</anchored>
+				<target>stack</target>
+			</RMC_scrollbar>
+		
+			<!-- ATTACK TABLE -->
+			<tableview name="attackgrid">
+				<anchored to="contentframe" position="over">
+					<left offset="140" />
+					<bottom offset="-220" />
+				</anchored>
+				<script>
+					local tabledata = nil;
+
+					function bound(tablenode)
+						window.setResultVisible(false);
+						tabledata = getTableData();
+					end
+
+					function instanceCreated(source)
+						setActive(true);
+					end
+
+					function rowSelected(roll)
+						--[[ amend the modifier list to reflect the new roll ]]
+						window.setFudge(roll);
+					end
+
+					function criticalSelected(crit)
+						if not crit then
+							return;
+						end
+
+						Rules_Combat.SetFumble();
+						if crit and crit.Name=="Fumble" and tabledata and tabledata.Fumble then
+							local sFumbleTableID, sFumbleColumn = Rules_Combat.GetFumbleTableInfo();
+							if not sFumbleTableID or sFumbleTableID == "" then
+								sFumbleTableID = tabledata.Fumble.ResultTable;
+							end
+							if not sFumbleColumn or sFumbleColumn == "" then
+								sFumbleColumn = tabledata.Fumble.ColumnTitle;
+							end
+							local node = RMTableManager.getNode(sFumbleTableID);
+							local column = sFumbleColumn;
+							if node then
+								window.resultgrid.bind(node, nil, "resultgrid");
+								--[[ select initial fumble column ]]
+								window.resultgrid.selectColumn(column);
+								window.resultgrid.showSelection();
+								local nResultTotal = window.result_total.getValue();
+								window.resultgrid.selectRow(nResultTotal, nResultTotal);
+							end
+						elseif crit.ResultTable then
+							local node = RMTableManager.getNode(crit.ResultTable);
+							if crit.Modifier then
+								window.crit_mod.setValue(crit.Modifier);
+							else
+								window.crit_mod.setValue(0);
+							end
+
+							if node then
+								window.resultgrid.bind(node, nil, "resultgrid");
+								--[[ select initial severity column ]]
+								window.resultgrid_resulttable = crit.ResultTable;
+								window.resultgrid_name = crit.Name;
+								window.resultgrid_code = crit.Code;
+								window.resultgrid_severity = crit.Severity;
+								
+								window.resultgrid.selectColumn(crit.Severity);
+								if crit.ResultTable == Rules_Constants.RRTableID then
+									window.resultgrid.selectRow(Rules_Combat.nLevelDefender, Rules_Combat.nLevelDefender);
+								else
+									local nResultTotal = window.result_total.getValue();
+									window.resultgrid.selectRow(nResultTotal, nResultTotal);
+								end
+								window.resultgrid.showSelection();
+							end
+						end
+					end
+				</script>
+			</tableview>
+
+			<!-- RESULT TABLE -->
+			<tableview name="resultgrid">
+				<anchored to="contentframe" position="over">
+					<left parent="attackgrid" />
+					<top parent="attackgrid" anchor="bottom" offset="1" />
+				</anchored>
+				<script>
+					function bound(tablenode)
+						local sTableID = getTableID();
+						local nodeTracker = DB.findNode("combattracker");
+
+						if tablenode then
+							DB.setValue(nodeTracker, "result_tableid", "string", sTableID);
+							window.setResultVisible(true);
+						else
+							DB.setValue(nodeTracker, "result_tableid", "string", "");
+							window.setResultVisible(false);
+						end
+					end
+
+					function rowSelected(roll)
+						selectRow(roll,roll);
+						showSelection();
+					end
+
+					function instanceCreated(source)
+						setActive(true);
+					end
+				</script>
+			</tableview>
+
+			<resize_referencelist />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="tableview_stackentry">
+		<sizelimits>
+			<minimum>
+				<height>45</height>
+				<width>139</width>
+			</minimum>
+			<maximum>
+				<height>45</height>
+				<width>139</width>
+			</maximum>
+		</sizelimits>
+		<script file="utility/scripts/tableview_stackentry.lua" />
+		<frame>ghost</frame>
+		<sheetdata>
+			<numberfield name="deleteflag">
+				<bounds>0,0,0,0</bounds>
+				<invisible/>
+			</numberfield>
+			<stringcontrolX name="name">
+				<bounds>5,1,-5,17</bounds>
+				<font>sheetlabelsmall</font>
+				<static/>
+			</stringcontrolX>
+			<genericcontrol name="diepicture">
+				<anchored>
+					<position>insidebottomleft</position>
+					<offset>10,9</offset>
+					<size>
+						<width>25</width>
+						<height>25</height>
+					</size>
+				</anchored>
+				<icon>icon_dieresult</icon>
+			</genericcontrol>
+			<numbercontrol name="result">
+				<anchored>
+					<to>diepicture</to>
+					<position>over</position>
+				</anchored>
+				<font>dieresult</font>
+				<readonly/>
+			</numbercontrol>
+			<stringcontrolX name="title">
+				<bounds>42,17,-5,14</bounds>
+				<font>sheetlabelsmall</font>
+				<static/>
+				<readonly/>
+			</stringcontrolX>
+			<stringcontrolX name="target">
+				<bounds>44,30,-5,14</bounds>
+				<font>sheetlabelsmall</font>
+				<multilinespacing>14</multilinespacing>
+				<static/>
+				<readonly/>
+			</stringcontrolX>
+			<buttoncontrol name="button_resolve">
+				<anchored>
+					<bottom>
+						<anchor>bottom</anchor>
+						<offset>0</offset>
+					</bottom>
+					<left>
+						<anchor>left</anchor>
+						<offset>0</offset>
+					</left>
+					<size>
+						<width>45</width>
+						<height>15</height>
+					</size>
+				</anchored>
+				<icon>
+					<normal>button_resolve</normal>
+					<pressed>button_resolve_down</pressed>
+				</icon>
+				<tooltip textres="tr_rs_tooltip_stack_resolve" />
+				<script>
+					function onButtonPress()
+						window.resolve();
+					end
+				</script>
+			</buttoncontrol>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="tableview_modentry">
+		<sizelimits>
+			<maximum>
+				<height>18</height>
+			</maximum>
+			<minimum>
+				<height>18</height>
+			</minimum>
+		</sizelimits>
+		<script>
+			function update()
+				if windowlist and windowlist.update then
+					windowlist.update();
+				end
+			end
+		</script>
+		<sheetdata>
+			<stringcontrol name="label">
+				<bounds>0,4,90,13</bounds>
+				<font>sheetlabelsmall</font>
+				<empty>Modifier</empty>
+			</stringcontrol>
+			<numberfieldX_underlined_bold name="bonus">
+				<anchored>
+					<to>label</to>
+					<position>right</position>
+					<offset>3</offset>
+					<size>
+						<width>27</width>
+					</size>
+				</anchored>
+				<displaysign/>
+				<script>
+					function onValueChanged()
+						window.update();
+					end
+				</script>
+			</numberfieldX_underlined_bold>
+			<buttonc_checkbox name="include">
+				<bounds>120,4,12,12</bounds>
+				<tooltip textres="tr_mod_tooltip_modifierlist_item_include" />
+				<script>
+					function onValueChanged()
+						window.update();
+					end
+				</script>
+			</buttonc_checkbox>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="tableview_resultlist_item">
+		<sizelimits>
+			<maximum>
+				<height>18</height>
+			</maximum>
+			<minimum>
+				<height>18</height>
+			</minimum>
+		</sizelimits>
+		<sheetdata>
+			<hsc name="resulttable" />
+			<hsc name="name" />
+			<hsc name="code" />
+			<hsc name="severity" />
+			<hsc name="modifier" />
+			<stringcontrol name="result_name">
+				<bounds>0,4,110,18</bounds>
+				<font>sheetlabelsmallbold</font>
+				<empty>Result Table</empty>
+				<readonly />
+				<tooltip textres="tr_rg_tooltip_resultlist_item_name" />
+				<script>
+					function onClickDown(button, x, y)
+						LoadResultTable();
+					end
+					
+					function LoadResultTable()
+						aCrit = { 	ResultTable = window.resulttable.getValue(), 
+									Severity = window.severity.getValue(), 
+									Name = window.name.getValue(), 
+									Code = window.code.getValue(), 
+									Modifier = window.modifier.getValue() 
+								};
+						if aCrit then
+							window.windowlist.window.attackgrid.criticalSelected(aCrit);
+						end
+					end
+				</script>
+			</stringcontrol>
+			<buttonc_checkbox name="applied">
+				<bounds>120,4,12,12</bounds>
+				<tooltip textres="tr_rg_tooltip_resultlist_item_applied" />
+				<script>
+					function onButtonPress()
+						window.result_name.LoadResultTable();
+					end
+				</script>
+			</buttonc_checkbox>
+		</sheetdata>
+	</windowclass>
+
+	<!-- subwindow which displays the actual table contents -->
+	<windowclass name="tableview_window">
+		<script file="utility/scripts/tableview_window.lua"/>
+		<sheetdata>
+			<stringcontrol name="titlebar">
+				<frame>
+					<name>rowshade</name>
+					<offset>0,0,0,-1</offset>
+				</frame>
+				<anchored height="13">
+					<top>
+						<anchor>top</anchor>
+					</top>
+					<left>
+						<anchor>left</anchor>
+					</left>
+					<right>
+						<anchor>right</anchor>
+					</right>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<center/>
+				<static/>
+			</stringcontrol>
+			<genericcontrol name="grid">
+				<anchored>
+					<top>
+						<parent>titlebar</parent>
+						<anchor>bottom</anchor>
+						<relation>relative</relation>
+					</top>
+					<left>
+						<anchor>left</anchor>
+					</left>
+					<right>
+						<anchor>right</anchor>
+						<offset>-15</offset>
+					</right>
+					<bottom>
+						<anchor>bottom</anchor>
+						<offset>-15</offset>
+					</bottom>
+				</anchored>
+				<frame>
+					<name>rowshade</name>
+				</frame>
+				<disabled />
+			</genericcontrol>
+			<scrollbar2 name="vbar">
+				<target>grid</target>
+			</scrollbar2>
+			<scrollbar2 name="hbar">
+				<target>grid</target>
+				<horizontal/>
+			</scrollbar2>
+			<button_text name="button_applyresult">
+				<anchored position="insidetopleft" offset="7,7" width="50" height="20" />
+				<textres>tr_label_apply</textres>
+				<tooltip textres="tr_tooltip_tableview_apply" />
+				<script>
+					function onButtonPress()
+						local sAttackerNodeName = window.parentcontrol.window.attackerNodeName.getValue();
+						local nodeAttacker = DB.findNode(sAttackerNodeName);
+						local sAttackNodeName = window.parentcontrol.window.attackNodeName.getValue();
+						local nodeAttack = DB.findNode(sAttackNodeName);
+						local sDefenderNodeName = window.parentcontrol.window.defenderNodeName.getValue();
+						local nodeDefender = DB.findNode(sDefenderNodeName);
+						local sCritTableID = window.parentcontrol.window.critTableID.getValue();
+						local sCritTableName = window.parentcontrol.window.critTableName.getValue();
+						local sLargeColumnName = window.parentcontrol.window.largeColumnName.getValue();
+						local aSelectedTableCell, aFumble = window.getSelectedTableCell();
+						local aWoundEffects = RMTableManager.getTableCellWoundEffects(aSelectedTableCell);
+						local sText = RMTableManager.getTableCellText(aSelectedTableCell);
+						local sApplyButtonMessage = "[APPLY] [Attacker/Actor: " .. DB.getValue(nodeAttacker, "name", "") .. "]";
+						
+						if nodeAttacker then
+							nodeCTAttacker = ActorManager.getCTNode(nodeAttacker);
+							if nodeCTAttacker then
+								nodeAttacker = ActorManager.getCTNode(nodeAttacker);
+							end
+						end
+						
+						if nodeDefender then
+							nodeDefender = ActorManager.getCTNode(nodeDefender);
+							sApplyButtonMessage = sApplyButtonMessage .. " [Defender/Target: " .. DB.getValue(nodeDefender, "name", "") .. "]";
+						end
+
+						if nodeAttack then
+							sApplyButtonMessage = sApplyButtonMessage .. " [Attack Name: " .. DB.getValue(nodeAttack, "name", "") .. "]";
+						end
+						sApplyButtonMessage = sApplyButtonMessage .. " [Table: " .. window.getTableName() .. "]";
+						
+						if window.parentcontrol.getName() == "attackgrid" then
+							window.parentcontrol.window.resultlist.closeAll();
+							sApplyButtonMessage = sApplyButtonMessage .. " [Grid: Attack Table]";
+						else
+							sApplyButtonMessage = sApplyButtonMessage .. " [Grid: Result Table]";
+						end
+
+						local sTRAROption = string.lower(OptionsManager.getOption("TRAR"));
+						if aFumble then
+							local win = window.parentcontrol.window.resultlist.createWindow();
+							win.resulttable.setValue(aFumble.ResultTable);
+							win.name.setValue(aFumble.Name);
+							win.code.setValue(aFumble.Code);
+							win.severity.setValue(aFumble.Severity);
+							win.result_name.setValue(aFumble.Severity .. " " .. aFumble.Name);
+
+							sApplyButtonMessage = sApplyButtonMessage .. " [Result: Fumble]";
+
+							window.criticalSelected(aFumble);
+
+							local rActor = ActorManager.resolveActor(nodeAttacker);
+							if not ActorManager.isPC(rActor) and (sTRAROption == string.lower(Interface.getString("option_val_fumbles")) 
+											or sTRAROption == string.lower(Interface.getString("option_val_first_critical_fumbles")) 
+											or sTRAROption == string.lower(Interface.getString("option_val_all_criticals_fumbles"))) then 
+								ActionResultTable.performRoll(draginfo, rActor, aFumble.ResultTable);
+							end
+						else
+							local sPrimaryCritResult, aCritList, sOriginalSeverity = RMTableManager.getTableCellResultTable(aSelectedTableCell);
+							local aResultTable =  window.parseCritical(sPrimaryCritResult);
+							local aCritTableList = {};
+
+							if aSelectedTableCell and aSelectedTableCell.Effects and aSelectedTableCell.Effects[1] then
+								if window.parentcontrol.getName() == "attackgrid" then
+									if aSelectedTableCell.Effects[1].Criticals and aSelectedTableCell.Effects[1].Criticals[1] then
+										if not aSelectedTableCell.Effects[1].RR and not aSelectedTableCell.Effects[1].RRTarget then
+											sApplyButtonMessage = sApplyButtonMessage .. " [Result: Critical]";
+										end
+									else
+										if aSelectedTableCell.Effects[1].Hits then
+											local nHits = tonumber(aSelectedTableCell.Effects[1].Hits);
+											if nHits &gt; 0 then
+												sApplyButtonMessage = sApplyButtonMessage .. " [Result: Hit]";
+											else
+												sApplyButtonMessage = sApplyButtonMessage .. " [Result: Miss]";
+											end
+										end
+									end
+								end
+							end
+
+							for i, sCritResult in ipairs(aCritList) do
+								local aCritTable = window.parseCritical(sCritResult);
+								if aCritTable then
+									table.insert(aCritTableList, aCritTable);
+								end
+							end
+
+							if aResultTable and aResultTable.ResultTable ~= Rules_Constants.RRTableID then
+								if sCritTableID and sCritTableName and string.len(sCritTableID) &gt; 1 and string.len(sCritTableName) &gt; 1 then
+									aResultTable.ResultTable = sCritTableID;
+									aResultTable.Name = sCritTableName;
+									Comm.deliverChatMessage({icon="icon_info", font="systemfont", text="NOTE: The alternate critical table, " .. sCritTableName .. ", was specified for the attack so it was used instead.", secret=true});
+								end
+								if string.find(window.getTableClass(), "Spell") then
+									sAttackType = "Spell";
+								else
+									sAttackType = "Arms";
+								end
+								aResultTable = Rules_NPC.AdjustCritical(nodeDefender, aResultTable, sAttackType, sLargeColumnName, aCritTableList, sOriginalSeverity);
+							end
+
+							if aResultTable then
+								if aResultTable.ResultTable == Rules_Constants.RRTableID then
+									aResultTable.Severity = Rules_Combat.nLevelAttacker;
+								else
+									local rActor = ActorManager.resolveActor(nodeAttacker);
+									if not ActorManager.isPC(rActor) and sTRAROption ~= string.lower(Interface.getString("option_val_none")) 
+													and sTRAROption ~= string.lower(Interface.getString("option_val_fumbles")) then 
+										ActionResultTable.performRoll(draginfo, rActor, aResultTable.ResultTable);
+									end
+								end
+								
+								if aResultTable.Name == "Super-Large" or aResultTable.Name == "Large" then
+									local win = window.parentcontrol.window.resultlist.createWindow();
+									win.resulttable.setValue(aResultTable.ResultTable);
+									win.name.setValue(aResultTable.Name);
+									win.code.setValue(aResultTable.Code);
+									win.severity.setValue(aResultTable.Severity);
+									win.modifier.setValue(aResultTable.Modifier);
+									win.result_name.setValue(aResultTable.Severity .. " " .. aResultTable.Name);
+								elseif aCritTableList and aCritTableList[1] then
+									aCritTableList[1] = aResultTable;
+									local nCritSev = Rules_Combat.GetSevNumber(aCritTableList[1].Severity);
+									local aAddCrit1 = Rules_Combat.aAddCrit1;
+									local aAddCrit2 = Rules_Combat.aAddCrit2;
+									if aAddCrit1.Name and string.len(aAddCrit1.Name) > 0 then
+										local nAdd1SevAdj = Rules_Combat.nAddCrit1LevelDiff;
+										local nAdd1Sev = nCritSev + nAdd1SevAdj;
+										aAddCrit1.Severity = Rules_Combat.GetSev(nAdd1Sev);
+										if aAddCrit1.Severity and aAddCrit1.Severity ~= "" then
+											table.insert(aCritTableList, aAddCrit1);
+										end
+									end
+									if aAddCrit2.Name and string.len(aAddCrit2.Name) > 0 then
+										local nAdd2SevAdj = Rules_Combat.nAddCrit2LevelDiff;
+										local nAdd2Sev = nCritSev + nAdd2SevAdj;
+										aAddCrit2.Severity = Rules_Combat.GetSev(nAdd2Sev);
+										if aAddCrit2.Severity and aAddCrit2.Severity ~= "" then
+											table.insert(aCritTableList, aAddCrit2);
+										end
+									end
+									
+									for _, vCritTable in ipairs(aCritTableList) do
+										local win = window.parentcontrol.window.resultlist.createWindow();
+										win.resulttable.setValue(vCritTable.ResultTable);
+										win.name.setValue(vCritTable.Name);
+										win.code.setValue(vCritTable.Code);
+										win.severity.setValue(vCritTable.Severity);
+										win.modifier.setValue(vCritTable.Modifier);
+										win.result_name.setValue(vCritTable.Severity .. " " .. vCritTable.Name);
+									end
+								end
+								window.criticalSelected(aResultTable);
+							end
+						end 
+
+						Comm.deliverChatMessage({font="systemfont", text=sApplyButtonMessage, secret=true});
+
+						if aSelectedTableCell and aWoundEffects then
+							if aResultTable then
+								aWoundEffects.CriticalSeverity = aResultTable.Severity;
+								aWoundEffects.CriticalName = aResultTable.Name;
+								aWoundEffects.CriticalCode = aResultTable.Code;
+							end
+							local sTableClass = window.getTableClass();
+							aWoundEffects.AttackerNodeName = DB.getPath(nodeAttacker);
+							if (sTableClass == "Fumbles/Failures" or sTableClass == "Spell Failure") and nodeAttacker then
+								local nodeActiveCT = CombatManager.getActiveCT();
+								if nodeActiveCT == nodeAttacker then
+									CombatManager.nextActor();
+								end
+								CombatManager2.addWoundEffects(nodeAttacker, aWoundEffects, sText, nodeDefender);
+							elseif string.find(window.getTableId(), "CHL10-0") and nodeAttacker then
+								local sTRName = window.parentcontrol.window.name.getValue();
+								if string.find(sTRName, "Movement MM") then
+									local nMovePercent = tonumber(sText) or 0;
+									if nMovePercent > 0 then
+										DB.setValue(nodeAttacker, "manueverresult", "number", nMovePercent);
+									end
+								end
+								CombatManager2.addWoundEffects(nodeAttacker, aWoundEffects, sText, nodeDefender);
+							elseif nodeDefender then
+								CombatManager2.addWoundEffects(nodeDefender, aWoundEffects, sText, nodeAttacker);
+								
+								local rActor = ActorManager.resolveActor(nodeDefender);
+								if aWoundEffects.RRTarget and not ActorManager.isPC(rActor) and string.lower(OptionsManager.getOption("TRRR")) == string.lower(Interface.getString("option_val_on")) then
+									local nodeCreatureAttacker = ActorManager.getCreatureNode(nodeAttacker);
+									local nodeCreatureDefender = ActorManager.getCreatureNode(nodeDefender);
+									local sRealm = Rules_PC.Realm(nodeCreatureAttacker);
+									local sRRNodeName = Rules_RR.GetRRNodeName(sRealm);
+									local nodeRR = nil;
+
+									if sRRNodeName then
+										local sNodeRR = DB.getPath(nodeCreatureDefender) .. sRRNodeName;
+										nodeRR = DB.findNode(sNodeRR);
+									end
+									
+									ActionResistance.performRoll(nil, rActor, ActionRMDice.OpenEnded, nodeRR, sRealm);
+								end
+							else
+								Comm.deliverChatMessage({icon="error", font="systemfont", text="There is no target for this table result.", secret=true});
+							end
+
+							if window.parentcontrol.getName() == "resultgrid" then
+								for _, win in ipairs(window.parentcontrol.window.resultlist.getWindows()) do
+									local sName = win.name.getValue();
+									local sSeverity = win.severity.getValue();
+									if (sName == window.parentcontrol.window.resultgrid_name 
+												and sSeverity == window.parentcontrol.window.resultgrid_severity)
+												or (sName == "Fumble") then
+										win.applied.setValue(1);
+									end
+								end
+								local aCrit = nil;
+								local nCritOrder = 9;
+								for nCrit, win in ipairs(window.parentcontrol.window.resultlist.getWindows()) do
+									if win.applied.getValue() ==0 and nCrit and nCritOrder and nCrit &lt; nCritOrder then
+										aCrit = { 	ResultTable = win.resulttable.getValue(), 
+													Severity = win.severity.getValue(), 
+													Name = win.name.getValue(), 
+													Code = win.code.getValue(),
+													Modifier = win.modifier.getValue()
+												};
+										nCritOrder = nCrit;
+									end
+								end
+								if aCrit then
+									window.parentcontrol.window.attackgrid.subwindow.criticalSelected(aCrit);
+
+									local rActor = ActorManager.resolveActor(nodeAttacker);
+									if aCrit and aCrit.ResultTable ~= Rules_Constants.RRTableID and not ActorManager.isPC(rActor) and (sTRAROption == string.lower(Interface.getString("option_val_all_criticals")) 
+													or sTRAROption == string.lower(Interface.getString("option_val_all_criticals_fumbles"))) then 
+										ActionResultTable.performRoll(draginfo, rActor, aCrit.ResultTable);
+									end
+								else
+									window.parentcontrol.window.resultgrid.subwindow.clear();
+								end
+							end
+						else
+							Comm.deliverChatMessage({icon="error", font="systemfont", text="No table cell is selected on the table.", secret=true});
+						end
+					end
+				</script>
+			</button_text>
+		</sheetdata>
+	</windowclass>
+</root>

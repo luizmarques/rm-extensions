@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<template name="column_heading">
+		<stringcontrol>
+			<center/>
+			<multilinespacing>10</multilinespacing>
+			<font>sheetlabelmini</font>
+		</stringcontrol>
+	</template>
+	<template name="column_heading_skill">
+		<column_heading>
+			<anchored to="rightanchor" width="25" height="12">
+				<top />
+				<right anchor="left" relation="relative" offset="-2" />
+			</anchored>
+			<controlline />
+		</column_heading>
+	</template>
+
+	<template name="row_heading_protection">
+		<label>	
+			<anchored position="righthigh" offset="5,0" width="70" />
+			<font>sheettext</font>
+		</label>
+	</template>
+	<template name="header_section_with_detail">
+		<header_section>
+			<anchored offset="30,10" />
+			<font>sheetlabel</font>
+		</header_section>
+	</template>
+	<template name="button_charsheet_details">
+		<button_details>	
+			<anchored position="lefthigh" offset="0,0" />
+			<script>
+				function onButtonPress()
+					Interface.openWindow(string.sub(getName(),16), window.getDatabaseNode());
+				end
+			</script>
+		</button_details>
+	</template>
+
+	<template name="number_boxed_total">
+		<number_linked>
+			<anchored position="righthigh" offset="10,0" width="35" height="20" />
+			<font>sheettext</font>
+			<frame name="fieldlight" offset="4,4,4,4" />
+			<displaysign />
+			<modifiersize>mini</modifiersize>
+			<script file="common/scripts/number_modifier_RMC.lua" />
+		</number_linked>
+	</template>
+	<template name="number_boxed_total_stat">
+		<number_boxed_total>
+			<script>
+				function onInit()
+					addSource("bonus");
+					addSource("race");
+					addSource("special");
+					super.onInit();
+				end
+
+				function onSourceUpdate()
+					local nValue = calculateSources();
+					local node = window.getDatabaseNode();
+					nValue = nValue + DB.getValue(node, "bonus", 0);
+					nValue = nValue + DB.getValue(node, "race", 0);
+					nValue = nValue + DB.getValue(node, "special", 0);
+					setValue(nValue);
+				end
+
+				function onDoubleClick(x, y)
+					ModifierStack.addSlot(window.label.getValue(), getValue());
+				end
+
+				function onDragStart(button, x, y, draginfo)
+					draginfo.setType("number");
+					draginfo.setDescription(window.label.getValue().." Bonus");
+					if getValue() &gt;= 0 then
+						draginfo.setStringData(window.label.getValue().." Bonus +"..getValue());
+					else
+						draginfo.setStringData(window.label.getValue().." Bonus "..getValue());
+					end
+					draginfo.setNumberData(getValue());
+					return true;
+				end
+			</script>
+		</number_boxed_total>
+	</template>
+	<template name="number_boxed_total_resistance_base">
+		<number_boxed_total>
+			<script>
+				function onInit()
+					addSource("race");
+					addSource("stat");
+					addSource("item");
+					addSource("special");
+					addSource("misc");
+					super.onInit();
+				end
+
+				function onSourceUpdate()
+					local nValue = calculateSources();
+					local node = window.getDatabaseNode();
+
+					nValue = nValue + DB.getValue(node, "race", 0);
+					nValue = nValue + DB.getValue(node, "stat", 0);
+					nValue = nValue + DB.getValue(node, "item", 0);
+					nValue = nValue + DB.getValue(node, "special", 0);
+					nValue = nValue + DB.getValue(node, "misc", 0);
+					setValue(nValue);
+				end
+
+				function onDoubleClick(x, y)
+					ModifierStack.addSlot(window.label.getValue() .. " RR Bonus", getValue());
+				end
+
+				function onDragStart(button, x, y, draginfo)
+					draginfo.setType("number");
+					draginfo.setDescription(window.label.getValue().." RR Bonus");
+					if getValue() &gt;= 0 then
+						draginfo.setStringData(window.label.getValue().." RR Bonus +"..getValue());
+					else
+						draginfo.setStringData(window.label.getValue().." RR Bonus "..getValue());
+					end
+					draginfo.setNumberData(getValue());
+					return true;
+				end
+			</script>
+		</number_boxed_total>
+	</template>
+	<template name="number_boxed_total_resistance_hybrid">
+		<number_boxed_total>
+			<script>
+				function onInit()
+					local node = window.getDatabaseNode();
+					local resistances = DB.getValue(node, "resistances", "");
+					addSource("item");
+					addSource("misc");
+					if string.find(resistances, "Essence") then
+						addSource("...base.essence.total");
+					end
+					if string.find(resistances, "Channeling") then
+						addSource("...base.channeling.total");
+					end
+					if string.find(resistances, "Mentalism") then
+						addSource("...base.mentalism.total");
+					end
+					super.onInit();
+				end
+
+				function onSourceUpdate()
+					local nValue = calculateSources();
+					local nAverage = 0;
+					local count = 0;
+					local node = window.getDatabaseNode();
+					local resistances = DB.getValue(node, "resistances", "");
+					
+					if string.find(resistances, "Essence") then
+						nAverage = nAverage + DB.getValue(node, "...base.essence.total", 0);
+						count = count + 1;
+					end
+					if string.find(resistances, "Channeling") then
+						nAverage = nAverage + DB.getValue(node, "...base.channeling.total", 0);
+						count = count + 1;
+					end
+					if string.find(resistances, "Mentalism") then
+						nAverage = nAverage + DB.getValue(node, "...base.mentalism.total", 0);
+						count = count + 1;
+					end
+					if count > 0 then
+						nAverage = math.floor((nAverage / count) + 0.5);
+					end
+
+					nValue = nValue + nAverage + DB.getValue(node, "item", 0) + DB.getValue(node, "misc", 0);
+					
+					setValue(nValue);
+				end
+
+				function onDoubleClick(x, y)
+					ModifierStack.addSlot(window.label.getValue() .. " RR Bonus", getValue());
+				end
+
+				function onDragStart(button, x, y, draginfo)
+					draginfo.setType("number");
+					draginfo.setDescription(window.label.getValue().." RR Bonus");
+					if getValue() &gt;= 0 then
+						draginfo.setStringData(window.label.getValue().." RR Bonus +"..getValue());
+					else
+						draginfo.setStringData(window.label.getValue().." RR Bonus "..getValue());
+					end
+					draginfo.setNumberData(getValue());
+					return true;
+				end
+			</script>
+		</number_boxed_total>
+	</template>
+	<template name="number_boxed_total_initiative">
+		<number_boxed_total>
+			<script>
+				function onInit()
+					addSource("abilities.quickness.total");
+					addSource("initiative.misc");
+					super.onInit();
+				end
+
+				function onSourceUpdate()
+					local nValue = calculateSources();
+					local node = window.getDatabaseNode();
+					nValue = nValue + DB.getValue(node, "abilities.quickness.total", 0);
+					nValue = nValue + DB.getValue(node, "initiative.misc", 0);
+					setValue(nValue);
+				end
+
+				function onDoubleClick(x, y)
+					ModifierStack.addSlot("Initiative Bonus", getValue());
+				end
+
+				function onDragStart(button, x, y, draginfo)
+					draginfo.setType("number");
+					draginfo.setDescription("Initiative Bonus");
+					if getValue() &gt;= 0 then
+						draginfo.setStringData("Initiative Bonus +"..getValue());
+					else
+						draginfo.setStringData("Initiative Bonus "..getValue());
+					end
+					draginfo.setNumberData(getValue());
+					return true;
+				end
+			</script>
+		</number_boxed_total>
+	</template>
+	<template name="number_spelladder">
+		<number>
+			<anchored position="insidetopright" offset="-3,-5" height="11" width="10" />
+			<frame mergerule="replace" name="fielddark" offset="6,5,6,8" />
+			<font>sheetlabelmini</font>
+		</number>
+	</template>
+	<template name="number_spelladdermax">
+		<number_spelladder>
+			<frame mergerule="replace" name="fieldlight" offset="6,5,6,8" />
+			<readonly />
+		</number_spelladder>
+	</template>
+	
+	<template name="dice_ghost">
+		<genericcontrol>
+			<frame name="ghostdice" offset="0,1,0,0" />
+		</genericcontrol>
+	</template>
+	<template name="dice_ghost_listitem_center">
+		<dice_ghost name="initdiceholder">
+			<anchored to="rightanchor" height="20">
+				<top />
+				<left parent="leftanchor" relation="current" offset="5" />
+				<right relation="current" offset="-5" />
+			</anchored>
+			<disabled />
+		</dice_ghost>
+	</template>
+</root>

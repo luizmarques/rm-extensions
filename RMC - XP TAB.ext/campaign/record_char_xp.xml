@@ -1,0 +1,1705 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<root version="2.0">
+
+	<windowclass name="charsheet_xp">
+		<placement>
+		  <size>
+			<width>252</width>
+			<height>611</height>
+		  </size>
+		</placement>
+		<script>
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				
+				if User.isHost() then
+					--[[ GM view, include GM notes ]]
+					totalframe.setVisible(true);
+					mutliplier.setVisible(true);
+					adventuretotal.setVisible(true);
+					totallabel.setVisible(true);
+					gmlabel.setVisible(true);
+					gmexframe.setVisible(true);
+					ideaslabel.setVisible(true);
+					ideaxp.setVisible(true);
+					trvllabel.setVisible(true);
+					trvlxp.setVisible(true);
+					trvl2label.setVisible(true);
+					trvl2xp.setVisible(true);
+					manuevertotal.setVisible(true);
+					manuevertotallabel.setVisible(true);
+					combattotal.setVisible(true);
+					combattotallabel.setVisible(true);
+					spelltotal.setVisible(true);
+					spelltotallabel.setVisible(true);
+					totaltotal.setVisible(true);
+					totaltotallabel.setVisible(true);
+					sessiontotal.setVisible(true);
+					sessiontotallabel.setVisible(true);
+					combatkills.setVisible(true);
+					combatkillslabel.setVisible(true);
+					multiplierlabel.setVisible(true);
+					adventuretotallabel.setVisible(true);
+				else
+					--[[ Player view, exclude GM notes ]]
+					totalframe.setVisible(true);
+					mutliplier.setVisible(false);
+					adventuretotal.setVisible(false);
+					totallabel.setVisible(false);
+					gmlabel.setVisible(flase);
+					gmexframe.setVisible(true);
+					ideaslabel.setVisible(true);
+					ideaxp.setVisible(true);
+					trvllabel.setVisible(true);
+					trvlxp.setVisible(true);
+					trvl2label.setVisible(true);
+					trvl2xp.setVisible(true);
+					manuevertotal.setVisible(false);
+					manuevertotallabel.setVisible(false);
+					combattotal.setVisible(false);
+					combattotallabel.setVisible(false);
+					spelltotal.setVisible(false);
+					spelltotallabel.setVisible(false);
+					totaltotal.setVisible(false);
+					totaltotallabel.setVisible(false);
+					sessiontotal.setVisible(true);
+					sessiontotallabel.setVisible(true);
+					combatkills.setVisible(false);
+					combatkillslabel.setVisible(false);
+					multiplierlabel.setVisible(false);
+					adventuretotallabel.setVisible(false);
+				end
+				refresh();
+			end
+		  
+			function spellcalc(spelllvl)
+				local lvl;
+				local calctotal;
+				
+				lvl = level.getValue();
+				calctotal = math.floor(100-((lvl-spelllvl)*10));
+					if calctotal  > 200 then
+						calctotal = 200;
+					end
+				return calctotal;
+			end
+
+			function CalcLevelFromXP(nTotalXP)
+				local nLevel = 0;
+				local aLevelXP = {10000, 20000, 30000, 40000, 50000, 70000, 90000, 110000, 130000, 150000,
+								175000, 200000, 225000, 250000, 275000, 300000, 325000, 350000, 375000, 400000,
+								425000, 450000, 475000, 500000};
+				
+				for i = 1, #aLevelXP do
+					if nTotalXP >= aLevelXP[i] then
+						nLevel = i;
+					else
+						break;
+					end
+				end
+				
+				return nLevel;
+			end
+			
+		  
+function refresh()
+    local mantot;
+    local sesstot;
+    mantot = (routine.getValue() * 1) + (easy.getValue() * 5) + (light.getValue() * 10) + (medium.getValue() * 50) + (hard.getValue() * 100) +
+             (veryhard.getValue() * 150) + (extremelyhard.getValue() * 200) + (sheerfolly.getValue() * 300) + (absurd.getValue() * 500);
+    manuevertotal.setValue(mantot);
+
+    local comtot;
+    local nHpgiv = 0;
+    local nHptak = 0;
+
+    nHpgiv = addhitsgiven.getValue() + hitsgiven.getValue();
+    nHptak = addhitstaken.getValue() + hitstaken.getValue();
+    hitsgiven.setValue(nHpgiv);
+    hitstaken.setValue(nHptak);
+
+    local combatMultiplier = combatxpdesc.getValue() or 1;
+    local foeValue = (foekill.getValue() * 20) * combatMultiplier or 0; -- Aplica o multiplicador aqui
+    combatkills.setValue(foeValue); -- Atualiza combatkills com o valor correto
+
+    local critValue = crit() * combatMultiplier;
+
+    comtot = hitsgiven.getValue() + hitstaken.getValue() + critValue + foeValue; -- Usa o valor atualizado de combatkills
+    combattotal.setValue(comtot);
+
+    addhitsgiven.setValue(0);
+    addhitstaken.setValue(0);
+
+    local spelltot;
+    spelltot = spellcalc(1) * spellone.getValue() + spellcalc(2) * spelltwo.getValue() + spellcalc(3) * spellthree.getValue() +
+               spellcalc(4) * spellfour.getValue() + spellcalc(5) * spellfive.getValue() + spellcalc(6) * spellsix.getValue() +
+               spellcalc(7) * spellseven.getValue() + spellcalc(8) * spelleight.getValue() + spellcalc(9) * spellnine.getValue() +
+               spellcalc(10) * spellten.getValue() + 200 * spelleleven.getValue();
+    spelltotal.setValue(spelltot);
+
+    sesstot = (mantot + comtot + spelltot + ideaxp.getValue() + trvlxp.getValue() + trvl2xp.getValue() + adventuretotal.getValue()) *
+              mutliplier.getValue();
+    sessiontotal.setValue(sesstot);
+	
+	-- Atualizar o nível do personagem baseado no XP total
+	local nTotalXP = xp.getValue();
+	local nNewLevel = CalcLevelFromXP(nTotalXP);
+	level.setValue(nNewLevel);
+	
+	-- Atualizar o nível do personagem no banco de dados para que as skills recebam o bônus correto
+	local nodeChar = getDatabaseNode().getParent();
+	if nodeChar then
+		DB.setValue(nodeChar, "level", "number", nNewLevel);
+	end
+end
+
+
+			 
+			function session2total()
+				local tot;
+				tot = sessiontotal.getValue() + totaltotal.getValue();
+				totaltotal.setValue(tot);
+				reset();
+				refresh();
+			end
+			
+			function total2xp()
+				local tot;
+				tot = xp.getValue() + totaltotal.getValue();
+				xp.setValue(tot);
+				totaltotal.setValue(0);
+				
+				-- Calcular e atualizar o nível do personagem
+				local nNewLevel = CalcLevelFromXP(tot);
+				level.setValue(nNewLevel);
+				
+				-- Atualizar os bônus de nível das skills
+				local nodeChar = getDatabaseNode().getParent();
+				if nodeChar then
+					DB.addHandler(DB.getPath(nodeChar, "level"), "onUpdate", function() end);
+					DB.setValue(nodeChar, "level", "number", nNewLevel);
+				end
+			end
+
+			function getcombatxpdesc()
+				local combatxpdesc;
+				crittot = math.floor(combatxpdesc)
+				return combatxpdesc;
+			end
+
+				function crit()
+				local crittot = 0; -- Inicializa o total cr�tico
+				local combatMultiplier = combatxpdesc.getValue() or 1; -- Multiplicador apenas para os valores afetados
+				crittot = (norma.getValue() + (unca.getValue()* 0.1) + (downa.getValue()*0.2) + (stuna.getValue()*0.5) + (soloa.getValue()*2) + (largea.getValue()*1.5)+ (vlargea.getValue()*2)) * 5;
+				crittot = crittot + ((normb.getValue() + (uncb.getValue()* 0.1) + (downb.getValue()*0.2) + (stunb.getValue()*0.5) + (solob.getValue()*2) + (largeb.getValue()*1.5)+ (vlargeb.getValue()*2)) * 10);
+				crittot = crittot + ((normc.getValue() + (uncc.getValue()* 0.1) + (downc.getValue()*0.2) + (stunc.getValue()*0.5) + (soloc.getValue()*2) + (largec.getValue()*1.5)+ (vlargec.getValue()*2)) * 15);
+				crittot = crittot + ((normd.getValue() + (uncd.getValue()* 0.1) + (downd.getValue()*0.2) + (stund.getValue()*0.5) + (solod.getValue()*2) + (larged.getValue()*1.5)+ (vlarged.getValue()*2)) * 20);
+				crittot = crittot + ((norme.getValue() + (unce.getValue()* 0.1) + (downe.getValue()*0.2) + (stune.getValue()*0.5) + (soloe.getValue()*2) + (largee.getValue()*1.5)+ (vlargee.getValue()*2)) * 25);		
+				   crittot = crittot + ((selfa.getValue() * 100) / combatMultiplier) + ((selfb.getValue() * 200) / combatMultiplier) + ((selfc.getValue() * 300) / combatMultiplier) + ((selfd.getValue() * 400) / combatMultiplier) + ((selfe.getValue() * 500) / combatMultiplier);
+				crittot = math.floor(crittot)
+				return crittot;
+			end
+
+			function reset()
+				routine.setValue(0); easy.setValue(0); light.setValue(0); medium.setValue(0); hard.setValue(0); veryhard.setValue(0); extremelyhard.setValue(0); sheerfolly.setValue(0); absurd.setValue(0);
+				hitsgiven.setValue(0); hitstaken.setValue(0); foekill.setValue(0); combatkills.setValue(0); 
+				norma.setValue(0); selfa.setValue(0); unca.setValue(0); downa.setValue(0); stuna.setValue(0); soloa.setValue(0); largea.setValue(0); vlargea.setValue(0);
+				normb.setValue(0); selfb.setValue(0); uncb.setValue(0); downb.setValue(0); stunb.setValue(0); solob.setValue(0); largeb.setValue(0); vlargeb.setValue(0);
+				normc.setValue(0); selfc.setValue(0); uncc.setValue(0); downc.setValue(0); stunc.setValue(0); soloc.setValue(0); largec.setValue(0); vlargec.setValue(0);
+				normd.setValue(0); selfd.setValue(0); uncd.setValue(0); downd.setValue(0); stund.setValue(0); solod.setValue(0); larged.setValue(0); vlarged.setValue(0);
+				norme.setValue(0); selfe.setValue(0); unce.setValue(0); downe.setValue(0); stune.setValue(0); soloe.setValue(0); largee.setValue(0); vlargee.setValue(0);
+				spellone.setValue(0); spelltwo.setValue(0); spellthree.setValue(0); spellfour.setValue(0); spellfive.setValue(0); spellsix.setValue(0); spellseven.setValue(0); spelleight.setValue(0); spellnine.setValue(0); spellten.setValue(0); spelleleven.setValue(0);
+				ideaxp.setValue(0); trvlxp.setValue(0); trvl2xp.setValue(0); adventuretotal.setValue(0);
+				refresh()
+			end
+		</script>
+		<nodelete />
+		<sheetdata>
+			<!-- Hidden Field -->
+			<number_boxed name="level">
+				<bounds>0,0,0,0</bounds>
+				 
+			</number_boxed>
+			<number_boxed name="xp">
+				<bounds>0,0,0,0</bounds>
+				 
+			</number_boxed>
+			<!-- Main border frame for the maneuver xp -->
+			<genericcontrol name="manframe">
+			<bounds>20,15,-40,100</bounds>
+				<anchored>
+					<top>
+						<anchor>top</anchor>
+						<offset>20</offset>
+					</top>
+					<left>
+						<anchor>left</anchor>
+						<offset>15</offset>
+					</left>
+					<right>
+						<anchor>right</anchor>
+						<offset>20</offset>
+					</right>
+					<size>
+						<height>100</height>
+					</size>
+				</anchored>
+				<frame name="groupbox" />
+			</genericcontrol>
+		  
+			<row_heading name="mansuccess">  <!-- Heading -->
+				<anchored to="manframe" position="insidetopleft" offset="15,18" width="90" />
+				<static>Successful</static>
+			</row_heading>
+			
+			<row_heading name="maneuver">  <!-- Heading -->
+				<anchored to="manframe" position="insidetopleft" offset="15,33" width="90" />
+				<static>Maneuver EPs</static>
+			</row_heading>
+		  
+			<stringcontrolX name="routinelabel">  <!-- Maneuver Headings -->
+				<anchored to="manframe" position="insidetopleft" offset="120,20" width="30" height="18" />
+				<font>sheetlabelsmall</font>
+				<static>Rout</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="easylabel"> 
+				<anchored to="routinelabel" position="right" offset="5" width="30"/>
+				<font>sheetlabelsmall</font>
+				<static>Easy</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="lightlabel"> 
+				<anchored to="easylabel" position="right" offset="5" width="30"/>
+				<font>sheetlabelsmall</font>
+				<static>Lght</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="mediumlabel">
+				<anchored to="lightlabel" position="right" offset="5" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>Med.</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="hardlabel">
+				<anchored to="mediumlabel" position="right" offset="5" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>Hard</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="veryhardlabel">
+				<anchored to="hardlabel" position="right" offset="5" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>VHrd</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="exteremlyhardlabel">
+				<anchored to="veryhardlabel" position="right" offset="5" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>Extm</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="sheerfollylabel">
+				<anchored to="exteremlyhardlabel" position="right" offset="5" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>Folly</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="absurblabel">
+				<anchored to="sheerfollylabel" position="right" offset="5" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>Absd</static>
+			</stringcontrolX>
+			
+			<number_boxed name="routine">
+				<anchored to="manframe" position="insidetopleft" offset="115,35" width="30" height="18" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="easy">
+				<anchored to="routine" position="right" offset="5" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="light">
+				<anchored to="easy" position="right" offset="5" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="medium">
+				<anchored to="light" position="right" offset="5" width="30" />	
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="hard">
+				<anchored to="medium" position="right" offset="5" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="veryhard">
+				<anchored to="hard" position="right" offset="5" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="extremelyhard">
+				<anchored to="veryhard" position="right" offset="5" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="sheerfolly">
+				<anchored to="extremelyhard" position="right" offset="5" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="absurd">
+				<anchored to="sheerfolly" position="right" offset="5" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<stringcontrolX name="manuevertotallabel">
+				<anchored to="manframe" position="insidetopleft" offset="330,65" width="40" height="18" />	
+				<static>Total</static>
+			</stringcontrolX>
+			
+			<number_boxed name="manuevertotal">
+				<anchored to="manuevertotallabel" position="right" offset="20" width="40"/>
+				<readonly/>
+			</number_boxed>
+			
+			
+			<!-- Main border frame for the combat xp -->
+			<genericcontrol name="comframe">
+			<bounds>20,115,-40,240</bounds>
+				<anchored to="manframe" position="belowleft" offset="0,0" width="540" height="240" />
+				<frame name="groupbox" />
+			</genericcontrol>
+			
+			<row_heading name="combatxplabel">  <!-- Heading -->
+				<anchored to="comframe" position="insidetopleft" offset="15,10" width="75"/>
+				<static>Combat EPs</static>
+			</row_heading>
+			
+			<row_heading name="hitsgivenlabel">  <!-- First Line, Hits given and taken -->
+				<anchored to="comframe" position="insidetopleft" offset="35,36" width="75" />
+				<static>HP Given</static>
+			</row_heading>
+			
+			<number_boxed name="hitsgiven">
+				<anchored to="comframe" position="insidetopleft" offset="95,38" width="35" />
+				<readonly/>
+			</number_boxed>
+			
+			<number_boxed name="addhitsgiven">
+				<anchored to="comframe" position="insidetopleft" offset="95,15" width="35" />						
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end	
+					end
+						
+					function onDrop(x, y, draginfo)
+						setValue(draginfo.getNumberData());
+						return true;
+					end
+				</script>
+			</number_boxed>	
+			
+			<buttoncontrol name="addhitsgiven_butt">
+				<bounds>153,127,23,22</bounds>
+				<icon>
+				  <normal>button_arrowdown</normal>
+				  <pressed>button_arrowdown_down</pressed>
+				</icon>
+				<script>
+				  function onInit()
+					if User.isHost() then
+					  setVisible(true);
+					end
+				  end
+				  
+				  function onButtonPress()
+					window.refresh();
+				  end
+				</script>
+				<tooltip>
+					<text>Add Hits Given to total</text>
+				</tooltip>
+			</buttoncontrol>
+				
+			<row_heading name="hitstakenlabel">
+				<anchored to="hitsgivenlabel" position="right" offset="30" width="75" />
+				<static>HP Taken</static>
+			</row_heading>
+			
+			<number_boxed name="hitstaken">
+				<anchored to="hitsgiven" position="right" offset="70"/>
+				
+				<readonly/>
+			</number_boxed>
+			
+			<number_boxed name="addhitstaken">
+				<anchored to="addhitsgiven" position="right" offset="70" width="35" />						
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end	
+					end
+						
+					function onDrop(x, y, draginfo)
+						setValue(draginfo.getNumberData());
+						return true;
+					end
+				</script>	
+			</number_boxed>
+			
+			<buttoncontrol name="addhitstaken_butt">
+				<bounds>259,127,23,22</bounds>
+				<icon>
+				  <normal>button_arrowdown</normal>
+				  <pressed>button_arrowdown_down</pressed>
+				</icon>
+				<script>
+				  function onInit()
+					if User.isHost() then
+					  setVisible(true);
+					end
+				  end
+				  
+				  function onButtonPress()
+					window.refresh();
+				  end
+				</script>
+				<tooltip>
+					<text>Add Hits Taken to total</text>
+				</tooltip>
+			</buttoncontrol>
+			
+			<row_heading name="foekilllabel">
+				<anchored to="addhitstaken_butt" position="right" offset="25" width="75" />		
+				<static>Foes Killed</static>
+			</row_heading>
+			
+			<number_boxed name="foekill">
+				<anchored to="foekilllabel" position="right" offset="0" width="35" />
+			    <script>
+					function onValueChanged()
+					window.refresh();
+					end
+				</script>
+			</number_boxed>
+
+			<row_heading name="foekillbonusabel">
+				<anchored to="hitstaken" position="right" offset="5,0" width="105" />		
+				<static>Foes Killed Bonus</static>
+			</row_heading>
+			
+			<combobox name="foekillbonuscombo">
+			<anchored to="foekillbonusabel" position="right" offset="20,0" width="100" >
+				<right offset="125" />
+			</anchored>	
+				<listmaxsize>41</listmaxsize>
+				<option>41</option>
+				<script>
+				function onInit()
+				if super and super.onInit then
+				super.onInit();
+				end
+				local combo = window.foekillbonuscombo;
+				combo.clear();
+				
+				combo.add("");
+				combo.add("O.R - Common Man");
+				combo.add("O.R - High Man");
+				combo.add("O.R - Hobbit");
+				combo.add("O.R - Silvan Elf");
+				combo.add("O.R - Sindar Elf");
+				combo.add("O.R - Noldo Elf");
+				combo.add("O.R - Dwarf");
+				combo.add("O.R - Half-elf");
+				combo.add("Common Man");
+				combo.add("High Man");
+				combo.add("Hobbit");
+				combo.add("Silvan Elf");
+				combo.add("Sindar Elf");
+				combo.add("Noldo Elf");
+				combo.add("Dwarf");
+				combo.add("Half-elf");
+				combo.add("Greater Orc");
+				combo.add("Lesser Orc");
+				combo.add("Uruk-hai");
+				combo.add("Warg");
+				combo.add("Lesser Spider");
+				combo.add("Great Spider");
+				combo.add("Hill Troll");
+				combo.add("Ogre");
+				combo.add("Wolf");
+				combo.add("Wild Dog");
+				combo.add("Horse (Riding)");
+				combo.add("Warhorse");
+				combo.add("Boar (Wild)");
+				combo.add("Bear (Black)");
+				combo.add("Bear (Grizzly)");
+				combo.add("Crow");
+				combo.add("Eagle");
+				combo.add("Greater Eagle");
+				combo.add("Giant Bat");
+				combo.add("Wyvern");
+				combo.add("Young Dragon");
+				combo.add("Adult Dragon");
+				combo.add("Barrow-wight");
+				combo.add("Nazgul");
+				combo.add("Balrog");
+				end
+				
+    function onValueChanged()
+        local selectedValue = getValue(); -- Obt�m o valor selecionado na Combo Box
+        local newValue = 0;
+
+        -- Define o novo valor com base na sele��o
+        if selectedValue == "" then
+            newValue = 0;
+		elseif selectedValue == "O.R - Common Man" then
+            newValue = 187,5;
+        elseif selectedValue == "O.Re - High Man (D�nedain)" then
+            newValue = 500;
+        elseif selectedValue == "O.R - Hobbit" then
+            newValue = 187,5;
+        elseif selectedValue == "O.R - Silvan Elf" then
+            newValue = 250;
+		elseif selectedValue == "O.R - Sindar Elf" then
+            newValue = 375;			
+        elseif selectedValue == "O.R - Noldo Elf" then
+            newValue = 500;
+        elseif selectedValue == "O.R - Dwarf" then
+            newValue = 375;
+        elseif selectedValue == "O.R - Half-elf" then
+            newValue = 375;
+        elseif selectedValue == "Common Man" then
+            newValue = 150;
+        elseif selectedValue == "High Man (D�nedain)" then
+            newValue = 400;
+        elseif selectedValue == "Hobbit" then
+            newValue = 150;
+        elseif selectedValue == "Silvan Elf" then
+            newValue = 200;
+        elseif selectedValue == "Sindar Elf" then
+            newValue = 300;
+        elseif selectedValue == "Noldo Elf" then
+            newValue = 400;
+        elseif selectedValue == "Dwarf" then
+            newValue = 300;
+        elseif selectedValue == "Half-elf" then
+            newValue = 300;		
+        elseif selectedValue == "Orc" then
+            newValue = 100;
+        elseif selectedValue == "Uruk-hai" then
+            newValue = 500;
+		elseif selectedValue == "Warg" then
+            newValue = 200;		
+        elseif selectedValue == "Lesser Spider" then
+            newValue = 250;
+        elseif selectedValue == "Great Spider" then
+            newValue = 400;
+        elseif selectedValue == "Hill Troll" then
+            newValue = 500;
+		elseif selectedValue == "Ogre" then
+            newValue = 600;			
+        elseif selectedValue == "Wolf" then
+            newValue = 200;
+        elseif selectedValue == "Wild Dog" then
+            newValue = 100;
+        elseif selectedValue == "Horse (Riding)" then
+            newValue = 100;
+        elseif selectedValue == "Warhorse" then
+            newValue = 400;
+        elseif selectedValue == "Boar (Wild)" then
+            newValue = 300;
+        elseif selectedValue == "Bear (Black)" then
+            newValue = 400;
+        elseif selectedValue == "Bear (Grizzly)" then
+            newValue = 800;
+        elseif selectedValue == "Crow" then
+            newValue = 50;
+        elseif selectedValue == "Eagle" then
+            newValue = 1000;
+        elseif selectedValue == "Greater Eagle" then
+            newValue = 3000;
+        elseif selectedValue == "Giant Bat" then
+            newValue = 300;
+        elseif selectedValue == "Wyvern" then
+            newValue = 1500;		
+        elseif selectedValue == "Young Dragon" then
+            newValue = 5000;
+        elseif selectedValue == "Adult Dragon" then
+            newValue = 10000;
+		elseif selectedValue == "Barrow-wight" then
+            newValue = 1000;
+        elseif selectedValue == "Nazg�l (Ringwraith)" then
+            newValue = 12000;
+		elseif selectedValue == "Balrog" then
+            newValue = 25000;
+		end
+
+        -- Atualiza o valor de combattotal diretamente
+        window.combattotal.setValue(newValue);
+    end
+				
+				</script>
+			</combobox>
+
+			
+			<row_heading name="combatxplabel">  <!-- Heading -->
+				<anchored to="comframe" position="insidetopleft" offset="15,55" width="75" />	
+				<static>Criticals</static>
+			</row_heading>
+			
+			<stringcontrolX name="combatxpdesc">  
+				<anchored to="comframe" position="insidetopleft" offset="95,60" width="1000" />	
+				<font>sheetlabelsmall</font>
+				<static> Foe is                  (Highest Level - Lowest Level) (Minimum 1)</static>
+			</stringcontrolX>
+			
+<number_boxed name="combatxpdesc">
+    <anchored to="comframe" position="insidetopleft" offset="135,60" width="35" />
+    <script>
+        function onInit()
+            if super and super.onInit then
+                super.onInit();
+            end
+            if getValue() &lt; 1 then
+                setValue(1);
+            end
+        end
+
+        function onValueChanged()
+            if getValue() &lt; 1 then
+                setValue(1);
+            end
+            window.refresh();
+        end
+    </script>
+</number_boxed>
+	  
+			<stringcontrolX name="severitylabel">  <!-- Cricticals Headings -->
+				<anchored to="comframe" position="insidetopleft" offset="15,80" />	
+				<font>sheetlabelsmall</font>
+				<static>Severity</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="normlabel"> 
+				<anchored to="severitylabel" position="right" offset="25" width="30" />	
+				<font>sheetlabelsmall</font>
+				<static>Norm</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="unclabel">
+				<anchored to="normlabel" position="right" offset="22" width="30" />	
+				<font>sheetlabelsmall</font>
+				<static>Unc.</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="downlabel">
+				<anchored to="unclabel" position="right" offset="22" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>Down</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="stunlabel">
+				<anchored to="downlabel" position="right" offset="22"  width="30" />	
+				<font>sheetlabelsmall</font>
+				<static>Stun</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="sololabel">
+				<anchored to="stunlabel" position="right" offset="22" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>Solo</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="largelabel">
+				<anchored to="sololabel" position="right" offset="22" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>Lrg.</static>
+			</stringcontrolX>
+			<stringcontrolX name="vlargelabel">
+				<anchored to="largelabel" position="right" offset="27" width="30" />
+				<font>sheetlabelsmall</font>
+				<static>VLrg</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="self">
+				<anchored to="vlargelabel" position="right" offset="20" width="30" />
+				
+				<font>sheetlabelsmall</font>
+				<static>Self</static>
+			</stringcontrolX>
+			
+			<row_heading name="alabel">  <!-- Cricticals Headings -->
+				<anchored to="comframe" position="insidetopleft" offset="30,93" />
+				<static>A</static>
+			</row_heading>
+			
+			<row_heading name="blabel">
+				<anchored to="comframe" position="insidetopleft" offset="30,112" />
+				<static>B</static>
+			</row_heading>
+			
+			<row_heading name="clabel">
+				<anchored to="comframe" position="insidetopleft" offset="30,135" />
+				<static>C</static>
+			</row_heading>
+			
+			<row_heading name="dlabel">
+				<anchored to="comframe" position="insidetopleft" offset="30,158" />
+				<static>D</static>
+			</row_heading>
+			
+			<row_heading name="elabel">
+				<anchored to="comframe" position="insidetopleft" offset="30,180" />
+				<static>E</static>
+			</row_heading>
+			
+			<number_boxed name="norma">  <!-- A Criticals Number fields -->
+				<anchored to="comframe" position="insidetopleft" offset="75,95" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="unca">
+				<anchored to="norma" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="downa">
+				<anchored to="unca" position="right" offset="25" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="stuna">
+				<anchored to="downa" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="soloa">
+				<anchored to="stuna" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="largea">
+				<anchored to="soloa" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="vlargea">
+				<anchored to="largea" position="right" offset="30" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="selfa">
+				<anchored to="vlargea" position="right" offset="18" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="normb">  <!-- B Criticals Number fields -->
+				<anchored to="norma" position="below" offset="0,5" />
+				<script>															
+				function onValueChanged()
+					window.refresh();
+				end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="uncb">
+				<anchored to="normb" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="downb">
+				<anchored to="uncb" position="right" offset="25" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="stunb">
+				<anchored to="downb" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="solob">
+				<anchored to="stunb" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="largeb">
+				<anchored to="solob" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="vlargeb">
+				<anchored to="largeb" position="right" offset="30" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="selfb">
+				<anchored to="vlargeb" position="right" offset="18" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="normc">  <!-- C Criticals Number fields -->
+				<anchored to="normb" position="below" offset="0,5" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="uncc">
+				<anchored to="normc" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="downc">
+				<anchored to="uncc" position="right" offset="25" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="stunc">
+				<anchored to="downc" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="soloc">
+				<anchored to="stunc" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="largec">
+				<anchored to="soloc" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="vlargec">
+				<anchored to="largec" position="right" offset="30" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="selfc">
+				<anchored to="vlargec" position="right" offset="18" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="normd">  <!-- D Criticals Number fields -->
+				<anchored to="normc" position="below" offset="0,5" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="uncd">
+				<anchored to="normd" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="downd">
+				<anchored to="uncd" position="right" offset="25" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="stund">
+				<anchored to="downd" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="solod">
+				<anchored to="stund" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="larged">
+				<anchored to="solod" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="vlarged">
+				<anchored to="larged" position="right" offset="30" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="selfd">
+				<anchored to="vlarged" position="right" offset="18" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="norme">  <!-- E Criticals Number fields -->
+				<anchored to="normd" position="below" offset="0,5" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="unce">
+				<anchored to="norme" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="downe">
+				<anchored to="unce" position="right" offset="25" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="stune">
+				<anchored to="downe" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="soloe">
+				<anchored to="stune" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="largee">
+				<anchored to="soloe" position="right" offset="20" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="vlargee">
+				<anchored to="largee" position="right" offset="30" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="selfe">
+				<anchored to="vlargee" position="right" offset="18" width="30" />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+		 
+			<number_boxed name="combattotal">
+				<anchored to="comframe" position="insidetopleft" offset="382,210" width="65" />
+				<readonly/>
+			</number_boxed>
+			
+			<row_heading name="combattotallabel">
+				<anchored to="comframe" position="insidetopleft" offset="335,209" width="65" />
+				<static>Total</static>
+			</row_heading>
+			
+			<number_boxed name="combatkills">
+				<anchored to="comframe" position="insidetopleft" offset="220,210" width="65" />	
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+				<readonly/>
+			</number_boxed>
+			
+			<row_heading name="combatkillslabel"> 
+				<anchored to="comframe" position="insidetopleft" offset="150,209" width="80" />
+				<static>Kill Points</static>
+			</row_heading>
+			
+			<genericcontrol name="spellframe"> <!-- Spell XP Frame -->
+			<bounds>20,355,-40,120</bounds>
+				<anchored to="comframe" position="belowleft" offset="0,0" width="540" height="120" />
+				<frame name="groupbox" />
+			</genericcontrol>
+			
+			<row_heading name="spelldiflabel">  <!-- Spell XP Headings -->
+				<anchored to="spellframe" position="insidetopleft" offset="15,15" width="130" />
+				<static>Spell Level EPs</static>
+			</row_heading>
+			
+			<stringcontrolX name="1label">
+				<anchored>
+					<to>spellframe</to>
+					<position>insidetopleft</position>
+					<offset>32,40</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>1</static>
+			</stringcontrolX>
+			<stringcontrolX name="2label">
+				<anchored>
+					<to>1label</to>
+					<position>right</position>
+					<offset>36</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>2</static>
+			</stringcontrolX>
+			<stringcontrolX name="3label">
+				<anchored>
+					<to>2label</to>
+					<position>right</position>
+					<offset>34</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>3</static>
+			</stringcontrolX>
+			<stringcontrolX name="4label">
+				<anchored>
+					<to>3label</to>
+					<position>right</position>
+					<offset>34</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>4</static>
+			</stringcontrolX>
+			<stringcontrolX name="5label">
+				<anchored>
+					<to>4label</to>
+					<position>right</position>
+					<offset>36</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>5</static>
+			</stringcontrolX>
+			<stringcontrolX name="6label">
+				<anchored>
+					<to>5label</to>
+					<position>right</position>
+					<offset>34</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>6</static>
+			</stringcontrolX>
+			<stringcontrolX name="7label">
+				<anchored>
+					<to>6label</to>
+					<position>right</position>
+					<offset>34</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>7</static>
+			</stringcontrolX>
+			<stringcontrolX name="8label">
+				<anchored>
+					<to>7label</to>
+					<position>right</position>
+					<offset>36</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>8</static>
+			</stringcontrolX>
+			<stringcontrolX name="9label">
+				<anchored>
+					<to>8label</to>
+					<position>right</position>
+					<offset>35</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>9</static>
+			</stringcontrolX>
+			<stringcontrolX name="10label">
+				<anchored>
+					<to>9label</to>
+					<position>right</position>
+					<offset>34</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>10</static>
+			</stringcontrolX>
+			<stringcontrolX name="11label">
+				<anchored>
+					<to>10label</to>
+					<position>right</position>
+					<offset>28</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>11+</static>
+			</stringcontrolX>
+		 
+			<number_boxed name="spellone"> <!--Spell XP Number Fields -->
+				<anchored>
+					<to>spellframe</to>
+					<position>insidetopleft</position>
+					<offset>20,52</offset>
+					<size width="30" />
+				</anchored>
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="spelltwo">
+				<anchored>
+					<to>spellone</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="spellthree">
+				<anchored>
+					<to>spelltwo</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="spellfour">
+				<anchored>
+					<to>spellthree</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="spellfive">
+				<anchored>
+					<to>spellfour</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="spellsix">
+				<anchored>
+					<to>spellfive</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="spellseven">
+				<anchored>
+					<to>spellsix</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<number_boxed name="spelleight">
+				<anchored>
+					<to>spellseven</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				
+				
+				<script>															
+				function onValueChanged()
+					window.refresh();
+				end
+				</script>
+			</number_boxed>
+			<number_boxed name="spellnine">
+				<anchored>
+					<to>spelleight</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				
+				
+				<script>															
+				function onValueChanged()
+					window.refresh();
+				end
+				</script>
+			</number_boxed>
+			<number_boxed name="spellten">
+				<anchored>
+					<to>spellnine</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				
+				
+				<script>															
+				function onValueChanged()
+					window.refresh();
+				end
+				</script>
+			</number_boxed>
+			<number_boxed name="spelleleven">
+				<anchored>
+					<to>spellten</to>
+					<position>right</position>
+					<offset>10</offset>
+					<size width="30" />
+				</anchored>
+				
+				
+				<script>															
+				function onValueChanged()
+					window.refresh();
+				end
+				</script>
+			</number_boxed>
+			
+			<number_boxed name="spelltotal">
+				<anchored>
+					<to>spellframe</to>
+					<position>insidetopleft</position>
+					<offset>380,80</offset>
+					<size>
+						<width>65</width>
+						<height>18</height>
+					</size>
+				</anchored>
+				
+				
+				<readonly/>
+			</number_boxed>
+			<stringcontrolX name="spelltotallabel">  
+				<anchored>
+					<to>spellframe</to>
+					<position>insidetopleft</position>
+					<offset>335,82</offset>
+				</anchored>
+				
+				<static>Total</static>
+			</stringcontrolX>
+			
+			<genericcontrol name="gmexframe"> <!-- GM Ideas XP Frame -->
+			<bounds>20,476,200,-20</bounds>
+				<anchored>
+					<to>spellframe</to>
+					<position>belowleft</position>
+					<offset>0,0</offset>
+					<size>
+						<width>200</width>
+						<height>120</height>
+					</size>
+				</anchored>
+				<frame name="groupbox" />
+			</genericcontrol>
+		 
+			<stringcontrolX name="gmlabel">  <!-- Travel XP Headings -->
+				<anchored>
+					<to>gmexframe</to>
+					<position>insidetopleft</position>
+					<offset>20,15</offset>
+				</anchored>
+				
+				<static>GM Extra Eps</static>
+			</stringcontrolX>
+			
+			<stringcontrolX name="ideaslabel">
+				<anchored>
+					<to>gmexframe</to>
+					<position>insidetopleft</position>
+					<offset>18,40</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>Ideas and Misc</static>
+			</stringcontrolX>
+			
+			<number_boxed name="ideaxp">
+				<anchored>
+					<to>gmexframe</to>
+					<position>insidetopleft</position>
+					<offset>120,40</offset>
+
+				</anchored>
+				<gmeditonly />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<stringcontrolX name="trvllabel">
+				<anchored>
+					<to>ideaslabel</to>
+					<position>below</position>
+					<offset>0,8</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>Travel</static>
+			</stringcontrolX>
+			
+			<number_boxed name="trvlxp">
+				<anchored to="ideaxp" position="below" offset="0,10" />
+				<gmeditonly />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<stringcontrolX name="trvl2label">
+				<anchored>
+					<to>trvllabel</to>
+					<position>below</position>
+					<offset>0,10</offset>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>Travel (dngr)</static>
+			</stringcontrolX>
+			
+			<number_boxed name="trvl2xp">
+				<anchored to="trvlxp" position="below" offset="0,10" />
+				<gmeditonly />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<genericcontrol name="totalframe"> <!-- GM Ideas XP Frame -->
+				<bounds>220,476,-40,-20</bounds>
+				<anchored to="gmexframe" position="right" offset="10" width="330" />
+				<frame name="groupbox" />
+			</genericcontrol>
+		 
+			<buttoncontrol>
+				<bounds>440,545,23,22</bounds>
+				
+				<icon>
+				  <normal>button_arrowdown</normal>
+				  <pressed>button_arrowdown_down</pressed>
+				</icon>
+				<script>
+					function onInit()
+						if User.isHost() then
+							setVisible(true);
+						end
+					end
+
+					function onButtonPress()
+						window.session2total();
+					end
+				</script>
+				<tooltip>
+					<text>Add to Total and reset Session</text>
+				</tooltip>
+			</buttoncontrol>
+		  
+			<buttoncontrol>
+				<bounds>440,566,23,22</bounds>
+				<invisible />
+				<icon>
+				  <normal>button_arrowdown</normal>
+				  <pressed>button_arrowdown_down</pressed>
+				</icon>
+				<script>
+				  function onInit()
+					if User.isHost() then
+					  setVisible(true);
+					end
+				  end
+				  
+				  function onButtonPress()
+					window.total2xp();
+				  end
+				</script>
+				<tooltip>
+					<text>Add to XP and clear Total</text>
+				</tooltip>
+			</buttoncontrol>
+		 
+			<stringcontrolX name="totallabel">  <!-- Total XP Headings -->
+				<anchored>
+					<to>totalframe</to>
+					<position>insidetopleft</position>
+					<offset>20,15</offset>
+				</anchored>
+				<static>Totals</static>
+			</stringcontrolX>
+		 
+			
+			<number_boxed name="mutliplier">
+				<anchored>
+					<to>totalframe</to>
+					<position>insidetopleft</position>
+					<offset>150,50</offset>
+					<size>
+						<width>65</width>
+						<height>18</height>
+					</size>
+				</anchored>
+				<gmeditonly />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+					
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						if getValue()==0 then
+							setValue(1);
+						end
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			
+			<stringcontrolX name="multiplierlabel">  
+				<anchored>
+					<to>totalframe</to>
+					<position>insidetopleft</position>
+					<offset>50,52</offset>
+				</anchored>
+				<static>Multiplier</static>
+			</stringcontrolX>
+			<number_boxed name="adventuretotal">
+				<anchored>
+					<to>totalframe</to>
+					<position>insidetopleft</position>
+					<offset>150,30</offset>
+					<size>
+						<width>65</width>
+						<height>18</height>
+					</size>
+				</anchored>
+				<gmeditonly />
+				<script>															
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</number_boxed>
+			<stringcontrolX name="adventuretotallabel">  
+				<anchored>
+					<to>totalframe</to>
+					<position>insidetopleft</position>
+					<offset>50,32</offset>
+				</anchored>
+				<static>Adventure Eps</static>
+			</stringcontrolX>
+			
+			<number_boxed name="sessiontotal">
+				<anchored>
+					<to>totalframe</to>
+					<position>insidetopleft</position>
+					<offset>150,70</offset>
+					<size>
+						<width>65</width>
+						<height>18</height>
+					</size>
+				</anchored>
+			<gmeditonly />
+			</number_boxed>
+			
+			<stringcontrolX name="sessiontotallabel">  
+				<anchored>
+					<to>totalframe</to>
+					<position>insidetopleft</position>
+					<offset>50,72</offset>
+				</anchored>
+				<static>Session</static>
+			</stringcontrolX>
+			<number_boxed name="totaltotal">
+				<anchored>
+					<to>totalframe</to>
+					<position>insidetopleft</position>
+					<offset>150,90</offset>
+					<size>
+						<width>65</width>
+						<height>18</height>
+					</size>
+				</anchored>
+			<gmeditonly />
+			</number_boxed>
+			
+			<stringcontrolX name="totaltotallabel">  
+				<anchored>
+					<to>totalframe</to>
+					<position>insidetopleft</position>
+					<offset>50,92</offset>
+				</anchored>
+				<static>Total</static>
+			</stringcontrolX>
+			
+		</sheetdata>
+	</windowclass>
+</root>

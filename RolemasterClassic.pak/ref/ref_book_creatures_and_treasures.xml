@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="referencecreatures">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "npc",
+					sSource = DB.getValue(node, "source"),
+					sTitle = DB.getValue(node, "name"),
+					aColumns = {
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=200, nSortOrder=1 },
+						{ sName = "level", sType = "custom", sCustomKey = "npc_view_levelwithcode", sHeading = "Level", nWidth=40, bCentered=true },
+						{ sName = "baserate", sType = "number", sHeading = "Move", sTooltip="Base Move Rate", bCentered=true },
+						{ sName = "pace", sType = "custom", sCustomKey = "npc_view_pacewithbonus", sHeading = "Pace/MN", sTooltip="Max Pace / Maneuver Bonus", nWidth=60, bCentered=true },
+						{ sName = "speed", sType = "custom", sCustomKey = "npc_view_msaq", sHeading = "Speed", sTooltip="Speed (MS/AQ)", bCentered=true },
+						{ sName = "sizecrit", sType = "custom", sCustomKey = "npc_view_sizecrit", sHeading = "Sz/Crt", sTooltip="Size / Crit", bCentered=true },
+						{ sName = "hits", sType = "custom", sCustomKey = "npc_view_hitswithcode", sHeading = "Hits", bCentered=true },
+ 						{ sName = "atdb", sType = "custom", sCustomKey = "npc_view_atdb", sHeading = "AT(DB)", bCentered=true },
+						{ sName = "attacks", sType = "custom", sCustomKey = "npc_view_attacks", sHeading = "Attacks", nWidth=350, bWrapped=true },
+						{ sName = "num", sType = "string", sHeading = "# Enc", sTooltip="Number Encountered", bCentered=true, bWrapped=true },
+						{ sName = "treasure", sType = "string", sHeading = "Treas", sTooltip="Treasure", bCentered=true, bWrapped=true },
+						{ sName = "bonusep", sType = "string", sHeading = "EP", sTooltip="Bonus EP", bCentered=true, bWrapped=true },
+						{ sName = "outlookiq", sType = "custom", sCustomKey = "npc_view_outlookiq", sHeading = "Out/IQ", sTooltip = "Outlook / IQ", bCentered=true, bWrapped=true },
+					},
+					aFilters = { 
+						{ sDBField = "group", vFilterValue = DB.getValue(node, "group", "") }, 
+						{ sDBField = "subgroup", vFilterValue = DB.getValue(node, "subgroup", "") }, 
+					},
+					aGroups = { 
+						{ sDBField = "group" },
+						{ sDBField = "subgroup" },
+					},
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+</root>

@@ -1,0 +1,2676 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="npc" copy="record_window_tabbed">
+		<sizelimits>
+			<minimum width="340" height="530" />
+			<maximum width="340" height="1000" />
+			<dynamic />
+		</sizelimits>
+		<minimize>minimized_npc</minimize>
+		<gmexport>npc</gmexport>
+		<tab>
+			<name>main</name>
+			<resource>tab_main</resource>
+			<class>npc_main</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>character</name>
+			<resource>tab_character</resource>
+			<class>npc_character</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>spells_skills</name>
+			<resource>tab_spell_skill</resource>
+			<class>npc_spells_skills</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>description</name>
+			<resource>tab_notes</resource>
+			<class>npc_description</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>creature</name>
+			<resource>tab_other</resource>
+			<class>npc_creature</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>pictures</name>
+			<resource>tab_pictures</resource>
+			<class>record_content_pictures</class>
+			<embed />
+		</tab>
+		<script>
+			function onInit()
+				super.onInit();
+				Rules_NPC.UpdateToCoreRPG(getDatabaseNode());
+			end
+		</script>
+	</windowclass>
+
+	<windowclass name="npc_main" merge="join">
+		<script file="campaign/scripts/npc_main.lua" />
+		<sheetdata>
+			<label_column name="skills_label" merge="delete" />
+			<string_columnh name="skills" merge="delete" />
+			<label_column name="items_label" merge="delete" />
+			<string_columnh name="items" merge="delete" />
+			<label_column name="languages_label" merge="delete" />
+			<string_columnh name="languages" merge="delete" />
+
+			<label_column name="size_label" insertbefore="space_label">
+				<static textres="npc_label_npcsize" />
+			</label_column>
+			<string_columnh_npc name="size" insertbefore="space_label">
+				<disabled />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+
+					function onValueChanged()
+						local nSpace, nReach = Rules_NPC.GetSpaceAndReach(getValue());
+						if nSpace ~= 0 then
+							window.space.setValue(nSpace);
+						end
+						if nReach ~= 0 then
+							window.reach.setValue(nReach);
+						end
+					end
+				</script>
+			</string_columnh_npc>
+			<DropDown name="sizedropdown" insertbefore="space_label">
+				<target>size</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_NPC.SizeList());
+					end
+				</script>
+			</DropDown>
+
+			<number_column name="space" merge="merge" insertafter="size">
+				<anchored>
+					<left offset="67" />
+				</anchored>
+			</number_column>
+			<number_column name="reach" merge="merge" />
+			<string_columnh name="senses" merge="merge">
+				<anchored>
+					<left offset="110" />
+				</anchored>
+			</string_columnh>
+			
+			<label_column name="level_label">
+				<static textres="npc_label_level" />
+			</label_column>
+			<number_column_npc name="level" />
+
+			<label_column_right name="at_label">
+				<anchored to="level" />
+				<static textres="npc_label_at" />
+			</label_column_right>
+			<number_column_right_npc name="at">
+				<anchored to="level" />
+				<script>
+					local nOriginalAT;
+					
+					function onInit()
+						super.onInit();
+						ValidateValue();
+						nOriginalAT = getValue();
+						CheckProtection();
+					end
+
+					function onValueChanged()
+						ValidateValue();
+						CheckProtection();
+						nOriginalAT = getValue();
+					end
+
+					function ValidateValue()
+						local nAT = getValue();
+						if nAT &lt; 1 then
+							setValue(1);
+						elseif nAT &gt; 20 then
+							setValue(20);
+						end
+					end
+
+					function CheckProtection()
+						local nAT = getValue();
+						if nOriginalAT ~= nAT then 
+							local vArmor = Rules_ArmorTypes.GetATDetails(nAT);
+							if vArmor and vArmor.protectionHead then
+								window.protection_head.setValue(vArmor.protectionHead);
+							else
+								window.protection_head.setValue("");
+							end
+							if vArmor and vArmor.protectionFace then
+								window.protection_face.setValue(vArmor.protectionFace);
+							else
+								window.protection_face.setValue("");
+							end
+							if vArmor and vArmor.protectionNeck then
+								window.protection_neck.setValue(vArmor.protectionNeck);
+							else
+								window.protection_neck.setValue("");
+							end
+							if vArmor and vArmor.protectionTorso then
+								window.protection_torso.setValue(vArmor.protectionTorso);
+							else
+								window.protection_torso.setValue("");
+							end
+							if vArmor and vArmor.protectionArms then
+								window.protection_arms.setValue(vArmor.protectionArms);
+							else
+								window.protection_arms.setValue("");
+							end
+							if vArmor and vArmor.protectionLegs then
+								window.protection_legs.setValue(vArmor.protectionLegs);
+							else
+								window.protection_legs.setValue("");
+							end
+						end
+					end
+				</script>
+			</number_column_right_npc>
+
+			<label_column name="hits_label">
+				<static textres="npc_label_hits" />
+			</label_column>
+			<number_column_npc name="hits" />
+
+			<label_column_right name="db_label">
+				<anchored to="hits" />
+				<static textres="npc_label_db" />
+			</label_column_right>
+			<number_column_right_npc name="db">
+				<anchored to="hits" />
+				<displaysign/>
+			</number_column_right_npc> 
+
+			<line_column name="divider2" />
+
+			<label_column name="baserate_label">
+				<static textres="npc_label_baserate" />
+			</label_column>
+			<number_column_npc name="baserate" />
+			<dice_ghost name="baserate_dice">
+				<anchored>
+					<to>baserate_label</to>
+					<position>over</position>
+					<offset>0</offset>
+				</anchored>
+				<script>
+					function action(draginfo)
+						local charNode = window.getDatabaseNode();
+						local rActor = ActorManager.resolveActor(charNode);
+						local sSkillName = ActionSkill.MovementMM;
+						local nSkillMod = 0;
+						local nSkillType = ActionSkill.MM;
+						ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</dice_ghost>
+
+			<label_column_right name="mnbonus_label">
+				<anchored to="baserate" />
+				<static textres="npc_label_mnbonus" />
+			</label_column_right>
+			<number_column_right_npc name="mnbonus">
+				<anchored to="baserate" />
+				<displaysign/>
+			</number_column_right_npc>
+			<dice_ghost name="mnbonus_dice">
+				<anchored>
+					<to>mnbonus_label</to>
+					<position>over</position>
+					<offset>0</offset>
+				</anchored>
+				<script>
+					function action(draginfo)
+						local charNode = window.getDatabaseNode();
+						local rActor = ActorManager.resolveActor(charNode);
+						local sSkillName = ActionSkill.GenericMM;
+						local nSkillMod = 0;
+						local nSkillType = ActionSkill.MM;
+						ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</dice_ghost>
+
+			<label_column name="maxpace_label">
+				<static textres="npc_label_maxpace" />
+			</label_column>
+			<string_columnh_npc name="maxpace">
+				<disabled />
+			</string_columnh_npc>
+			<DropDown name="maxpacedropdown">
+				<target>maxpace</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_NPC.MaxPaceList());
+					end
+				</script>
+			</DropDown>
+
+			<label_column name="ms_label">
+				<static textres="npc_label_movementspeed" />
+			</label_column>
+			<string_columnh_npc name="ms">
+				<disabled />
+			</string_columnh_npc>
+			<DropDown name="msdropdown">
+				<target>ms</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_NPC.MSAQList());
+					end
+				</script>
+			</DropDown>
+
+			<label_column name="aq_label">
+				<static textres="npc_label_attackquickness" />
+			</label_column>
+			<string_columnh_npc name="aq">
+				<disabled />
+				<script>
+					function onInit()
+						super.onInit();
+						onValueChanged();
+					end
+
+					function onValueChanged()
+						local sAttackQuickness = getValue();
+						local nInitMod = Rules_NPC.GetInitMod(sAttackQuickness);
+						if sAttackQuickness == "" then
+							window.initmod.setReadOnly(false);
+						else
+							window.initmod.setValue(nInitMod);
+							window.initmod.setReadOnly(true);
+						end
+					end
+				</script>
+			</string_columnh_npc>
+			<DropDown name="aqdropdown">
+				<target>aq</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_NPC.MSAQList());
+					end
+				</script>
+			</DropDown>
+
+			<label_column name="initmod_label">
+				<static textres="npc_label_initmod" />
+			</label_column>
+			<number_column_npc name="initmod">
+				<displaysign/>
+			</number_column_npc>
+
+			<!-- Attacks -->
+			<header_column name="weapons_header">
+				<static textres="npc_header_weapons"/>
+				<center />
+				<script>
+					function onInit()
+						if Session.IsHost then
+							setTooltipText(Interface.getString("npc_tooltip_weapons"));
+						end
+					end
+					
+					function onDrop(x, y, draginfo)
+						window.weapons.onDrop(x, y, draginfo);
+					end
+				</script>
+			</header_column>
+			<button_iedit name="weapons_iedit">
+				<anchored to="weapons_header" position="righthigh" offset="-20,0" />
+				<target>weapons</target>
+			</button_iedit>
+			<button_iadd name="weapons_iadd">
+				<anchored to="weapons_iedit" position="lefthigh" offset="5,0" />
+				<target>weapons</target>
+			</button_iadd>
+			<list_column name="weapons">
+				<anchored>
+					<top parent="columnanchor" anchor="bottom" relation="relative" offset="20" />
+				</anchored>
+				<class>npc_weaponlist_item</class>
+				<datasource>.weapons</datasource>
+				<script>
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("shortcut")  then
+							local class = draginfo.getShortcutData();
+							local source = draginfo.getDatabaseNode();
+							if source and (class == "weapon" or class == "item") then
+								local newentry = createWindow()
+								Utilities.copyWeapon(source,newentry.getDatabaseNode())
+								return true;
+							end
+						end
+						return false;
+					end
+				</script>
+			</list_column>
+
+			<npc_labeltop name="weapons_attack_label">
+				<anchored to="weapons" position="aboveleft" offset="30,0" height="20" merge="replace" />
+				<static>Attack</static>
+			</npc_labeltop>
+			<npc_labeltop name="weapons_ob_label">
+				<anchored to="weapons" position="aboveright" offset="70,0" width="20" height="20" merge="replace" />
+				<static>OB</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="weapons_chance_label">
+				<anchored to="weapons" position="aboveright" offset="5,0" width="55" height="20" merge="replace" />
+				<static>Chance</static>
+				<center />
+			</npc_labeltop>
+
+			<!-- Defences -->
+			<header_column name="defences_header">
+				<static textres="npc_header_defences"/>
+				<center />
+				<script>
+					function onInit()
+						if Session.IsHost then
+							setTooltipText(Interface.getString("npc_tooltip_defenses"));
+						end
+					end
+					
+					function onDrop(x, y, draginfo)
+						window.defences.onDrop(x, y, draginfo);
+					end
+				</script>
+			</header_column>
+			<button_iedit name="defences_iedit">
+				<anchored to="defences_header" position="righthigh" offset="-20,0" />
+				<target>defences</target>
+			</button_iedit>
+			<button_iadd name="defences_iadd">
+				<anchored to="defences_iedit" position="lefthigh" offset="5,0" />
+				<target>defences</target>
+			</button_iadd>
+			<list_column name="defences">
+				<anchored>
+					<top parent="columnanchor" anchor="bottom" relation="relative" offset="20" />
+				</anchored>
+				<datasource>.defences</datasource>
+				<class>npc_defencelist_item</class>
+				<script>
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("shortcut")  then
+							local class = draginfo.getShortcutData();
+							local source = draginfo.getDatabaseNode();
+							if source and (class == "weapon" or class == "item") then
+								local newentry = createWindow()
+								Utilities.copyWeapon(source,newentry.getDatabaseNode())
+								return true;
+							end
+						end
+						return false;
+					end
+				</script>
+			</list_column>
+
+			<npc_labeltop name="defences_defense_label">
+				<anchored to="defences" position="aboveleft" offset="5,0" height="20" merge="replace" />
+				<static>Defense</static>
+			</npc_labeltop>
+			<npc_labeltop name="defences_melee_label">
+				<anchored to="defences" position="aboveright" offset="45,0" width="30" height="20" merge="replace" />
+				<static>Melee</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="defences_missile_label">
+				<anchored to="defences" position="aboveright" offset="5,0" width="30" height="20" merge="replace" />
+				<static>Missile</static>
+				<center />
+			</npc_labeltop>
+
+			<line_column name="divider3" />
+
+			<!-- Special Defenses -->
+			<label_column name="critmod_label">
+				<static textres="npc_label_critmod" />
+			</label_column>
+			<string_columnh_npc name="critmod">
+				<disabled />
+				<script>
+					function onClickDown(button, x, y)
+						window.critmoddropdown.onClickDown(button, x, y);
+					end
+				</script>
+			</string_columnh_npc>
+			<DropDown name="critmoddropdown">
+				<target>critmod</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_NPC.CritModList());
+					end
+				</script>
+			</DropDown>
+
+			<label_column name="immunity_label">
+				<static textres="npc_label_immunity" />
+			</label_column>
+			<string_columnh_npc name="immunity">
+				<disabled />
+			</string_columnh_npc>
+			<DropDown name="immunitydropdown">
+				<target>immunity</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_NPC.ImmunityList());
+					end
+				</script>
+			</DropDown>
+
+			<!-- Protection -->
+			<header_column name="protection_header">
+				<static textres="npc_header_protection"/>
+				<center />
+			</header_column>
+			<label_column name="protection_head_label">
+				<static textres="npc_label_protection_head" />
+			</label_column>
+			<string_columnh_npc name="protection_head" source="protection.head">
+				<disabled />
+			</string_columnh_npc>
+			<DropDown name="protection_headdropdown">
+				<target>protection_head</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_ArmorTypes.ProtectionTypeList());
+					end
+				</script>
+			</DropDown>
+			<label_column name="protection_face_label">
+				<static textres="npc_label_protection_face" />
+			</label_column>
+			<string_columnh_npc name="protection_face" source="protection.face">
+				<disabled />
+			</string_columnh_npc>
+			<DropDown name="protection_facedropdown">
+				<target>protection_face</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_ArmorTypes.ProtectionTypeList());
+					end
+				</script>
+			</DropDown>
+			<label_column name="protection_neck_label">
+				<static textres="npc_label_protection_neck" />
+			</label_column>
+			<string_columnh_npc name="protection_neck" source="protection.neck">
+				<disabled />
+			</string_columnh_npc>
+			<DropDown name="protection_neckdropdown">
+				<target>protection_neck</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_ArmorTypes.ProtectionTypeList());
+					end
+				</script>
+			</DropDown>
+			<label_column name="protection_torso_label">
+				<static textres="npc_label_protection_torso" />
+			</label_column>
+			<string_columnh_npc name="protection_torso" source="protection.torso">
+				<disabled />
+			</string_columnh_npc>
+			<DropDown name="protection_torsodropdown">
+				<target>protection_torso</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_ArmorTypes.ProtectionTypeList());
+					end
+				</script>
+			</DropDown>
+			<label_column name="protection_arms_label">
+				<static textres="npc_label_protection_arms" />
+			</label_column>
+			<string_columnh_npc name="protection_arms" source="protection.arms">
+				<disabled />
+			</string_columnh_npc>
+			<DropDown name="protection_armsdropdown">
+				<target>protection_arms</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_ArmorTypes.ProtectionTypeList());
+					end
+				</script>
+			</DropDown>
+			<label_column name="protection_legs_label">
+				<static textres="npc_label_protection_legs" />
+			</label_column>
+			<string_columnh_npc name="protection_legs" source="protection.legs">
+				<disabled />
+			</string_columnh_npc>
+			<DropDown name="protection_legsdropdown">
+				<target>protection_legs</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_ArmorTypes.ProtectionTypeList());
+					end
+				</script>
+			</DropDown>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="npc_character">
+		<script file="campaign/scripts/npc_character.lua" />
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<label_column name="race_label">
+				<static textres="npc_label_race" />
+			</label_column>
+			<string_columnh_npc name="race">
+				<script>
+					function onInit()
+						super.onInit();
+						getRaceLink();
+					end
+					
+					function onValueChanged()
+						getRaceLink();
+					end
+					
+					function getRaceLink()
+						local sClass, sNodeName = Rules_Races.GetLink(getValue());
+						window.racelink.setValue(sClass, sNodeName);
+					end
+				</script>
+			</string_columnh_npc>
+			<linkfield name="racelink">
+				<anchored to="race" position="left" offset="5" width="20" />
+				<description field="race" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					function onValueChanged()
+						local node = window.getDatabaseNode();
+						if isEmpty() then
+							setVisible(false);
+							Rules_NPC.ClearRace(node);
+						else
+							setVisible(true);
+						end
+						local _, raceNodeName = getValue();
+						local raceNode = DB.findNode(raceNodeName);
+						if raceNode then
+							Rules_NPC.SetRace(node, raceNode);
+						end
+					end
+				</script>
+			</linkfield>
+			<DropDown name="racedropdown">
+				<target>race</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Races.List());
+					end
+				</script>
+			</DropDown>
+			<label_column name="profession_label">
+				<static textres="npc_label_profession" />
+			</label_column>
+			<string_columnh_npc name="profession">
+				<script>
+					function onInit()
+						super.onInit();
+						getProfessionLink();
+					end
+
+					function onValueChanged()
+						getProfessionLink();
+					end
+					
+					function getProfessionLink()
+						local sClass, sNodeName = Rules_Professions.GetLink(getValue());
+						window.professionlink.setValue(sClass, sNodeName);
+					end
+				</script>
+			</string_columnh_npc>
+			<linkfield name="professionlink">
+				<anchored to="profession" position="left" offset="5" width="20" />
+				<description field="profession" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					function onValueChanged()
+						if isEmpty() then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+						local _, professionNodeName = getValue();
+						local professionNode = DB.findNode(professionNodeName);
+						local professionRealm = DB.getValue(professionNode, "realm", "");
+
+						if professionRealm ~= "Pick One" and professionRealm ~= "" then
+							local node = window.getDatabaseNode();
+							if DB.getChild(node, "realm") then
+								DB.setValue(node, "realm", "string", professionRealm);
+							end
+						end
+					end
+				</script>
+			</linkfield>
+			<DropDown name="professiondropdown">
+				<target>profession</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Professions.List());
+					end
+				</script>
+			</DropDown>
+
+			<header_column name="stats_header">
+				<static textres="npc_header_stats"/>
+				<center />
+			</header_column>
+			<windowlist name="stats">
+				<anchored>
+					<top parent="columnanchor" anchor="bottom" relation="relative" offset="20" />
+					<left offset="0" />
+					<right offset="-5" />
+				</anchored>
+				<datasource>.stats</datasource>
+				<class>npc_stat_item</class>
+				<sortby>
+					<field>order</field>
+				</sortby>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						--[[ load the stat list ]]
+						local statList = Rules_Stats.List();
+						for i = 1, #statList do
+							addEntry(statList[i].name, statList[i].label, statList[i].displayname, statList[i].devStat, statList[i].order);
+						end
+						--[[ force a re-sort ]]
+						applySort();
+					end
+
+					function addEntry(name, label, displayname, dev, order)
+						local node = DB.getChild(getDatabaseNode(), name);
+						local win;
+						if not node then
+							node = DB.createChild(getDatabaseNode(), name);
+						end
+						for i,w in ipairs(getWindows()) do
+							if DB.getName(w.getDatabaseNode())==name then
+								win = w;
+							end
+						end
+						if win then
+							win.label.setValue(label);
+							win.label.setTooltipText("Drag or double click to roll a " .. displayname .. " stat check");
+							win.abbr.setValue(label);
+							win.name.setValue(displayname);
+							win.order.setValue(order);
+						end
+					end
+
+					function onSortCompare(w1, w2)
+						return (w1.order.getValue() &gt; w2.order.getValue());
+					end
+
+					function update(bReadOnly, bForceHide)
+						local bLocalShow;
+						if bForceHide then
+							bLocalShow = false;
+						else
+							bLocalShow = true;
+							if bReadOnly and not nohide and isEmpty() then
+								bLocalShow = false;
+							end
+						end
+						
+						setVisible(bLocalShow);
+						setReadOnly(bReadOnly);
+
+						local sListName = getName();
+						if window[sListName .. "_header"] then
+							window[sListName .. "_header"].setVisible(bLocalShow);
+						end
+						
+						local bEditMode = false;
+						if window[sListName .. "_iedit"] then
+							if bReadOnly then
+								window[sListName .. "_iedit"].setValue(0);
+								window[sListName .. "_iedit"].setVisible(false);
+							else
+								window[sListName .. "_iedit"].setVisible(true);
+								bEditMode = (window[sListName .. "_iedit"].getValue() ~= 0);
+							end
+						end
+
+						for _,w in ipairs(getWindows()) do
+							if w.update then
+								w.update(bReadOnly);
+							elseif w.name then
+								w.name.setReadOnly(bReadOnly);
+							end
+						end
+						
+						return bLocalShow;
+					end
+				</script>
+			</windowlist>		
+
+			<npc_labeltop name="stats_stat_label">
+				<anchored to="stats" position="aboveleft" offset="5,0" height="20" merge="replace" />
+				<static>Stat</static>
+			</npc_labeltop>
+			<npc_labeltop name="stats_temp_label">
+				<anchored to="stats" position="aboveright" offset="185,0" width="35" height="20" merge="replace" />
+				<static>Temp</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="stats_statbonus_label">
+				<anchored to="stats" position="aboveright" offset="140,0" width="35" height="20" merge="replace" />
+				<static>Bonus</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="stats_racebonus_label">
+				<anchored to="stats" position="aboveright" offset="95,0" width="35" height="20" merge="replace" />
+				<static>Race</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="stats_miscbonus_label">
+				<anchored to="stats" position="aboveright" offset="50,0" width="35" height="20" merge="replace" />
+				<static>Misc</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="stats_totalbonus_label">
+				<anchored to="stats" position="aboveright" offset="5,0" width="35" height="20" merge="replace" />
+				<static>Total</static>
+				<center />
+			</npc_labeltop>
+
+			<header_column name="resistances_base_header">
+				<static textres="npc_header_resistances_base"/>
+				<center />
+			</header_column>
+			<windowlist name="resistances_base">
+				<anchored>
+					<top parent="columnanchor" anchor="bottom" relation="relative" offset="20" />
+					<left offset="0" />
+					<right offset="-5" />
+				</anchored>
+				<datasource>.rr.base</datasource>
+				<class>npc_resistance_base_item</class>
+				<sortby>
+					<field>order</field>
+				</sortby>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+
+						local rrList = Rules_RR.List_Base();
+						for i = 1, #rrList do
+							addEntry(rrList[i].order, rrList[i].resistancetype, rrList[i].label, rrList[i].stat);
+						end
+
+						applySort();
+					end
+
+					function addEntry(order, resistancetype, label, stat)
+						local name = string.lower(label);
+						name = string.gsub(name, "/", "_");
+						local node = DB.getChild(getDatabaseNode(), name);
+						local win;
+						if not node then
+							node = DB.createChild(getDatabaseNode(), name);
+						end
+						for i,w in ipairs(getWindows()) do
+							if DB.getName(w.getDatabaseNode())==name then
+								win = w;
+							end
+						end
+						if win then
+							win.label.setValue(label);
+							win.label.setTooltipText("Drag or double click to roll a " .. label .. " RR");
+							win.name.setValue(label);
+							win.order.setValue(order);
+							win.statname.setValue(stat);
+						end
+					end
+
+					function onSortCompare(w1, w2)
+						return (w1.order.getValue() > w2.order.getValue());
+					end
+
+					function update(bReadOnly, bForceHide)
+						local bLocalShow;
+						if bForceHide then
+							bLocalShow = false;
+						else
+							bLocalShow = true;
+							if bReadOnly and not nohide and isEmpty() then
+								bLocalShow = false;
+							end
+						end
+						
+						setVisible(bLocalShow);
+						setReadOnly(bReadOnly);
+
+						local sListName = getName();
+						if window[sListName .. "_header"] then
+							window[sListName .. "_header"].setVisible(bLocalShow);
+						end
+						
+						local bEditMode = false;
+						if window[sListName .. "_iedit"] then
+							if bReadOnly then
+								window[sListName .. "_iedit"].setValue(0);
+								window[sListName .. "_iedit"].setVisible(false);
+							else
+								window[sListName .. "_iedit"].setVisible(true);
+								bEditMode = (window[sListName .. "_iedit"].getValue() ~= 0);
+							end
+						end
+
+						for _,w in ipairs(getWindows()) do
+							if w.update then
+								w.update(bReadOnly);
+							elseif w.name then
+								w.name.setReadOnly(bReadOnly);
+							end
+						end
+						
+						return bLocalShow;
+					end
+				</script>
+			</windowlist>		
+			<npc_labeltop name="resistances_base_name_label">
+				<anchored to="resistances_base" position="aboveleft" offset="5,0" height="20" merge="replace" />
+				<static>Resistance</static>
+			</npc_labeltop>
+			<npc_labeltop name="resistances_base_statbonus_label">
+				<anchored to="resistances_base" position="aboveright" offset="140,0" width="35" height="20" merge="replace" />
+				<static>Bonus</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="resistances_base_racebonus_label">
+				<anchored to="resistances_base" position="aboveright" offset="95,0" width="35" height="20" merge="replace" />
+				<static>Race</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="resistances_base_miscbonus_label">
+				<anchored to="resistances_base" position="aboveright" offset="50,0" width="35" height="20" merge="replace" />
+				<static>Misc</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="resistances_base_total_label">
+				<anchored to="resistances_base" position="aboveright" offset="5,0" width="35" height="20" merge="replace" />
+				<static>Total</static>
+				<center />
+			</npc_labeltop>
+
+			<header_column name="resistances_hybrid_header">
+				<static textres="npc_header_resistances_hybrid"/>
+				<center />
+			</header_column>
+			<windowlist name="resistances_hybrid">
+				<anchored>
+					<top parent="columnanchor" anchor="bottom" relation="relative" offset="20" />
+					<left offset="0" />
+					<right offset="-5" />
+				</anchored>
+				<datasource>.rr.hybrid</datasource>
+				<class>npc_resistance_hybrid_item</class>
+				<sortby>
+					<field>order</field>
+				</sortby>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+
+						local rrList = Rules_RR.List_Hybrid();
+						for i = 1, #rrList do
+							addEntry(rrList[i].order, rrList[i].resistancetype, rrList[i].label, rrList[i].resistances);
+						end
+
+						applySort();
+					end
+
+					function addEntry(order, resistancetype, label, resistances)
+						local name = string.lower(label);
+						name = string.gsub(name, "/", "_");
+						local node = DB.getChild(getDatabaseNode(), name);
+						local win;
+						if not node then
+							node = DB.createChild(getDatabaseNode(), name);
+						end
+						for i,w in ipairs(getWindows()) do
+							if DB.getName(w.getDatabaseNode())==name then
+								win = w;
+							end
+						end
+						if win then
+							win.label.setValue(label);
+							win.label.setTooltipText("Drag or double click to roll a " .. label .. " RR");
+							win.name.setValue(label);
+							win.order.setValue(order);
+							win.resistances.setValue(resistances);
+						end
+					end
+
+					function onSortCompare(w1, w2)
+						return (w1.order.getValue() > w2.order.getValue());
+					end
+					
+					function update(bReadOnly, bForceHide)
+						local bLocalShow;
+						if bForceHide then
+							bLocalShow = false;
+						else
+							bLocalShow = true;
+							if bReadOnly and not nohide and isEmpty() then
+								bLocalShow = false;
+							end
+						end
+						
+						setVisible(bLocalShow);
+						setReadOnly(bReadOnly);
+
+						local sListName = getName();
+						if window[sListName .. "_header"] then
+							window[sListName .. "_header"].setVisible(bLocalShow);
+						end
+						
+						local bEditMode = false;
+						if window[sListName .. "_iedit"] then
+							if bReadOnly then
+								window[sListName .. "_iedit"].setValue(0);
+								window[sListName .. "_iedit"].setVisible(false);
+							else
+								window[sListName .. "_iedit"].setVisible(true);
+								bEditMode = (window[sListName .. "_iedit"].getValue() ~= 0);
+							end
+						end
+
+						for _,w in ipairs(getWindows()) do
+							if w.update then
+								w.update(bReadOnly);
+							elseif w.name then
+								w.name.setReadOnly(bReadOnly);
+							end
+						end
+						
+						return bLocalShow;
+					end
+				</script>
+			</windowlist>		
+			<npc_labeltop name="resistances_hybrid_name_label">
+				<anchored to="resistances_hybrid" position="aboveleft" offset="5,0" height="20" merge="replace" />
+				<static>Resistance</static>
+			</npc_labeltop>
+			<npc_labeltop name="resistances_hybrid_racebonus_label">
+				<anchored to="resistances_hybrid" position="aboveright" offset="95,0" width="35" height="20" merge="replace" />
+				<static>Base</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="resistances_hybrid_miscbonus_label">
+				<anchored to="resistances_hybrid" position="aboveright" offset="50,0" width="35" height="20" merge="replace" />
+				<static>Misc</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="resistances_hybrid_total_label">
+				<anchored to="resistances_hybrid" position="aboveright" offset="5,0" width="35" height="20" merge="replace" />
+				<static>Total</static>
+				<center />
+			</npc_labeltop>
+
+			<header_column name="exhaustion_header">
+				<static textres="npc_header_exhaustion"/>
+				<center />
+			</header_column>
+			<label_column name="exhaustionmax_label">
+				<anchored>
+					<top offset="20" />
+				</anchored>
+				<font>sheettext</font>
+				<static textres="npc_label_exhaustionmax" />
+			</label_column>
+			<npc_numfield_underlined name="constitution" source="stats.constitution.temp">
+				<anchored to="exhaustionmax_label" position="righthigh" offset="5,0" width="35" />
+				<readonly />
+				<tabtarget next="exhaustionmisc" prev="exhaustionmax" />
+			</npc_numfield_underlined>
+			<npc_labeltop name="constitution_label">
+				<anchored>
+					<to>constitution</to>
+				</anchored>
+				<static>Con</static>
+			</npc_labeltop>
+			<npc_numfield_underlined name="exhaustionmisc">
+				<anchored to="constitution" position="righthigh" offset="5,0" width="35" />
+				<displaysign/>
+				<tabtarget next="exhaustionmax" prev="constitution" />
+			</npc_numfield_underlined>
+			<npc_labeltop name="exhaustionmisc_label">
+				<anchored>
+					<to>exhaustionmisc</to>
+				</anchored>
+				<static>Misc</static>
+			</npc_labeltop>
+			<npc_numfield_underlined name="exhaustionmax">
+				<anchored to="exhaustionmisc" position="righthigh" offset="5,0" width="35" />
+				<displaysign/>
+				<readonly />
+				<tabtarget next="constitution" prev="exhaustionmisc" />
+				<script>
+					function onInit()
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "constitution"), "onUpdate", self.refresh);
+						DB.addHandler(DB.getPath(node, "exhaustionmisc"), "onUpdate", self.refresh);
+						self.refresh();
+					end
+
+					function refresh()
+						setValue(window.constitution.getValue() + window.exhaustionmisc.getValue());
+					end
+				</script>
+			</npc_numfield_underlined>
+			<npc_labeltop name="exhaustionmax_label">
+				<anchored>
+					<to>exhaustionmax</to>
+				</anchored>
+				<static>Total</static>
+			</npc_labeltop>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="npc_spells_skills">
+		<script file="campaign/scripts/npc_spells_skills.lua" />
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<label_column name="realm_label">
+				<static textres="npc_label_realm" />
+			</label_column>
+			<string_columnh_npc name="realm" />
+			<DropDown name="realmdropdown">
+				<target>realm</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Realm.List());
+					end
+				</script>
+			</DropDown>
+
+			<label_column name="ppmax_label">
+				<static textres="npc_label_ppmax" />
+			</label_column>
+			<number_column_npc name="ppmax" source="pp.max">
+				<anchored>
+					<left offset="85" />
+				</anchored>
+			</number_column_npc>
+
+			<label_column_right name="used_pp_label">
+				<anchored to="ppmax">
+					<top offset="2" />
+					<right parent="" offset="-55" />
+				</anchored>
+				<static textres="npc_label_used_pp" />
+			</label_column_right>
+			<number_column_right_npc name="ppused" source="pp.used">
+				<anchored to="ppmax" />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						onValueChanged();
+					end
+
+					function onValueChanged()
+						if getValue() &lt; 0 or getValue() &gt; window.ppmax.getValue() then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+				</script>
+			</number_column_right_npc>
+
+			<label_column_right name="spelladdermax_label">
+				<anchored to="ppused">
+					<top offset="2" />
+					<right parent="" offset="-55" />
+				</anchored>
+				<static textres="npc_label_spelladdermax" />
+			</label_column_right>
+			<number_column_right_npc name="spelladdermax" source="pp.spelladdermax">
+				<anchored to="ppused" />
+			</number_column_right_npc>
+
+			<header_column name="spells_header">
+				<static textres="npc_header_spelllists"/>
+				<center />
+				<script>
+					function onInit()
+						if Session.IsHost then
+							setTooltipText(Interface.getString("npc_tooltip_spell_lists"));
+						end
+					end
+					
+					function onDrop(x, y, draginfo)
+						window.spells.onDrop(x, y, draginfo);
+					end
+				</script>
+			</header_column>
+			<button_iedit name="spells_iedit">
+				<anchored to="spells_header" position="righthigh" offset="-20,0" />
+				<target>spells</target>
+			</button_iedit>
+			<button_iadd name="spells_iadd">
+				<anchored to="spells_iedit" position="lefthigh" offset="5,0" />
+				<target>spells</target>
+			</button_iadd>
+			<list_column name="spells">
+				<anchored>
+					<top parent="columnanchor" anchor="bottom" relation="relative" offset="20" />
+				</anchored>
+				<class>npc_spelllist_item</class>
+				<datasource>.spells</datasource>
+				<script>
+					function addItem(source)
+						local newentry = createWindow();
+
+						--[[ Descriptive fields ]]
+						newentry.name.setValue(DB.getValue(source, "name", ""));
+
+						--[[ Custom? ]]
+						if DB.getValue(source, "custom", 0) == 1 then
+							newentry.custom.setValue(1);
+						else
+							newentry.custom.setValue(0);
+						end
+
+						--[[ Shortcut ]]
+						newentry.open.setValue("spelllist", DB.getPath(source));
+						newentry.open.setVisible(true);
+
+						--[[ re-initialise 
+						newentry.onInit(); ]]
+
+						return newentry;
+					end
+
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("spelllist") then
+							local win = draginfo.getCustomData();
+							local source = win.getDatabaseNode();
+							addItem(source);
+							return true;
+						elseif draginfo.isType("shortcut") then
+							local class = draginfo.getShortcutData();
+							local source = draginfo.getDatabaseNode();
+							if source and class == "spelllist" then
+								addItem(source);
+								return true;
+							end
+						end
+						return false;
+					end
+
+					function update(bReadOnly, bForceHide)
+						local bLocalShow = super.update(bReadOnly, bForceHide);
+						
+						for _,w in ipairs(getWindows()) do
+							w.name.setReadOnly(bReadOnly);
+							w.esf.setReadOnly(bReadOnly);
+							w.maxlevel.setReadOnly(bReadOnly);
+						end
+						
+						return bLocalShow;
+					end
+				</script>
+			</list_column>  
+			<npc_labeltop name="spells_spelllist_label">
+				<anchored to="spells" position="aboveleft" offset="30,0" height="20" merge="replace" />
+				<static>Spell List</static>
+			</npc_labeltop>
+			<npc_labeltop name="spells_esf_label">
+				<anchored to="spells" position="aboveright" offset="45,0" width="30" height="20" merge="replace" />
+				<static>ESF</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="spells_level_label">
+				<anchored to="spells" position="aboveright" offset="5,0" width="30" height="20" merge="replace" />
+				<static>Level</static>
+				<center />
+			</npc_labeltop>
+
+			<header_column name="skills_header">
+				<static textres="npc_header_skills"/>
+				<center />
+				<script>
+					function onInit()
+						if Session.IsHost then
+							setTooltipText(Interface.getString("npc_tooltip_skills"));
+						end
+					end
+					
+					function onDrop(x, y, draginfo)
+						window.skills.onDrop(x, y, draginfo);
+					end
+				</script>
+			</header_column>
+			<button_iedit name="skills_iedit">
+				<anchored to="skills_header" position="righthigh" offset="-20,0" />
+				<target>skills</target>
+			</button_iedit>
+			<button_iadd name="skills_iadd">
+				<anchored to="skills_iedit" position="lefthigh" offset="5,0" />
+				<target>skills</target>
+			</button_iadd>
+			<list_column name="skills">
+				<anchored>
+					<top parent="columnanchor" anchor="bottom" relation="relative" offset="20" />
+				</anchored>
+				<class>npc_skilllist_item</class>
+				<datasource>.skills</datasource>
+				<script>
+					function addItem(source)
+						local newentry = createWindow();
+
+						--[[ Descriptive fields ]]
+						newentry.name.setValue(DB.getValue(source, "name", ""));
+
+						--[[ Shortcut ]]
+						newentry.open.setValue("skill", DB.getPath(source));
+						newentry.open.setVisible(true);
+
+						--[[ re-initialise 
+						newentry.onInit(); ]]
+
+						return newentry;
+					end
+
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("skill") then
+							local win = draginfo.getCustomData();
+							local source = win.getDatabaseNode();
+							addItem(source);
+							return true;
+						elseif draginfo.isType("shortcut") then
+							local class = draginfo.getShortcutData();
+							local source = draginfo.getDatabaseNode();
+							if source and class == "skill" then
+								addItem(source);
+								return true;
+							end
+						end
+						return false;
+					end
+
+					function update(bReadOnly, bForceHide)
+						local bLocalShow = super.update(bReadOnly, bForceHide);
+						
+						for _,w in ipairs(getWindows()) do
+							w.ranks.setReadOnly(bReadOnly);
+							w.bonus.setReadOnly(bReadOnly);
+						end
+						
+						return bLocalShow;
+					end
+				</script>
+			</list_column>  
+			<npc_labeltop name="skills_skill_label">
+				<anchored to="skills" position="aboveleft" offset="30,0" height="20" merge="replace" />
+				<static>Skill</static>
+			</npc_labeltop>
+			<npc_labeltop name="skills_ranks_label">
+				<anchored to="skills" position="aboveright" offset="55,0" width="30" height="20" merge="replace" />
+				<static>Ranks</static>
+				<center />
+			</npc_labeltop>
+			<npc_labeltop name="skills_bonus_label">
+				<anchored to="skills" position="aboveright" offset="5,0" width="40" height="20" merge="replace" />
+				<static>Bonus</static>
+				<center />
+			</npc_labeltop>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="npc_description">
+		<script file="campaign/scripts/npc_description.lua" />
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<!-- Group/Subgroup -->
+			<label_column name="group_label">
+				<static textres="npc_label_group" />
+			</label_column>
+			<string_columnh_npc_group name="group" />
+			<DropDown name="groupdropdown">
+				<target>group</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_NPC.GroupList());
+					end
+				</script>
+			</DropDown>
+			<label_column name="subgroup_label">
+				<static textres="npc_label_subgroup" />
+			</label_column>
+			<string_columnh_npc_group name="subgroup" />
+			<DropDown name="subgroupdropdown">
+				<target>subgroup</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_NPC.SubgroupList());
+					end
+				</script>
+			</DropDown>
+
+			<!-- Notes -->
+			<header_column name="notes_header">
+				<static textres="npc_header_notes"/>
+				<center />
+			</header_column>
+			<ft_columnh name="notes" />
+
+			<!-- Abilities -->
+			<header_column name="abilities_header">
+				<static textres="npc_header_abilities"/>
+				<center />
+			</header_column>
+			<ft_columnh name="abilities" />
+
+			<header_column name="description_header">
+				<static textres="npc_header_description"/>
+				<center />
+			</header_column>
+			<ft_columnh name="description" />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="npc_creature">
+		<script file="campaign/scripts/npc_creature.lua"/>
+		<sheetdata>
+			<!-- IQ -->
+			<npc_multitext name="iq">
+				<anchored position="insidetopleft" offset="60,5" width="150" />
+				<statelabels>
+					<state>-</state>
+					<state>None (animal instincts)</state>
+					<state>Very Low (1-5)</state>
+					<state>Low (3-12)</state>
+					<state>Little (7-25)</state>
+					<state>Inferior (13-40)</state>
+					<state>Mediocre (23-50)</state>
+					<state>Average (36-65)</state>
+					<state>Above Average (50-77)</state>
+					<state>Superior (60-86)</state>
+					<state>High (80-98)</state>
+					<state>Very High (94-99)</state>
+					<state>Exceptional (100-102)</state>
+				</statelabels>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						if getState() &lt; 1 then
+							setState(1);
+						elseif getState() &gt; 13 then
+							setState(13);
+						end
+					end
+				</script>
+			</npc_multitext>
+			<npc_label>
+				<anchored>
+					<to>iq</to>
+				</anchored>
+				<static>IQ</static>
+			</npc_label>   
+
+			<!-- Outlook -->
+			<multitext name="outlook_d">
+				<anchored to="iq" position="belowleft" offset="0,5" width="170" height="40" />
+				<font>sheetlabelsmall</font>
+				<multilinespacing>14</multilinespacing>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						setState(DB.getValue(window.getDatabaseNode(), "outlook", 0));
+					end
+				</script>
+				<readonly/>
+				<sourceless/>
+				<statelabels>
+					<state>-</state>
+					<state>Aggressive and will attack if provoked or hungry.</state>
+					<state>Ignores other creatures unless interfered with or attack.</state>
+					<state>Altruistic, has an unselfish regard for the interests of others, often to the extent of risking his own safety.</state>
+					<state>Belligerent, often attacks without provocation.</state>
+					<state>Attacks cloest living creature until it is destroyed.</state>
+					<state>Does not believe that danger or misfortune exists for it.</state>
+					<state>Not only hostile, but delights in death, pain, and suffering.</state>
+					<state>Desires power, attempts to control or dominate other creatures.</state>
+					<state>Opposed to "evil" (e.g., those who are cruel, hostile, belligerent, etc.); supportive of those who are "good".</state>
+					<state>Will attack or attempt to steal from other creatures if the risk does not seem too high.</state>
+					<state>Normally attacks other creatures on sight.</state>
+					<state>If hungry, will attack anything edible; otherwise Normal.</state>
+					<state>Inquisitive/Curious will approach and examine unusual situations.</state>
+					<state>Normally bolts at any sign of other creatures.</state>
+					<state>Watches and is wary of other creatures, will sometimes attack if hungry.</state>
+					<state>Ignores the presence of other creatures unless threatened.</state>
+					<state>Mischievous/Playful, will attempt to play with or play pranks on other creatures.</state>
+					<state>Protective of a thing, place, other creature, etc.</state>
+					<state>Skittish around other creatures, runs at the slightest hint of danger.</state>
+					<state>Varies</state>
+					<state>They are never encountered without a mission.</state>
+				</statelabels>
+			</multitext>  
+			<npc_label name="lbloutlook">
+				<anchored>
+					<to>outlook_d</to>
+					<position>lefthigh</position>
+				</anchored>
+				<static>Outlook</static>
+			</npc_label>     
+			<npc_multitext name="outlook">
+				<anchored to="lbloutlook" position="belowleft" offset="0,10" width="50" />
+				<center/>
+				<statelabels>
+					<state>-</state>
+					<state>Aggres.</state>
+					<state>Aloof</state>
+					<state>Altru.</state>
+					<state>Bellig.</state>
+					<state>Berserk</state>
+					<state>Carefree</state>
+					<state>Cruel</state>
+					<state>Domin.</state>
+					<state>Good</state>
+					<state>Greedy</state>
+					<state>Hostile</state>
+					<state>Hungry</state>
+					<state>Inquis.</state>
+					<state>Jumpy</state>
+					<state>Normal</state>
+					<state>Passive</state>
+					<state>Playful</state>
+					<state>Protect</state>
+					<state>Timid</state>
+					<state>Varies</state>
+					<state>Mission</state>
+				</statelabels>
+				<script>
+					function onValueChanged()
+						if window.outlook_d then
+							window.outlook_d.setState(getState());
+						end
+					end
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						if getState() &lt; 1 then
+							setState(1);
+						elseif getState() &gt; 22 then
+							setState(21);
+						end
+					end
+				</script>
+			</npc_multitext>
+
+			<!-- Variability -->
+			<npc_strfield name="levelcode">
+				<anchored to="outlook_d" position="belowleft" offset="15,20" width="15" />
+				<center/>
+				<tabtarget next="levelcode_roll" prev="bonusep_lvl" />
+				<script>
+					function onValueChanged()
+						window.Variability();
+					end
+				</script>
+			</npc_strfield>
+			<npc_label>
+				<anchored>
+					<to>levelcode</to>
+					<size>
+						<width>70</width>
+					</size>
+				</anchored>
+				<static>Level Code</static>
+			</npc_label>
+			<npc_numfield_roll name="levelcode_roll">
+				<anchored to="levelcode" />
+				<tabtarget next="hitscode" prev="levelcode" />
+				<script>
+					function onInit()
+						window.Variability();
+					end
+					function onValueChanged()
+						window.Variability();
+					end
+					function onDoubleClick()
+						if not isReadOnly() then
+							Comm.throwDice("dice",{"d100"},0,"Level Variability");
+						end
+					end
+				</script>
+			</npc_numfield_roll>
+			<npc_labeltop>
+				<anchored>
+					<to>levelcode_roll</to>
+				</anchored>
+				<static>OE Roll</static>
+			</npc_labeltop>
+			<stringcontrolX name="levelcode_result">
+				<center/>
+				<static/>
+				<font>sheettext</font>
+				<anchored>
+					<to>levelcode_roll</to>
+					<position>right</position>
+					<offset>5,0</offset>
+					<size>
+						<width>85</width>
+					</size> 
+				</anchored>
+			</stringcontrolX>
+			<npc_labeltop>
+				<anchored>
+					<to>levelcode_result</to>
+				</anchored>
+				<static>Lvl/Hit Variability</static>
+			</npc_labeltop>
+
+			<npc_strfield name="hitscode">
+				<anchored to="levelcode" position="belowleft" offset="0,20" width="15" />
+				<center/>
+				<tabtarget next="hitscode_roll" prev="levelcode_roll" />
+				<script>
+					function onValueChanged()
+						window.Variability();
+					end
+				</script>
+			</npc_strfield>
+			<npc_label>
+				<anchored>
+					<to>hitscode</to>
+					<size>
+						<width>70</width>
+					</size>
+				</anchored>
+				<static>Constitution</static>
+			</npc_label>
+			<npc_numfield_roll name="hitscode_roll">
+				<anchored to="hitscode" />
+				<tabtarget next="num" prev="hitscode" />
+				<script>
+					function onValueChanged()
+						window.Variability();
+					end
+					function onDoubleClick()
+						if not isReadOnly() then
+							Comm.throwDice("dice",{"d100"},0,"Constitution");
+						end
+					end
+				</script>
+			</npc_numfield_roll>
+			<npc_labeltop>
+				<anchored>
+					<to>hitscode_roll</to>
+				</anchored>
+				<static>Roll</static>
+			</npc_labeltop>
+			<stringcontrolX name="ExP">
+				<center/>
+				<static/>
+				<font>sheettext</font>
+				<anchored>
+					<to>hitscode_roll</to>
+					<position>right</position>
+					<offset>5,0</offset>
+					<size>
+						<width>85</width>
+					</size>
+				</anchored>
+			</stringcontrolX>
+			<stringcontrolX name="hitscode_result">
+				<center/>
+				<static/>
+				<font>sheettext</font>
+				<anchored>
+					<to>ExP</to>
+					<position>above</position>
+					<offset>0,2</offset>
+				</anchored>      
+			</stringcontrolX>
+
+			<!-- Number Encountered -->
+			<npc_strfield name="num">
+				<anchored to="hitscode" position="belowleft" offset="-15,5" width="40" />
+				<center/>
+				<tabtarget next="climate" prev="hitscode_roll" />
+			</npc_strfield>
+			<npc_label>
+				<anchored>
+					<to>num</to>
+				</anchored>
+				<static># Enc.</static>
+			</npc_label>
+
+			<npc_multitext name="freq">
+				<anchored to="num" position="right" offset="50,0" width="80" />
+				<center/>
+				<statelabels>
+					<state>-</state>
+					<state>Routine</state>
+					<state>Easy</state>
+					<state>Light</state>
+					<state>Medium</state>
+					<state>Hard</state>
+					<state>Very Hard</state>
+					<state>Ext. Hard</state>
+					<state>Sheer Folly</state>
+					<state>Absurd</state>
+				</statelabels>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						if getState() &lt; 1 or getState() &gt; 10 then
+							setState(1);
+						end
+					end
+				</script>
+			</npc_multitext>
+			<npc_label>
+				<anchored>
+					<to>freq</to>
+					<offset>5,4</offset>
+					<size>
+						<width>30</width>
+					</size>
+				</anchored>
+				<static>Freq.</static>
+			</npc_label>
+
+			<!-- Climate/Locale -->   
+			<npc_strfield name="climate">
+				<anchored to="num" position="belowleft" offset="0,5" width="150" />
+				<center/>
+				<script>
+					function Climate()
+						local codes = getValue();
+						local code, t = "", "";
+						local txt = "";
+						local txts = {h="Hot/Humid", n="Hot/Average", a="Hot/Dry", w="Warm/Humid", m="Warm/Average", 
+								s="Warm/Dry", k="Cool/Average", t="Cool/Dry", c="Cool/Dry", f="Frigid"};
+						for i=1,string.len(codes),1 do
+							code = string.sub(codes,i,i);
+							if txts[code] ~= nil then
+								if txt=="" then txt = txts[code]; else txt = txt..", "..txts[code]; end
+							end
+						end
+						window.climate_txt.setValue(txt);
+					end
+					function onValueChanged()
+						Climate();
+					end
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						onValueChanged();
+					end
+				</script>
+				<tabtarget next="locale" prev="num" />
+			</npc_strfield>
+			<npc_label name="lblclimate">
+				<anchored>
+					<to>climate</to>
+				</anchored>
+				<static>Climates</static>
+			</npc_label>
+			<stringcontrolX name="climate_txt">
+				<font>sheetlabelsmall</font>
+				<anchored>
+					<to>lblclimate</to>
+					<position>belowleft</position>
+					<offset>10,5</offset>
+					<size>
+						<width>225</width>
+					</size>
+				</anchored>
+				<multilinespacing>14</multilinespacing>
+				<static />
+			</stringcontrolX>
+
+			<npc_strfield name="locale">
+				<anchored to="climate_txt" position="belowleft" offset="50,5" width="150" />
+				<center/>
+				<script>
+					function Locale()
+						local codes = getValue();
+						local code, t = "", "";
+						local txt = "";
+						if string.find(codes, "SS")  then
+							codes = string.gsub(codes, "SS", "");
+							txt = "Burial Areas";
+						end
+						local txts = {	E="Enchanted/magical places", 
+										K="Cross-over points between dimensions", 
+										N="Near villages/towns/cities/castles",
+										V="Volcanic areas", 
+										X="cavern complexes", 
+										Y="battlefields/shipwrecks", 
+										t="rural/inhabited/cultivated areas", 
+										a="cave entrance/overhangs/lairs", 
+										s="burial areas", 
+										n="ruins", 
+										B="Breaks/Wadis", 
+										F="Freshwater coasts &amp; banks", 
+										G="Glacier/snowfield", 
+										I="tropical Islet/reef/atoll", 
+										L="Lake/river",
+										M="Marsh/swamp", 
+										O="Ocean", 
+										Q="oasis/isolated water sources", 
+										S="Saltwater shores/shallows", 
+										Z="Desert (perhaps scattered cactus &amp; shrubs, no grass)",
+										A="Alpine/high altitude/mountainous", 
+										R="Rough/Rugged/Rocky hills", 
+										U="Underground (caverns, etc.)", 
+										W="Waste/barren",
+										C="Coniferous forest/taiga", 
+										D="Deciduous/coniferous/mixed forest", 
+										H="Heath/scrub/moor", 
+										J="Jungle/rain forest", 
+										P="Plains/grassland (often with scattered trees and scrubs)", 
+										T="Tundra (lichen/mosses, lichen/grasses)" 
+									}
+						for i=1,string.len(codes),1 do
+							code = string.sub(codes,i,i);
+							if txts[code] ~= nil then
+								if txt=="" then 
+									txt = txts[code]; 
+								else 
+									txt = txt..", "..txts[code]; 
+								end
+							end
+						end
+						window.locale_txt.setValue(txt);
+					end
+					function onValueChanged()
+						Locale();
+					end
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						onValueChanged();
+					end
+				</script>
+				<tabtarget next="treasure" prev="climate" />
+			</npc_strfield>      
+			<npc_label name="lbllocale">
+				<anchored>
+					<to>locale</to>
+				</anchored>
+				<static>Locales</static>
+			</npc_label>      
+			<stringcontrolX name="locale_txt">
+				<font>sheetlabelsmall</font>
+				<anchored>
+					<to>lbllocale</to>
+					<position>belowleft</position>
+					<offset>10,5</offset>
+					<size>
+						<width>225</width>
+					</size>
+				</anchored>
+				<multilinespacing>14</multilinespacing>
+				<static />
+			</stringcontrolX>
+
+			<!-- Treasure -->
+			<npc_strfield name="treasure">
+				<anchored to="locale_txt" position="belowleft" offset="50,20" width="30" />
+				<center/>
+				<script>
+					function SetFromCode()
+						local vp="Very Poor";
+						local p="Poor";
+						local n="Normal";
+						local r="Rich";
+						local vr="Very Rich";
+						local sp="Special";
+						local magic = {a=vp,b=vp,c=vp,d=vp,e=vp,e=vp,f=p,g=p,h=p,i=p,j=p,
+										k=n,l=n,m=n,n=n,o=n,p=r,q=r,r=r,s=r,t=r,u=vr,v=vr,w=vr,x=vr,y=vr,z=sp};
+						local money = {a=vp,b=p,c=n,d=r,e=vr,f=vp,g=p,h=n,i=r,j=vr,
+										k=vp,l=p,m=n,n=r,o=vr,p=vp,q=p,r=n,s=r,t=vr,u=vp,v=p,w=n,x=r,y=vr,z=sp};
+						window.treasure_magic.setValue(magic[getValue()]);
+						window.treasure_money.setValue(money[getValue()]);
+					end
+					function onValueChanged()
+						SetFromCode();
+					end
+				</script>
+				<tabtarget next="bonusep" prev="locale" />
+			</npc_strfield>
+			<npc_label>
+				<static>Treasure</static>
+				<anchored>
+					<to>treasure</to>
+					<offset>5,4</offset>
+				</anchored>
+			</npc_label>
+			<stringcontrolX name="treasure_magic">
+				<center/>
+				<font>sheettext</font>
+				<anchored>
+					<to>treasure</to>
+					<position>right</position>
+					<offset>10,0</offset>
+					<size>
+						<width>60</width>
+					</size>
+				</anchored>
+				<static/>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						window.treasure.SetFromCode();
+					end
+				</script>
+			</stringcontrolX>
+			<npc_labeltop>
+				<anchored>
+					<to>treasure_magic</to>
+				</anchored>
+				<static>Magic Items</static>
+			</npc_labeltop>
+			<stringcontrolX name="treasure_money">
+				<center/>
+				<font>sheettext</font>
+				<static/>
+				<anchored>
+					<to>treasure_magic</to>
+					<position>right</position>
+					<offset>10,0</offset>
+					<size>
+						<width>60</width>
+					</size> 
+				</anchored>
+				<readonly/>
+			</stringcontrolX>
+			<npc_labeltop>
+				<anchored>
+					<to>treasure_money</to>
+				</anchored>
+				<static>Money/Gems</static>
+			</npc_labeltop>
+
+			<!-- Bonus EP -->
+			<npc_strfield name="bonusep">
+				<anchored to="treasure" position="belowleft" offset="0,20" width="30" />
+				<center/>
+				<script>
+					function onValueChanged()
+						window.BonusEP();
+					end
+					function onInit()
+						if super and super.onInit then super.onInit(); end
+						onValueChanged();
+					end
+				</script>
+				<tabtarget next="bonusep_lvl" prev="treasure" />
+			</npc_strfield>
+			<npc_label>
+				<anchored>
+					<to>bonusep</to>
+					<offset>5,4</offset>
+				</anchored>
+				<static>Bonus EP</static>
+			</npc_label>
+			<numbercontrolX name="bonusep_lvl">
+				<font>sheettext</font>
+				<anchored>
+					<to>bonusep</to>
+					<position>right</position>
+					<offset>15,0</offset>
+					<size>
+						<width>41</width>
+					</size>
+				</anchored>
+				<script>
+					function onValueChanged()
+						window.BonusEP();
+					end
+					function onInit()
+						if super and super.onInit then super.onInit(); end
+						setValue(nil);
+						onValueChanged();
+					end
+				</script>
+				<frame mergerule="replace">
+					<name>fielddark</name>
+					<offset>4,4,4,4</offset>
+				</frame>
+				<keyeditframe mergerule="replace">
+					<name>fieldfocus</name>
+					<offset>4,4,4,4</offset>
+				</keyeditframe>
+				<tabtarget next="levelcode" prev="bonusep" />
+			</numbercontrolX>
+			<npc_labeltop>
+				<anchored>
+					<to>bonusep_lvl</to>
+				</anchored>
+				<static>For Level</static>
+			</npc_labeltop>
+			<stringcontrolX name="bonusep_xp">
+				<static/>
+				<center/>
+				<font>sheettext</font>
+				<anchored>
+					<to>bonusep_lvl</to>
+					<position>right</position>
+					<offset>5,0</offset>
+					<size>
+						<width>45</width>
+					</size> 
+				</anchored>
+				<sourceless/>       
+				<readonly/>
+			</stringcontrolX>
+			<npc_labeltop>
+				<anchored>
+					<to>bonusep_xp</to>
+				</anchored>
+				<static>XP</static>
+			</npc_labeltop>
+		</sheetdata>  
+	</windowclass>
+
+	<!-- List Classes -->
+	<windowclass name="npc_weaponlist_item">
+		<!--
+          Weapon type:
+          1 = 1HS one-handed slashing
+          2 = 1HC one-handed concussion
+          3 = 2H  two-handed
+          4 = PA  polearm
+          5 = MIS missile weapon
+          6 = TH  thrown weapon
+          7 = SH  shield
+          8 = NAT natural weapon, such as a claw
+          9 = EL  elemental attack, such as bolts and balls
+          10= SP  special attack
+		-->
+		<margins control="0,0,0,2"/>
+		<script>
+			function update(bReadOnly)
+				name.setReadOnly(bReadOnly);
+				ob.setReadOnly(bReadOnly);
+				chance.setReadOnly(bReadOnly);
+			end
+		</script>
+		<sheetdata>
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<button_listitem_idelete_left name="idelete" />
+			<link_listitem_left name="open">
+				<class>item</class>
+			</link_listitem_left>
+
+			<npc_strfield name="chance">
+				<anchored to="rightanchor" width="55">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<tabtarget next="" prev="ob" />
+			</npc_strfield>
+			<npc_numfield_underlined name="ob">
+				<anchored to="rightanchor" width="20">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<tabtarget next="chance" prev="name" />
+			</npc_numfield_underlined>
+
+			<string_listitem_center_underline name="name">
+				<tabtarget next="ob" prev="chance" />
+			</string_listitem_center_underline>
+		</sheetdata>
+	</windowclass>
+	<windowclass name="npc_defencelist_item">
+		<margins control="0,0,0,2"/>
+		<script>
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				local numwin = #windowlist.getWindows();
+				windowlist.setAnchoredHeight(20*(numwin+1));
+			end
+			function update(bReadOnly)
+				name.setReadOnly(bReadOnly);
+				meleebonus.setReadOnly(bReadOnly);
+				missilebonus.setReadOnly(bReadOnly);
+			end
+		</script>
+		<sheetdata>
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<button_listitem_idelete_left name="idelete" />
+
+			<npc_numfield_underlined name="missilebonus">
+				<anchored to="rightanchor" width="30">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<tabtarget next="name" prev="meleebonus" />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="meleebonus">
+				<anchored to="rightanchor" width="30">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<tabtarget next="missilebonus" prev="name" />
+			</npc_numfield_underlined>
+
+			<string_listitem_center_underline name="name">
+				<tabtarget next="meleebonus" prev="" />
+			</string_listitem_center_underline>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="npc_stat_item">
+		<margins control="0,0,0,2"/>
+		<script>
+			function update(bReadOnly)
+				temp.setReadOnly(bReadOnly);
+				race.setReadOnly(bReadOnly);
+				misc.setReadOnly(bReadOnly);
+			end
+		</script>
+		<sheetdata>
+			<hnc name="order" />
+			<hsc name="name" />
+			<hs name="abbr" />
+
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<npc_numfield_underlined name="total">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign/>
+				<readonly />
+				<script>
+					function onInit()
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "bonus"), "onUpdate", self.refresh);
+						DB.addHandler(DB.getPath(node, "race"), "onUpdate", self.refresh);
+						DB.addHandler(DB.getPath(node, "misc"), "onUpdate", self.refresh);
+						self.refresh();
+					end
+
+					function refresh()
+						setValue(window.bonus.getValue() + window.race.getValue() + window.misc.getValue());
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						draginfo.setType("number");
+						draginfo.setDescription(window.name.getValue().." Bonus");
+						if getValue() &gt;= 0 then
+							draginfo.setStringData(window.name.getValue().." Bonus +"..getValue());
+						else
+							draginfo.setStringData(window.name.getValue().." Bonus "..getValue());
+						end
+						draginfo.setNumberData(getValue());
+						return true;
+					end
+				</script>
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="misc">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+				<tabtarget next="" prev="race" />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="race">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+				<tabtarget next="misc" prev="temp" />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="bonus">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+				<readonly />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="temp">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<tabtarget next="race" prev="" />
+				<script>
+					function onInit()
+						OptionsManager.registerCallback("RC44B", refresh);
+						OptionsManager.registerCallback("RC48B", refresh);
+						refresh();
+					end
+					function onClose()
+						OptionsManager.unregisterCallback("RC44B", refresh);
+						OptionsManager.unregisterCallback("RC48B", refresh);
+					end
+					function onValueChanged()
+						refresh();
+					end
+					function refresh()
+						if getValue() == 0 then
+							window.bonus.setValue(0);
+						else
+							window.bonus.setValue(Rules_Stats.Bonus(getValue()));
+						end
+					end
+				</script>
+			</npc_numfield_underlined>
+
+			<dice_ghost_listitem_center name="ghost" />
+			<stringc_listitem_center_underline name="label">
+				<readonly />
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+
+						ActionStat.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, window.label.getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</stringc_listitem_center_underline>
+		</sheetdata>
+	</windowclass>
+	<windowclass name="npc_resistance_base_item">
+		<margins control="0,0,0,2"/>
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+				DB.addHandler(DB.getPath(node, "stat"), "onUpdate", self.refresh);
+				DB.addHandler(DB.getPath(node, "race"), "onUpdate", self.refresh);
+				DB.addHandler(DB.getPath(node, "misc"), "onUpdate", self.refresh);
+				self.refresh();
+			end
+
+			function refresh()
+				total.setValue(stat.getValue() + race.getValue() + misc.getValue());
+			end
+
+			function update(bReadOnly)
+				race.setReadOnly(bReadOnly);
+				misc.setReadOnly(bReadOnly);
+			end
+		</script>
+		<sheetdata>
+			<hnc name="order" />
+			<hs name="name" />
+			<hs name="statname">
+				<script>
+					function onInit()
+						local nodeNPC = DB.getChild(getDatabaseNode(), ".....");
+						DB.addHandler(DB.getPath(nodeNPC, "stats." .. getValue()),"onChildUpdate", refresh);
+						refresh();
+					end
+					
+					function refresh()
+						local nodeNPC = DB.getChild(getDatabaseNode(), ".....");
+						local nTotal = DB.getValue(DB.getChild(nodeNPC, "stats." .. getValue()), "total", 0);
+						window.stat.setValue(nTotal);
+					end
+				</script>
+			</hs>
+			
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<npc_numfield_underlined name="total">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+				<readonly />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="misc">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+				<tabtarget next="" prev="race" />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="race">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+				<tabtarget next="misc" prev="" />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="stat">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+				<readonly />
+			</npc_numfield_underlined>
+
+			<dice_ghost_listitem_center name="ghost" />
+			<stringc_listitem_center_underline name="label">
+				<readonly />
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "....");
+						local rActor = ActorManager.resolveActor(charNode);
+						local nodeRR = window.getDatabaseNode();
+
+						ActionResistance.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, nodeRR, window.label.getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</stringc_listitem_center_underline>
+		</sheetdata>
+	</windowclass>
+	<windowclass name="npc_resistance_hybrid_item">
+		<margins control="0,0,0,2"/>
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+				DB.addHandler(DB.getPath(node, "base"), "onUpdate", self.refresh);
+				DB.addHandler(DB.getPath(node, "misc"), "onUpdate", self.refresh);
+				self.refresh();
+			end
+
+			function refresh()
+				total.setValue(base.getValue() + misc.getValue());
+			end
+
+			function update(bReadOnly)
+				misc.setReadOnly(bReadOnly);
+			end
+		</script>
+		<sheetdata>
+			<hnc name="order" />
+			<hs name="name" />
+			<hs name="resistances">
+				<script>
+					function onInit()
+						local nodeNPC = DB.getChild(getDatabaseNode(), ".....");
+
+						DB.addHandler(DB.getPath(nodeNPC, "rr.base.essence.total"),"onUpdate", refresh);
+						DB.addHandler(DB.getPath(nodeNPC, "rr.base.channeling.total"),"onUpdate", refresh);
+						DB.addHandler(DB.getPath(nodeNPC, "rr.base.mentalism.total"),"onUpdate", refresh);
+
+						refresh();
+					end
+					
+					function refresh()
+						local nodeNPC = DB.getChild(getDatabaseNode(), ".....");
+						local nAverage = 0;
+						local nCount = 0;
+						
+						if string.len(getValue()) &gt; 0 then
+							if string.find(getValue(), "Essence") then
+								nAverage = nAverage + DB.getValue(nodeNPC, "rr.base.essence.total", 0);
+								nCount = nCount + 1;
+							end
+							if string.find(getValue(), "Channeling") then
+								nAverage = nAverage + DB.getValue(nodeNPC, "rr.base.channeling.total", 0);
+								nCount = nCount + 1;
+							end
+							if string.find(getValue(), "Mentalism") then
+								nAverage = nAverage + DB.getValue(nodeNPC, "rr.base.mentalism.total", 0);
+								nCount = nCount + 1;
+							end
+							if nCount > 0 then
+								nAverage = math.floor((nAverage / nCount) + 0.5);
+							end
+						end
+						window.base.setValue(nAverage);
+					end
+				</script>
+			</hs>
+
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<npc_numfield_underlined name="total">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+				<readonly />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="misc">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="base">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+				<readonly />
+			</npc_numfield_underlined>
+
+			<dice_ghost_listitem_center name="ghost" />
+			<stringc_listitem_center_underline name="label">
+				<readonly />
+				<script>
+					function action(draginfo)
+						local node = window.getDatabaseNode();
+						local nodeChar = DB.getChild(node, "....");
+						local rActor = ActorManager.resolveActor(nodeChar);
+
+						ActionResistance.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, node, window.label.getValue());
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</stringc_listitem_center_underline>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="npc_skilllist_item">
+		<margins control="0,0,0,2"/>
+		<script>
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				local node = getDatabaseNode();    
+				if not open.getValue() then
+					open.setValue("skill", DB.getPath(node));
+				end
+				open.setVisible(true);
+			end
+		</script>
+		<sheetdata>
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<button_listitem_idelete_left name="idelete" />
+			<link_listitem_left name="open" />
+
+			<npc_numfield_underlined name="bonus">
+				<anchored to="rightanchor" width="40">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign/>
+				<tabtarget next="" prev="ranks" />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="ranks">
+				<anchored to="rightanchor" width="30">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<tabtarget next="bonus" prev="name" />
+			</npc_numfield_underlined>
+
+			<dice_ghost_listitem_center name="ghost" />
+			<string_listitem_center_underline name="name">
+				<tabtarget next="ranks" prev="" />
+				<cursor hover="hand" />
+				<script>
+					function action(draginfo)
+						local nodeSkill = DB.getParent(getDatabaseNode());
+						local charNode = DB.getChild(getDatabaseNode(), "....");
+						local rActor = ActorManager.resolveActor(charNode);
+						sSkillName = getValue();
+
+						nSkillMod = DB.getValue(nodeSkill, "bonus", 0);
+
+						local class, refNodeName = window.open.getValue();
+						if refNodeName and refNodeName ~= "" then
+							refSkillNode = DB.findNode(refNodeName);
+							if refSkillNode then			
+								skillType = DB.getValue(refSkillNode, "type", "");
+							end
+						end
+
+						if skillType == ActionSkill.MM then
+							nSkillType = ActionSkill.MM;
+						else
+							nSkillType = ActionSkill.SM;
+						end
+
+						ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</string_listitem_center_underline>
+		</sheetdata>
+	</windowclass>
+	<windowclass name="npc_spelllist_item">
+		<margins control="0,0,0,2"/>
+		<script>
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				local node = getDatabaseNode();
+				if DB.getValue(node, "custom", 0) ~= 0 then
+					custom.setValue(1);
+				else
+					custom.setValue(0);
+				end
+				if not open.getValue() then
+					open.setValue("spelllist", DB.getPath(node));
+				end
+				open.setVisible(true); 
+			end
+		</script>
+		<sheetdata>
+			<hn name="custom">
+				<script>
+					function onValueChanged()
+						if getValue() == 1 then
+							window.name.setReadOnly(false);
+							window.name.setFrame("textline",0,1,0,0);
+						else
+							window.name.setReadOnly(true);
+							window.name.setFrame(nil);
+						end
+					end
+				</script>
+			</hn>
+
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<button_listitem_idelete_left name="idelete" />
+			<link_listitem_left name="open" />
+
+			<npc_numfield_underlined name="maxlevel">
+				<anchored to="rightanchor" width="30">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<tabtarget next="" prev="esf" />
+			</npc_numfield_underlined>
+			<npc_numfield_underlined name="esf">
+				<anchored to="rightanchor" width="30">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<tooltip textres="npc_tooltip_esf" />
+				<tabtarget next="maxlevel" prev="name" />
+			</npc_numfield_underlined>
+
+			<dice_ghost_listitem_center name="ghost" />
+			<string_listitem_center_underline name="name">
+				<tabtarget next="esf" prev="" />
+				<cursor hover="hand" />
+				<script>
+                    function action(draginfo)
+                        local charNode = DB.getChild(window.getDatabaseNode(), "...");
+                        local rActor = ActorManager.resolveActor(charNode);
+                        local sClass, sRecordName = window.open.getValue();
+                        local sRealm = window.windowlist.window.realm.getValue();
+                        local nESFTotal = 0;
+                        local esf_value = DB.getValue(window.getDatabaseNode(), "esf", "0");
+                        if esf_value then
+                            nESFTotal = tonumber(esf_value) or 0;
+                        end
+                        
+                        local nSpellLevel = DB.getValue(window.getDatabaseNode(), "level", 0);
+
+                        if nESFTotal &lt; 0 then
+                            nESFTotal = 0;
+                        end
+                        ActionBaseCasting.performRoll(draginfo, rActor, getValue(), sRecordName, sRealm, Rules_Spells.GetSpellFailure(nESFTotal), { sSpellName = getValue(), sSpellNodeName = sRecordName, nSpellLevel = nSpellLevel });
+                        return true;
+                    end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</string_listitem_center_underline>
+		</sheetdata>
+	</windowclass>
+</root>

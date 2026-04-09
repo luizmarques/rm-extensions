@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<template name="rm_dice">
+		<genericcontrol>
+			<anchored position="right" offset="15" width="72" />
+			<icon>d100icon</icon>
+			<dietype>D100</dietype>
+			<cursor hover="hand" />
+			<script file="desktop/scripts/rm_dice.lua" />
+		</genericcontrol>
+	</template>
+	
+	<windowclass name="chat" merge="join">
+		<sizelimits merge="merge">
+			<dynamic />
+			<minimum width="425" height="350" />
+		</sizelimits>
+		<sheetdata>
+			<basicchatwindow name="chat">
+				<droptypes>
+					<type merge="add">rmdice</type>
+					<type merge="add">attack</type>
+					<type merge="add">damage</type>
+					<type merge="add">heal</type>
+					<type merge="add">initiative</type>
+					<type merge="add">resistance</type>
+					<type merge="add">skill</type>
+					<type merge="add">stat</type>
+					<type merge="add">statgen</type>
+					<type merge="add">statgain</type>
+				</droptypes>
+			</basicchatwindow>
+
+			<area_content_bottom name="area_dice" insertbefore="entry">
+				<anchored height="40" />
+			</area_content_bottom>
+			<genericcontrol name="frame_dice" insertbefore="entry">
+				<anchored to="area_dice" position="over" offset="-5,0" />
+				<frame name="imagepanel" />
+				<disabled />
+			</genericcontrol>
+			<rm_dice name="d100_Closed" insertbefore="entry">
+				<anchored to="area_dice" position="insidetopleft" offset="15,2" width="72" height="36" />
+			</rm_dice>
+			<rm_dice name="d100_LowOpenEnded" insertbefore="entry">
+				<anchored to="d100_Closed" />
+				<dietype>Low Open-Ended</dietype>
+			</rm_dice>
+			<rm_dice name="d100_OpenEnded" insertbefore="entry">
+				<anchored to="d100_LowOpenEnded" />
+				<dietype>Open-Ended</dietype>
+			</rm_dice>
+			<rm_dice name="d100_HighOpenEnded" insertbefore="entry">
+				<anchored to="d100_OpenEnded" />
+				<dietype>High Open-Ended</dietype>
+			</rm_dice>
+			<spacer_content_bottom name="spacer_dice" insertbefore="entry">
+				<anchored height="5" />
+			</spacer_content_bottom>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="modifierstack" merge="join">
+		<sizelimits>
+			<minimum width="400" height="70" />
+		</sizelimits>
+		<noclose />
+		<sheetdata>
+			<button_modifierkey name="routine" merge="merge" insertafter="targeting">
+				<bounds>80,5,80,14</bounds>
+				<textres>modifier_label_routine</textres>
+			</button_modifierkey>
+			<button_modifierkey name="easy" merge="merge" insertafter="targeting">
+				<bounds>168,5,80,14</bounds>
+				<textres>modifier_label_easy</textres>
+			</button_modifierkey>
+			<button_modifierkey name="light" merge="merge" insertafter="targeting">
+				<bounds>256,5,80,14</bounds>
+				<textres>modifier_label_light</textres>
+			</button_modifierkey>		
+			<button_modifierkey name="medium" merge="merge" insertafter="targeting">
+				<bounds>80,27,80,14</bounds>
+				<textres>modifier_label_medium</textres>
+			</button_modifierkey>		
+			<button_modifierkey name="hard" merge="merge" insertafter="targeting">
+				<bounds>168,27,80,14</bounds>
+				<textres>modifier_label_hard</textres>
+			</button_modifierkey>
+			<button_modifierkey name="veryhard" merge="merge" insertafter="targeting">
+				<bounds>256,27,80,14</bounds>
+				<textres>modifier_label_veryhard</textres>
+			</button_modifierkey>
+			<button_modifierkey name="extremelyhard" merge="merge" insertafter="targeting">
+				<bounds>80,49,80,14</bounds>
+				<textres>modifier_label_extremelyhard</textres>
+			</button_modifierkey>		
+			<button_modifierkey name="sheerfolly" merge="merge" insertafter="targeting">
+				<bounds>168,49,80,14</bounds>
+				<textres>modifier_label_sheerfolly</textres>
+			</button_modifierkey>		
+			<button_modifierkey name="absurd" merge="merge" insertafter="targeting">
+				<bounds>256,49,80,14</bounds>
+				<textres>modifier_label_absurd</textres>
+			</button_modifierkey>		
+		</sheetdata>
+	</windowclass>
+</root>

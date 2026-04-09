@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="charsheet" copy="charsheet_base">
+		<sizelimits>
+			<minimum width="700" height="750" />
+			<dynamic />
+		</sizelimits>
+		<tab>
+			<name>main</name>
+			<resource>tab_main</resource>
+			<class>charsheet_main</class>
+		</tab>
+		<tab merge="add">
+			<name>combat</name>
+			<resource>tab_combat</resource>
+			<class>charsheet_combat</class>
+		</tab>
+		<tab merge="add">
+			<name>skills</name>
+			<resource>tab_skills</resource>
+			<class>charsheet_skills</class>
+		</tab>
+		<tab merge="add">
+			<name>spells</name>
+			<resource>tab_spells</resource>
+			<class>charsheet_spells</class>
+		</tab>
+		<tab merge="add">
+			<name>inventory</name>
+			<resource>tab_inventory</resource>
+			<class>charsheet_inventory</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>notes</name>
+			<resource>tab_notes</resource>
+			<class>charsheet_notes</class>
+		</tab>
+		<tab merge="add">
+			<name>xp</name>
+			<resource>tab_xp</resource>
+			<class>charsheet_xp</class>
+		</tab>
+		<script file="campaign/scripts/charsheet.lua" />
+	</windowclass>
+	<windowclass name="charsheet_overview" copy="charsheet_overview_base">
+		<sheetdata>
+			<frame_char name="professionframe" insertbefore="overviewframe">
+				<anchored to="rightanchor" height="60" width="205">
+					<top />
+					<right relation="relative" />
+				</anchored>
+			</frame_char>
+			<combobox_labeled_RMC name="profession">
+				<anchored to="professionframe" position="insidetopleft" offset="15,20" height="20">
+					<right offset="-35" />
+				</anchored>
+				<labelres>char_label_profession</labelres>
+				<listmaxsize>5</listmaxsize>
+				<readonly />
+				<script>
+					function onInit()
+						super.onInit();
+						
+						Module.addEventHandler("onModuleLoad", self.ModuleLoadUnload);
+						Module.addEventHandler("onModuleUnload", self.ModuleLoadUnload);
+						self.ModuleLoadUnload();
+					end
+					function ModuleLoadUnload()
+						self.getProfessionLink();
+						addItems(Rules_Professions.List());
+					end
+					function onValueChanged()
+						self.getProfessionLink();
+					end
+					function getProfessionLink()
+						local sCharNode = DB.getPath(window.getDatabaseNode());
+						Rules_Professions.SetProfessionLink(getValue(), sCharNode);
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<linkfield name="professionlink">
+				<anchored to="profession" position="righthigh" offset="0,0" width="20" height="20" />
+				<description field="profession" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					function onValueChanged()
+						if isEmpty() then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+						local _, sProfessionNodeName = getValue();
+						local nodeProfession = DB.findNode(sProfessionNodeName);
+						local sProfessionRealm = DB.getValue(nodeProfession, "realm", "");
+						if sProfessionNodeName and not nodeProfession then
+							local nLoc = string.find(sProfessionNodeName, "@");
+							if nLoc then
+								local sModule = string.sub(sProfessionNodeName, nLoc + 1);
+								Module.activate(sModule);
+							end
+						end
+						if sProfessionRealm ~= "Pick One" and sProfessionRealm ~= "" then
+							DB.setValue(window.getDatabaseNode(), "realm", "string", sProfessionRealm);
+						end
+					end
+				</script>
+			</linkfield>
+		</sheetdata>
+	</windowclass>
+</root>

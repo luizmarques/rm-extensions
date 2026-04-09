@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="DropDown_Option">
+		<sizelimits>
+			<minimum>
+				<height>20</height>
+			</minimum>
+		</sizelimits>
+		<script>
+			local selected = false;
+			local readonly = false;
+			local fontvalue = "";
+			local selectedfont = "";
+			local framevalue = "";
+			local selectedframe = "";
+
+			function getFonts()
+				return fontvalue,selectedfont;
+			end
+
+			function setFonts(normal,sel)
+				fontvalue = normal or "";
+				selectedfont = sel or "";
+				setSelected(selected);
+			end
+
+			function getFrames()
+				return framevalue,selectedframe;
+			end
+
+			function setFrames(normal,sel)
+				framevalue = normal or "";
+				selectedframe = sel or "";
+				setSelected(selected);
+			end
+
+			function setReadOnly(flag)
+				if flag then
+				readonly = true;
+				else
+				readonly = false;
+				end
+			end
+
+			function isReadOnly()
+				return readonly;
+			end
+
+			function setSelected(flag)
+				if flag then
+					selected = true;
+					setFrame(selectedframe);
+				else
+					selected = false;
+					setFrame(framevalue);
+				end
+				if Text then
+					if flag then
+						Text.setFont(selectedfont);
+					else
+						Text.setFont(fontvalue);
+					end
+				end
+			end
+
+			function onInit()
+				if selected then
+					Text.setFont(selectedfont);
+				else
+					Text.setFont(fontvalue);
+				end
+			end
+
+			function clicked()
+				if windowlist and windowlist.optionClicked then
+					windowlist.optionClicked(self);
+				end
+			end
+
+			function isSelected()
+				return selected;
+			end
+
+			function setRowHeight(h)
+				local w,t = getSize();
+				setSize(w,h);
+			end
+
+			function getRowHeight()
+				local w,h = getSize();
+				return h;
+			end
+		</script>
+		<sheetdata>
+			<!-- Invisible fields -->
+			<stringcontrol name="Value">
+				<bounds>0,0,0,0</bounds>
+				<invisible/>
+			</stringcontrol>
+			<!-- Visible fields -->
+			<stringcontrol name="Text">
+				<anchored>
+					<left>
+						<anchor>left</anchor>
+					</left>
+					<right>
+						<anchor>right</anchor>
+					</right>
+					<top>
+						<anchor>top</anchor>
+					</top>
+					<bottom>
+						<anchor>bottom</anchor>
+					</bottom>
+				</anchored>
+				<static/>
+				<script>
+					function onClickDown(...)
+						return not window.isReadOnly();
+					end
+
+					function onClickRelease(...)
+						window.clicked();
+					end
+				</script>
+			</stringcontrol>
+		</sheetdata>
+	</windowclass>
+
+	<template name="DropDown">
+		<genericcontrol>
+			<fonts>
+				<normal mergerule="replace">chatfont</normal>
+				<selected mergerule="replace">narratorfont</selected>
+			</fonts>
+			<frames>
+				<normal mergerule="replace"/>
+				<selected mergerule="replace">rowshade</selected>
+			</frames>
+			<position mergerule="replace">0,0</position>
+			<size mergerule="replace">0</size>
+			<lookup mergerule="resetandadd" />
+			<anchored>
+				<right>
+					<anchor>right</anchor>
+				</right>
+				<top>
+					<anchor>top</anchor>
+				</top>
+				<size>
+					<width>15</width>
+					<height>10</height>
+				</size>
+			</anchored>
+			<icon>indicator_dropdown</icon>
+			<script file="common/scripts/template_DropDown.lua"/>
+		</genericcontrol>
+	</template>
+
+	<template name="DropDownList">
+		<windowlist>
+			<anchored>
+				<top>
+					<anchor>top</anchor>
+				</top>
+				<right>
+					<anchor>right</anchor>
+				</right>
+				<size>
+					<width>80</width>
+					<height>50</height>
+				</size>
+			</anchored>
+			<frame>
+				<name>combobox_list</name>
+				<offset>2,2,2,2</offset>
+			</frame>
+			<datasource/>
+			<class>DropDown_Option</class>
+			<invisible/>
+			<script file="common/scripts/template_DropDownList.lua" />
+		</windowlist>
+	</template>
+
+	<template name="DropDown_Scrollbar">
+		<scrollbarcontrol>
+			<anchored position="insideleft" width="10" />
+			<normal name="combobox_scrollbar" />
+			<script>
+				function onInit()
+					if super and super.onInit then
+						super.onInit();
+					end
+					if target and target[1] then
+						setTarget(target[1]);
+					end
+				end
+			</script>
+		</scrollbarcontrol>
+	</template>
+</root>

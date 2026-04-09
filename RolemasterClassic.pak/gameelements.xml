@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<distance>
+		<base>5</base>
+		<diagmult>1.5</diagmult>
+		<suffix>'</suffix>
+	</distance>
+
+	<imagesettings>
+		<pointer defaultconeangle="45" />
+	</imagesettings>
+
+<!--
+	<lightingsettings>
+		<preset key="candle" nameres="lighting_candle" color="FFFFFCC3" bright="1" dim="2" animtype="flicker" animspeed="100" />
+		<preset key="torch" nameres="lighting_torch" color="FFFFF3E1" bright="4" dim="8" animtype="flicker" animspeed="25" />
+		<preset key="lantern" nameres="lighting_lantern" color="FFF9FEFF" bright="6" dim="12" />
+		<preset key="spell_light_1" nameres="lighting_spell_light_1" color="FFFFF3E1" bright="1" dim="2" />
+		<preset key="spell_light_2" nameres="lighting_spell_light_2" color="FFFFF3E1" bright="2" dim="4" />
+		<preset key="spell_light_3" nameres="lighting_spell_light_3" color="FFFFF3E1" bright="3" dim="6" />
+		<preset key="spell_light_5" nameres="lighting_spell_light_5" color="FFFFF3E1" bright="5" dim="10" />
+		<preset key="spell_light_10" nameres="lighting_spell_light_10" color="FFFFF3E1" bright="10" dim="20" />
+		<preset key="spell_darkness_1" nameres="lighting_spell_darkness_1" color="FF000000" bright="2" dim="2" inverse="true" />
+		<preset key="spell_darkness_2" nameres="lighting_spell_darkness_2" color="FF000000" bright="4" dim="4" inverse="true" />
+		<preset key="spell_darkness_5" nameres="lighting_spell_darkness_5" color="FF000000" bright="10" dim="10" inverse="true" />
+		<preset key="spell_darkness_10" nameres="lighting_spell_darkness_10" color="FF000000" bright="20" dim="20" inverse="true" />
+	</lightingsettings>
+-->
+
+	<die name="d4">
+		<icon>d4icon</icon>
+		<position>620,-60</position>
+	</die>
+	<die name="d6">
+		<icon>d6icon</icon>
+		<position>575,-65</position>
+	</die>
+	<die name="d8">
+		<icon>d8icon</icon>
+		<position>530,-65</position>
+	</die>
+	<die name="d10">
+		<icon>d10icon</icon>
+		<position>480,-65</position>
+	</die>
+	<die name="d12">
+		<icon>d12icon</icon>
+		<position>430,-65</position>
+	</die>
+	<die name="d20">
+		<icon>d20icon</icon>
+		<position>380,-65</position>
+	</die>
+</root>

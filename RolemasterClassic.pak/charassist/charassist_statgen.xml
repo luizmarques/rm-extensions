@@ -1,0 +1,793 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="charassist_statgen" copy="charsheethelper_base">
+		<sizelimits>
+			<minimum width="470" height="475" />
+		</sizelimits>
+		<helplinkres>help_charassist_statgen</helplinkres>
+		<script>
+			local _nRolls = 0;
+			function onInit()
+				if super and super.onInit() then
+					super.onInit();
+				end
+				self.resetNumRolls();
+				OptionsManager.registerCallback("CL07", self.refresh);
+				self.refresh();
+			end
+			function onClose()
+				OptionsManager.unregisterCallback("CL07", self.refresh);
+			end
+			function getNumRolls()
+				return _nRolls;
+			end
+			function resetNumRolls()
+				_nRolls = 0;
+			end
+			function decreaseNumRolls()
+				_nRolls = _nRolls - 1;
+			end
+			function increaseNumRolls()
+				_nRolls = _nRolls + 1;
+			end
+			function refresh()
+				local bShow = (string.lower(OptionsManager.getOption("CL07")) == string.lower(Interface.getString("option_val_threecolumn")));
+				label_extra_roll_1.setVisible(bShow);
+				label_extra_roll_2.setVisible(bShow);
+				button_shiftTempLeft.setVisible(bShow);
+				button_shiftTempRight.setVisible(bShow);
+				button_shiftPotLeft.setVisible(bShow);
+				button_shiftPotRight.setVisible(bShow);
+				button_shiftExtraLeft.setVisible(bShow);
+				button_shiftExtraRight.setVisible(bShow);
+			end
+		</script>
+		<sheetdata>
+			<windowtitlebar_charsheethelper name="title">
+				<prefix>charlevel_heading_statgeneration</prefix>
+			</windowtitlebar_charsheethelper>
+
+			<!-- HEADER -->
+			<area_content_framed_groupbox_top name="charinfoframe">
+				<anchored height="25" />
+			</area_content_framed_groupbox_top>
+			<string_labeled name="name">
+				<anchored to="charinfoframe" position="insidetopleft" offset="0,0" height="20">
+					<right offset="-135" />
+				</anchored>
+				<label>name</label>
+			</string_labeled>
+			<combobox_labeled_RMC name="profession">
+				<anchored to="name" position="righthigh" offset="10,0" width="125" height="20" />
+				<labelres>char_label_profession</labelres>
+				<readonly />
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Professions.List());
+					end
+					function onValueChanged()
+						local professionRealm = Rules_Professions.Realm(getValue());
+						if professionRealm ~= "Pick One" then
+							DB.setValue(window.getDatabaseNode(), "realm", "string", professionRealm);
+						end
+						for i, win in ipairs(window.abilities.getWindows()) do
+							win.refresh();
+						end
+					end
+				</script>
+			</combobox_labeled_RMC>
+
+			<!-- FOOTER -->
+			<area_content_framed_groupbox_narrow_bottom name="footerframe">
+				<anchored height="40" />
+			</area_content_framed_groupbox_narrow_bottom>
+			<button_text name="button_statpotential_viewtable">
+				<anchored to="footerframe" position="insidetopleft" offset="10,10" width="120" height="20" />
+				<state textres="char_label_stat_init_potential_table" />
+				<tooltip textres="char_tooltip_stat_init_potential_table" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("referencetable", "reference.RMtables.statspotentialtable@Character Law");
+					end
+				</script>
+			</button_text>
+			<button_text name="button_statgen_apply">
+				<anchored to="footerframe" position="insidetopright" offset="10,10" width="70" height="20" />
+				<state textres="char_label_stat_init_apply" />
+				<tooltip textres="char_tooltip_stat_init_apply" />
+				<script>
+					function onButtonPress()
+						numRolls = window.getNumRolls();
+						if numRolls &gt; 0 then
+							statmsg = "Stat Generation: " .. window.name.getValue() .. " can't apply new stats until all rolls have completed.";
+							msgicon = "indicator_stop";
+						else
+							readyToApply = true;
+							for i, win in ipairs(window.abilities.getWindows()) do
+								if win.temp.getValue() &lt; 1 or win.pot.getValue() &lt; 1 then
+									readyToApply = false;
+								end
+							end
+							if not readyToApply then
+								statmsg = window.name.getValue() .. "\r"
+								statmsg = statmsg .. "Stat Generation: Can't apply new stats until all stats have a value.\r";
+								msgicon = "indicator_stop";
+							else							
+								statmsg = window.name.getValue() .. "\r"
+								statmsg = statmsg .. "Stat Generation: \r";
+								msgicon = "icon_info";
+								for i, win in ipairs(window.abilities.getWindows()) do
+									statmsg = statmsg .. win.label.getValue() .. "         ";
+									local node = win.getDatabaseNode();
+									if DB.getChild(node, "temp") then
+										DB.setValue(node, "temp", "number", win.temp.getValue());
+										statmsg = statmsg .. win.temp.getValue() .. "/"; 
+									end
+									if DB.getChild(node, "potential") then
+										DB.setValue(node, "potential", "number", win.pot.getValue());
+										statmsg = statmsg .. win.pot.getValue() .. "\r";
+									end
+									win.temproll.setValue(0);
+									win.potroll.setValue(0);
+									win.extraroll.setValue(0);
+									win.refresh();
+								end
+								window.resetNumRolls();
+							end
+						end
+						local msg = {font = "msgfont", icon = msgicon, mode = "system"};
+						msg.text = statmsg;
+						Comm.deliverChatMessage(msg);
+					end
+				</script>
+			</button_text>
+			<button_text name="button_statgen_rollall">
+				<anchored to="button_statgen_apply" position="left" offset="15" width="70" />
+				<state textres="char_label_stat_gain_roll_all" />
+				<tooltip textres="char_tooltip_stat_gain_roll_all" />
+				<script>
+					function onButtonPress()
+						for i, win in ipairs(window.abilities.getWindows()) do
+							if string.lower(OptionsManager.getOption("CL07")) == string.lower(Interface.getString("option_val_threecolumn")) then
+								win.diceholderTemp.action();
+								win.diceholderExtra.action();
+							else
+								win.diceholderTemp.action();
+							end
+							win.diceholderPot.action();
+						end
+					end
+				</script>
+			</button_text>
+
+			<!-- CONTROLS -->
+			<area_content_framed_groupbox_bottom name="controlframe">
+				<anchored height="30" />
+			</area_content_framed_groupbox_bottom>
+			<buttoncontrol name="button_shiftTempLeft">
+				<anchored to="controlframe" position="insidetopleft" offset="74,0" width="18" height="23" />
+				<icon normal="button_arrowleft" pressed="button_arrowleft_down" />
+				<tooltip text="Switch Temp Roll and Extra Roll columns" />
+				<script>
+					function onButtonPress()
+						for i,w in ipairs(window.abilities.getWindows()) do
+							local temp = w.temproll.getValue();
+							w.temproll.setValue(w.extraroll.getValue());
+							w.extraroll.setValue(temp);
+						end
+					end
+				</script>
+			</buttoncontrol>
+			<buttoncontrol name="button_shiftTempRight">
+				<anchored to="button_shiftTempLeft" position="righthigh" offset="0,0" width="18" height="23" />
+				<icon normal="button_arrowright" pressed="button_arrowright_down" />
+				<tooltip text="Switch Temp Roll and Pot Roll columns" />
+				<script>
+					function onButtonPress()
+						for i,w in ipairs(window.abilities.getWindows()) do
+							local temp = w.temproll.getValue();
+							w.temproll.setValue(w.potroll.getValue());
+							w.potroll.setValue(temp);
+						end
+					end
+				</script>
+			</buttoncontrol>
+			<buttoncontrol name="button_shiftPotLeft">
+				<anchored to="button_shiftTempRight" position="righthigh" offset="4,0" width="18" height="23" />
+				<icon normal="button_arrowleft" pressed="button_arrowleft_down" />
+				<tooltip text="Switch Temp Roll and Pot Roll columns" />
+				<script>
+					function onButtonPress()
+						for i,w in ipairs(window.abilities.getWindows()) do
+							local temp = w.temproll.getValue();
+							w.temproll.setValue(w.potroll.getValue());
+							w.potroll.setValue(temp);
+						end
+					end
+				</script>
+			</buttoncontrol>
+			<buttoncontrol name="button_shiftPotRight">
+				<anchored to="button_shiftPotLeft" position="righthigh" offset="0,0" width="18" height="23" />
+				<icon normal="button_arrowright" pressed="button_arrowright_down" />
+				<tooltip text="Switch Pot Roll and Extra Roll columns" />
+				<script>
+					function onButtonPress()
+						for i,w in ipairs(window.abilities.getWindows()) do
+							local temp = w.potroll.getValue();
+							w.potroll.setValue(w.extraroll.getValue());
+							w.extraroll.setValue(temp);
+						end
+					end
+				</script>
+			</buttoncontrol>
+			<buttoncontrol name="button_shiftExtraLeft">
+				<anchored to="button_shiftPotRight" position="righthigh" offset="4,0" width="18" height="23" />
+				<icon normal="button_arrowleft" pressed="button_arrowleft_down" />
+				<tooltip text="Switch Pot Roll and Extra Roll columns" />
+				<script>
+					function onButtonPress()
+						for i,w in ipairs(window.abilities.getWindows()) do
+							local temp = w.potroll.getValue();
+							w.potroll.setValue(w.extraroll.getValue());
+							w.extraroll.setValue(temp);
+						end
+					end
+				</script>
+			</buttoncontrol>
+			<buttoncontrol name="button_shiftExtraRight">
+				<anchored to="button_shiftExtraLeft" position="righthigh" offset="0,0" width="18" height="23" />
+				<icon normal="button_arrowright" pressed="button_arrowright_down" />
+				<tooltip text="Switch Temp Roll and Extra Roll columns" />
+				<script>
+					function onButtonPress()
+						for i,w in ipairs(window.abilities.getWindows()) do
+							local temp = w.temproll.getValue();
+							w.temproll.setValue(w.extraroll.getValue());
+							w.extraroll.setValue(temp);
+						end
+					end
+				</script>
+			</buttoncontrol>
+			<numberc_static name="dptotal">
+				<anchored to="controlframe" position="insidetopleft" offset="365,10" width="35" height="20" />
+			</numberc_static>
+			<label_fieldtop>
+				<anchored to="dptotal" />
+				<static>Total</static>
+			</label_fieldtop>
+
+			<!-- CONTENT -->
+			<area_content_framed_groupbox name="abilityframe" />
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="35,0" width="35" />
+				<static>Prime</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="35,15" width="35" />
+				<static>Stat?</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="75,0" width="35" />
+				<static>Temp</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="75,15" width="35" />
+				<static>Roll</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="115,0" width="35" />
+				<static>Pot</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="115,15" width="35" />
+				<static>Roll</static>
+			</label_content_list_column>
+			<label_content_list_column name="label_extra_roll_1">
+				<anchored to="abilityframe" position="insidetopleft" offset="155,0" width="35" />
+				<static>Extra</static>
+			</label_content_list_column>
+			<label_content_list_column name="label_extra_roll_2">
+				<anchored to="abilityframe" position="insidetopleft" offset="155,15" width="35" />
+				<static>Roll</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="245,5" width="35" />
+				<static>Temp</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="285,5" width="35" />
+				<static>Pot</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="325,5" width="35" />
+				<static>Bonus</static>
+			</label_content_list_column>
+			<label_content_list_column>
+				<anchored to="abilityframe" position="insidetopleft" offset="365,5" width="35" />
+				<static>DPs</static>
+			</label_content_list_column>
+			<windowlist name="abilities">
+				<anchored to="abilityframe" position="insidetop" offset="0,30">
+					<bottom />
+				</anchored>
+				<class>charassist_statgen_abilitywindow</class>
+				<datasource>.abilities</datasource>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						--[[ load the stat list ]]
+						local statList = Rules_Stats.List();
+						for i = 1, #statList do
+							addEntry(statList[i].name, statList[i].label, statList[i].devStat, statList[i].order);
+						end
+						--[[ force a re-sort ]]
+						applySort();
+					end
+
+					function addEntry(name, label, dev, order)
+						local node = DB.getChild(getDatabaseNode(), name);
+						local win;
+						if not node then
+							node = DB.createChild(getDatabaseNode(), name);
+						end
+						for i,w in ipairs(getWindows()) do
+							if DB.getName(w.getDatabaseNode())==name then
+								win = w;
+							end
+						end
+						if win then
+							win.label.setValue(label);
+							win.order.setValue(order);
+						end
+					end
+
+					function onSortCompare(w1, w2)
+						return (w1.order.getValue() &gt; w2.order.getValue());
+					end
+
+					function setDPs()
+						local total = 0; 
+						
+						if string.lower(OptionsManager.getOption("CL112")) == string.lower(Interface.getString("option_val_off")) then
+							for i, win in ipairs(getWindows()) do
+								if win.dev.getValue() == 1 then
+									total = total + win.dp.getValue();
+								end
+							end
+						else
+							total = tonumber(OptionsManager.getOption("CL112"));
+						end
+						window.dptotal.setValue(total);
+					end
+				</script>
+			</windowlist>
+			<scrollbar_content_base>
+				<anchored to="abilities" />
+				<target>abilities</target>
+			</scrollbar_content_base>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charassist_statgen_abilitywindow">
+		<sizelimits>
+			<minimum height="20" />
+			<maximum height="20" />
+		</sizelimits>
+		<script file="charassist/scripts/statgen_abilitywindow.lua" />
+		<sheetdata>
+			<numbercontrol name="order">
+				<bounds>0,0,0,0</bounds>
+				<invisible/>
+			</numbercontrol>
+			<numberfieldX name="dev">
+				<bounds>0,0,0,0</bounds>
+				<invisible/>
+			</numberfieldX>
+			<stringfieldX name="label">
+				<anchored>
+					<position>insidetopleft</position>
+					<offset>0,4</offset>
+					<size>
+						<width>35</width>
+						<height>17</height>
+					</size>
+				</anchored>
+				<font>sheetlabel</font>
+				<static/>
+				<script>
+					function onInit()
+						window.refresh();
+					end
+					
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</stringfieldX>
+			<genericcontrol name="midanchor">
+				<anchored>
+					<position>insidetopleft</position>
+					<offset>240,2</offset>
+					<size>
+						<width>1</width>
+						<height>18</height>
+					</size>
+				</anchored>
+			</genericcontrol>
+			<buttoncontrol name="button_shiftdown">
+				<anchored>
+					<to>midanchor</to>
+					<position>left</position>
+					<offset>0</offset>
+					<size>
+						<width>23</width>
+					</size>
+				</anchored>
+				<icon>
+					<normal>arrow_sm_down</normal>
+				</icon>
+				<tooltip>
+					<text>Shift the values down.</text>
+				</tooltip>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						OptionsManager.registerCallback("CL07", refresh);
+						refresh();
+					end
+
+					function onClose()
+						OptionsManager.unregisterCallback("CL07", refresh);
+					end
+
+					function refresh()
+						if string.lower(OptionsManager.getOption("CL07")) == string.lower(Interface.getString("option_val_randomfixed")) then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+					end
+
+					function onButtonPress()
+						local swap = window.order.getValue() + 1;
+						if swap == 11 then
+							swap = 1;
+						end
+						for i,w in ipairs(window.windowlist.getWindows()) do
+							if w.order.getValue() == swap then
+								local temp = w.temproll.getValue();
+								w.temproll.setValue(window.temproll.getValue());
+								window.temproll.setValue(temp);
+								temp = w.potroll.getValue();
+								w.potroll.setValue(window.potroll.getValue());
+								window.potroll.setValue(temp);
+								temp = w.extraroll.getValue();
+								w.extraroll.setValue(window.extraroll.getValue());
+								window.extraroll.setValue(temp);
+							end
+						end
+					end
+				</script>
+			</buttoncontrol>
+			<buttoncontrol name="button_shiftup">
+				<anchored>
+					<to>button_shiftdown</to>
+					<position>left</position>
+					<offset>0</offset>
+					<size>
+						<width>23</width>
+					</size>
+				</anchored>
+				<icon>
+					<normal>arrow_sm_up</normal>
+				</icon>
+				<tooltip>
+					<text>Shift the values up.</text>
+				</tooltip>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						OptionsManager.registerCallback("CL07", refresh);
+						refresh();
+					end
+
+					function onClose()
+						OptionsManager.unregisterCallback("CL07", refresh);
+					end
+
+					function refresh()
+						if string.lower(OptionsManager.getOption("CL07")) == string.lower(Interface.getString("option_val_randomfixed")) then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+					end
+
+					function onButtonPress()
+						local swap = window.order.getValue() - 1;
+						if swap == 0 then
+							swap = 10;
+						end
+						for i,w in ipairs(window.windowlist.getWindows()) do
+							if w.order.getValue() == swap then
+								local temp = w.temproll.getValue();
+								w.temproll.setValue(window.temproll.getValue());
+								window.temproll.setValue(temp);
+								temp = w.potroll.getValue();
+								w.potroll.setValue(window.potroll.getValue());
+								window.potroll.setValue(temp);
+								temp = w.extraroll.getValue();
+								w.extraroll.setValue(window.extraroll.getValue());
+								window.extraroll.setValue(temp);
+							end
+						end
+					end
+				</script>
+			</buttoncontrol>
+			<numberfieldX name="extraroll">
+				<anchored>
+					<to>button_shiftup</to>
+					<position>left</position>
+					<offset>5</offset>
+					<size>
+						<width>35</width>
+					</size>
+				</anchored>
+				<font>sheettext</font>
+				<frame>
+					<name>fieldlight</name>
+					<offset>4,4,4,4</offset>
+				</frame>
+				<tabtarget>
+					<prev>potential</prev>
+					<next>special</next>
+				</tabtarget>
+				<hideonvalue>0</hideonvalue>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						OptionsManager.registerCallback("CL07", refresh);
+						refresh();
+					end
+
+					function onClose()
+						OptionsManager.unregisterCallback("CL07", refresh);
+					end
+
+					function refresh()
+						if string.lower(OptionsManager.getOption("CL07")) ~= string.lower(Interface.getString("option_val_threecolumn")) then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+					end
+				</script>
+			</numberfieldX>
+			<dice_ghost name="diceholderExtra">
+				<anchored>
+					<to>extraroll</to>
+					<position>over</position>
+					<offset>0</offset>
+				</anchored>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						OptionsManager.registerCallback("CL07", refresh);
+						refresh();
+					end
+
+					function onClose()
+						OptionsManager.unregisterCallback("CL07", refresh);
+					end
+
+					function refresh()
+						if string.lower(OptionsManager.getOption("CL07")) ~= string.lower(Interface.getString("option_val_threecolumn")) then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+					end
+
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+						ActionStatGen.performRoll(draginfo, rActor, ActionRMDice.D100, window.label.getValue(), "extraroll");
+
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</dice_ghost>
+			<numberfieldX name="potroll">
+				<anchored>
+					<to>midanchor</to>
+					<position>left</position>
+					<offset>90</offset>
+					<size>
+						<width>35</width>
+					</size>
+				</anchored>
+				<font>sheettext</font>
+				<frame>
+					<name>fieldlight</name>
+					<offset>4,4,4,4</offset>
+				</frame>
+				<tabtarget>
+					<prev>potential</prev>
+					<next>special</next>
+				</tabtarget>
+				<hideonvalue>0</hideonvalue>
+				<script>
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</numberfieldX>
+			<dice_ghost name="diceholderPot">
+				<anchored>
+					<to>potroll</to>
+					<position>over</position>
+					<offset>0</offset>
+				</anchored>
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+						ActionStatGen.performRoll(draginfo, rActor, ActionRMDice.D100, window.label.getValue(), "potroll");
+
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</dice_ghost>
+			<numberfieldX name="temproll">
+				<anchored>
+					<to>potroll</to>
+					<position>left</position>
+					<offset>5</offset>
+					<size>
+						<width>35</width>
+					</size>
+				</anchored>
+				<font>sheettext</font>
+				<frame>
+					<name>fieldlight</name>
+					<offset>4,4,4,4</offset>
+				</frame>
+				<tabtarget>
+					<prev>potential</prev>
+					<next>special</next>
+				</tabtarget>
+				<hideonvalue>0</hideonvalue>
+				<script>
+					function onValueChanged()
+						window.refresh();
+					end
+				</script>
+			</numberfieldX>
+			<dice_ghost name="diceholderTemp">
+				<anchored>
+					<to>temproll</to>
+					<position>over</position>
+					<offset>0</offset>
+				</anchored>
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+						ActionStatGen.performRoll(draginfo, rActor, ActionRMDice.D100, window.label.getValue(), "temproll");
+
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</dice_ghost>
+			<button_checkbox name="primestat">
+				<anchored to="temproll" position="left" offset="15,0" width="16" />
+			</button_checkbox>
+			<numbercontrolX name="temp">
+				<anchored>
+					<to>midanchor</to>
+					<position>right</position>
+					<offset>4</offset>
+					<size>
+						<width>35</width>
+					</size>
+				</anchored>
+				<font>sheettext</font>
+				<frame>
+					<name>fieldlight</name>
+					<offset>4,4,4,4</offset>
+				</frame>
+				<readonly/>
+			</numbercontrolX>
+			<numbercontrolX name="pot">
+				<anchored>
+					<to>temp</to>
+					<position>right</position>
+					<offset>5</offset>
+					<size>
+						<width>35</width>
+					</size>
+				</anchored>
+				<font>sheettext</font>
+				<frame>
+					<name>fieldlight</name>
+					<offset>4,4,4,4</offset>
+				</frame>
+				<readonly/>
+			</numbercontrolX>
+			<numbercontrolX name="bonus">
+				<anchored>
+					<to>pot</to>
+					<position>right</position>
+					<offset>5</offset>
+					<size>
+						<width>35</width>
+					</size>
+				</anchored>
+				<font>sheettext</font>
+				<frame>
+					<name>fieldlight</name>
+					<offset>4,4,4,4</offset>
+				</frame>
+				<displaysign/>
+				<readonly/>
+			</numbercontrolX>
+			<numbercontrolX name="dp">
+				<anchored>
+					<to>bonus</to>
+					<position>right</position>
+					<offset>5</offset>
+					<size>
+						<width>35</width>
+					</size>
+				</anchored>
+				<font>sheettext</font>
+				<frame>
+					<name>fieldlight</name>
+					<offset>4,4,4,4</offset>
+				</frame>
+				<readonly/>
+			</numbercontrolX>
+		</sheetdata>
+	</windowclass>
+</root>

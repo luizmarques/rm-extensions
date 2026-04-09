@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="ct_entry" merge="join">
+		<script file="ct/scripts/ct_entry.lua" />
+		<sheetdata>
+			<hs name="status" />
+
+			<hnx name="quicknessBonus" />
+			<hnx name="quicknessStat" />
+
+			<hnx name="at" />
+			<hnx name="atmiss" />
+			<hnx name="db" />
+			<hnx name="db_nonid" />
+			<hnx name="movemaneuver" />
+			<hnx name="move" source="baserate">
+				<script>
+					function onValueChanged()
+						window.onMovementChanged();
+					end
+				</script>
+			</hnx>
+			<hn name="manueverresult">
+				<default>100</default>
+				<script>
+					function onValueChanged()
+						window.onMovementChanged();
+					end
+				</script>
+			</hn>
+			<hs name="pace">
+				<script>
+					function onValueChanged()
+						window.onMovementChanged();
+					end
+				</script>
+			</hs>
+			<hn name="actualdistance">
+				<script>
+					function onValueChanged()
+						window.onMovementChanged();
+					end
+				</script>
+			</hn>
+			<hnx name="exhaustionmax" />
+			<hnx name="exhaustioncurrent" />
+
+			<buttonfield name="turncomplete">
+				<anchored to="token" position="insidetopleft" offset="-3,-2" width="12" height="12"/>
+				<state icon="indicator_turnos" />
+				<state icon="indicator_turntaken" />
+			</buttonfield>
+
+			<button_ct_section_defense name="button_section_defense" insertbefore="button_section_space" />
+			<button_ct_section_active name="button_section_active" insertbefore="button_section_space" />
+			<button_ct_section_move name="button_section_move" insertbefore="button_section_space" />
+
+			<number_ct_crosslink name="damage" insertbefore="initresult">
+				<anchored to="rightanchor" width="30" height="20">
+					<top />
+					<right anchor="left" relation="relative" offset="-10" />
+				</anchored>
+				<min value="0" />
+				<script>
+					function update()
+						window.onHealthChanged();
+					end
+				</script>
+			</number_ct_crosslink>
+			<number_ct_crosslink name="hits" insertbefore="initresult">
+				<anchored to="rightanchor" width="30" height="20">
+					<top />
+					<right anchor="left" relation="relative" offset="-10" />
+				</anchored>
+				<script>
+					function update()
+						window.onHealthChanged();
+					end
+				</script>
+			</number_ct_crosslink>
+			<number_ct_crosslink name="ppcurrent" insertbefore="initresult">
+				<anchored to="rightanchor" width="30" height="20">
+					<top />
+					<right anchor="left" relation="relative" offset="-10" />
+				</anchored>
+				<script>
+					function update()
+						if getValue() &lt; 0 or getValue() &gt; window.ppmax.getValue() then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("number") then
+							if linknode then
+								linknode.setValue(getValue() + draginfo.getNumberData());
+							else
+								setValue(getValue() + draginfo.getNumberData());
+							end
+							return true;
+						end
+					end
+				</script>
+			</number_ct_crosslink>
+			<number_ct_crosslink_spelladder name="spelladderused" insertbefore="initresult">
+				<anchored to="ppcurrent" />
+				<tooltip textres="tooltip_used_spell_adder" />
+				<script>
+					function update()
+						if getValue() &lt; 0 or getValue() &gt; window.spelladdermax.getValue() then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+				</script>
+			</number_ct_crosslink_spelladder>
+			<number_ct_crosslink name="ppmax" insertbefore="initresult">
+				<anchored to="rightanchor" width="30" height="20">
+					<top />
+					<right anchor="left" relation="relative" offset="-10" />
+				</anchored>
+				<script>
+					function update()
+						if getValue() &lt; 0  then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+				</script>
+			</number_ct_crosslink>
+			<number_ct_crosslink_spelladder name="spelladdermax" insertbefore="initresult">
+				<anchored to="ppmax" />
+				<tooltip textres="tooltip_max_spell_adder" />
+				<readonly />
+				<script>
+					function update()
+						if getValue() &lt; window.spelladderused.getValue() then
+							window.spelladderused.setColor(ColorManager.getUIColor("field_error"));
+						else
+							window.spelladderused.setColor(nil);
+						end
+					end
+				</script>
+			</number_ct_crosslink_spelladder>
+			<number_ct_crosslink name="activitypercent" insertbefore="initresult">
+				<anchored to="rightanchor" width="30" height="20">
+					<top />
+					<right anchor="left" relation="relative" offset="-10" />
+				</anchored>
+			</number_ct_crosslink>
+
+			<number_ctentry_initresult name="initresult">
+				<script>
+					function action(draginfo)
+						local rActor = ActorManager.resolveActor(window.getDatabaseNode());
+						ActionInitiative.performRoll(draginfo, rActor);
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</number_ctentry_initresult>
+
+			<sub_ct_section name="sub_move" insertbefore="sub_effects" />
+			<sub_ct_section name="sub_active" insertbefore="sub_effects" />
+			<sub_ct_section name="sub_defense" insertbefore="sub_effects" />
+		</sheetdata>
+	</windowclass>
+</root>

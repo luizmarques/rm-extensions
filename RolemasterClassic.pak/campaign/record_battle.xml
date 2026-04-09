@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="battle_header" merge="join">
+		<script>
+			function update()
+				super.update();
+
+				local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+				party_avg_level.setReadOnly(bReadOnly);
+				exp.setReadOnly(bReadOnly);
+				button_refreshxp.setVisible(not bReadOnly);
+			end
+		</script>
+		<sheetdata>
+			<area_content_record_header_details name="area_details" />
+			<label name="party_avg_level_label">
+				<anchored to="area_details" position="insidetopleft" offset="0,0" />
+				<static textres="enc_label_party_avg_level" />
+			</label>
+			<basicnumber name="party_avg_level">
+				<anchored to="party_avg_level_label" position="righthigh" offset="10,0" width="30" height="20" />
+			</basicnumber>
+
+			<button_refresh name="button_refreshxp">
+				<anchored to="area_details" position="insidetopright" offset="5,0" />
+				<tooltip textres="enc_tooltip_refreshxp" />
+				<script>
+					function onButtonPress()
+						CombatManager2.calcBattlePartyAvgLevel(window.getDatabaseNode());
+						CombatManager2.calcBattleXP(window.getDatabaseNode());
+					end
+				</script>
+			</button_refresh>
+			<number_listitem_base name="exp">
+				<anchored to="button_refreshxp" position="lefthigh" offset="10,0" width="70" height="20" />
+				<description textres="xp" />
+			</number_listitem_base>
+			<label name="exp_label">
+				<anchored to="exp" position="lefthigh" offset="10,0" />
+				<static textres="xp" />
+			</label>
+		</sheetdata>
+	</windowclass>
+</root>

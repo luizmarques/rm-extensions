@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="ps_xp_partyentry" merge="join">
+		<margins control="0,0,0,15" />
+		<sheetdata>
+			<number_ps name="exp" source="xp" />
+			<number_ps name="expneeded" source="nextlevelxp" />
+
+			<string_labeled name="race">
+				<anchored position="insidetopleft" offset="55,35" width="110" height="20" />
+				<label>Race</label>
+			</string_labeled>
+			<string_labeled name="profession">
+				<anchored position="insidetopleft" offset="170,35" width="130" height="20" />
+				<label>Profession</label>
+			</string_labeled>
+			<number_labeled name="level">
+				<anchored position="insidetopleft" offset="305,35" width="30" />
+				<labelres>char_label_level</labelres>
+			</number_labeled>
+		</sheetdata>
+	</windowclass>
+</root>

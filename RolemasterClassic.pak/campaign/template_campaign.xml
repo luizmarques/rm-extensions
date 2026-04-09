@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<template name="label_content_list_column">
+		<label>
+			<font>sheetlabelmini</font>
+			<center/>
+		</label>
+	</template>
+	<template name="charassist_skilldev_list_label">
+		<label_content_list_column>
+			<script>
+				function onClickDown(button, x, y)
+					return true;
+				end
+				function onClickRelease(button, x, y)
+					window.skills.sortBy(sortby[1]);
+					return true;
+				end
+			</script>
+		</label_content_list_column>
+	</template>
+	
+	<!-- Common -->
+	<template name="label_column">
+		<label>
+			<anchored>
+				<top parent="columnanchor" anchor="bottom" relation="current" offset="9" />
+				<left />
+			</anchored>
+		</label>
+	</template>
+	<template name="row_heading">
+		<label>	
+			<anchored position="insidetopleft" offset="0,0" width="35" />
+			<font>sheettext</font>
+		</label>
+	</template>
+	<template name="header_section">
+		<label>
+			<anchored position="insidetopleft" offset="15,10" />
+		</label>
+	</template>
+	<template name="numberc_readonly">
+		<numbercontrol>
+			<anchored position="right" offset="10" width="35" />
+			<font>sheettext</font>
+			<frame name="fieldlight" offset="4,4,4,4" />
+			<readonly />
+		</numbercontrol>
+	</template>
+	<template name="number_readonly">
+		<numberfield>
+			<anchored position="right" offset="10" width="35" />
+			<font>sheettext</font>
+			<frame name="fieldlight" offset="4,4,4,4" />
+			<readonly />
+		</numberfield>
+	</template>
+	<template name="number_boxed">
+		<numberfield>
+			<anchored position="right" offset="10" width="35" />
+			<font>sheettext</font>
+			<frame name="fielddark" offset="4,4,4,4" />
+			<keyeditframe name="fieldfocus" offset="4,4,4,4" />
+		</numberfield>
+	</template>
+	<template name="label_fieldtop_bold">
+		<label_fieldtop>
+			<font name="sheetlabelminibold" />
+		</label_fieldtop>
+	</template>
+	<template name="label_fieldtop_combobox">
+		<stringcontrol>
+			<anchored position="above" offset="0,1" />
+			<font name="sheetlabelminibold" />
+		</stringcontrol>
+	</template>
+	<template name="combobox_column_tablename">
+		<combobox_column>
+			<listmaxsize mergerule="replace">10</listmaxsize>
+			<frame>
+				<name>fielddark</name>
+				<offset>7,5,7,5</offset>
+				<hidereadonly>true</hidereadonly>
+			</frame>
+			<script>
+				function onValueChanged()
+					local sTableName = getValue();
+					local sTableID = Rules_Tables.GetTableID(sTableName);
+					
+					if sTableID and sTableID ~= "" then
+						local nodeParent = DB.getParent(getDatabaseNode());
+						if nodeParent then
+							DB.setValue(nodeParent, "tableid", "string", sTableID);
+						end
+					end
+				end
+			</script>
+		</combobox_column>
+	</template>
+	<template name="combobox_column_tablename_attack_item">
+		<combobox_column_tablename>
+			<anchored height="20" width="138">
+				<top relation="current" />
+				<left offset="110" />
+				<right merge="delete" />
+			</anchored>
+			<script>
+				function onInit()
+					super.onInit();
+					Rules_Tables.LoadLists();
+					addItems(Rules_Tables.TableList());
+				end
+			</script>
+		</combobox_column_tablename>
+	</template>
+	<template name="combobox_column_tablename_critical_item">
+		<combobox_column_tablename>
+			<anchored height="20" width="190">
+				<top relation="current" />
+				<left offset="110" />
+				<right merge="delete" />
+			</anchored>
+			<script>
+				function onInit()
+					super.onInit();
+					Rules_Tables.LoadLists();
+					addItems(Rules_Tables.TableList(Rules_Tables.TypeResult, Rules_Tables.ClassCritical));
+				end
+			</script>
+		</combobox_column_tablename>
+	</template>
+	<template name="combobox_column_tablename_critical_next_item">
+		<combobox_column_tablename_critical_item>
+			<anchored >
+				<top relation="relative" offset="7" />
+			</anchored>
+		</combobox_column_tablename_critical_item>
+	</template>
+	<template name="combobox_column_tablename_fumble_item">
+		<combobox_column_tablename>
+			<anchored height="20">
+				<top relation="relative" />
+				<left offset="110" />
+			</anchored>
+		</combobox_column_tablename>
+	</template>
+	<template name="combobox_column_tablename_skill">
+		<combobox_column_tablename>
+			<script>
+				function onInit()
+					super.onInit();
+					Rules_Tables.LoadLists();
+					addItems(Rules_Tables.TableList(Rules_Tables.TypeSkill));
+				end
+			</script>
+		</combobox_column_tablename>
+	</template>
+
+	<!-- NPC -->
+	<template name="number_column_npc">
+		<number_column>
+			<anchored>
+				<left offset="67" />
+			</anchored>
+			<frame mergerule="replace" name="fielddark" offset="7,5,7,5" hidereadonly="true" />
+			<script file="common/scripts/column_number.lua" />
+		</number_column>
+	</template>
+	<template name="number_column_right_npc">
+		<number_column_right>
+			<frame mergerule="replace" name="fielddark" offset="7,5,7,5" hidereadonly="true" />
+			<script file="common/scripts/column_number.lua" />
+		</number_column_right>
+	</template>
+	<template name="string_columnh_npc">
+		<string_columnh>
+			<anchored>
+				<left offset="110" />
+			</anchored>
+		</string_columnh>
+	</template>
+	<template name="string_columnh_npc_group">
+		<string_columnh>
+			<anchored>
+				<left offset="67" />
+			</anchored>
+		</string_columnh>
+	</template>
+
+	<template name="npc_label">
+		<stringcontrolX>
+			<anchored>
+				<position mergerule="replace">lefthigh</position>
+				<offset>5,4</offset>
+				<size>
+					<width mergerule="replace">55</width>
+				</size>
+			</anchored>
+			<font>sheetlabelsmallbold</font>
+		</stringcontrolX>
+	</template>
+	<template name="npc_labeltop">
+		<stringcontrolX>
+			<anchored>
+				<position>above</position>
+				<offset>0,1</offset>
+			</anchored>
+			<font>sheetlabelsmall</font>
+			<center/>
+		</stringcontrolX>  
+	</template>
+	<template name="npc_strcontrol">
+		<stringcontrol>
+			<anchored height="20" />
+			<font>sheettext</font>
+			<frame name="textlinesmall" offset="0,-1,0,0" hidereadonly="true" />
+		</stringcontrol>
+	</template>
+	<template name="npc_strfield">
+		<stringfield>
+			<anchored height="20" />
+			<font>sheettext</font>
+			<frame name="textlinesmall" offset="0,-1,0,0" hidereadonly="true" />
+			<keyeditframe name="rowshade" offset="0,-1,0,0" hidereadonly="true" />
+		</stringfield>
+	</template>
+	<template name="npc_numfield_roll">
+		<numberfieldX>
+			<anchored position="righthigh" offset="15,0" width="40" height="20" />
+			<font>sheettext</font>
+			<frame name="fielddark" offset="4,4,4,4" />
+			<keyeditframe name="fieldfocus" offset="4,4,4,4" />
+			<tooltip text="Double click to roll" />
+		</numberfieldX>
+	</template>
+	<template name="npc_numfield_underlined">
+		<numberfieldX>
+			<anchored height="20" />
+			<font>sheettext</font>
+			<frame name="textlinesmall" offset="0,-1,0,0" hidereadonly="true" />
+			<keyeditframe name="rowshade" offset="0,-1,0,0" hidereadonly="true" />
+		</numberfieldX>
+	</template>
+	<template name="npc_multitext">
+		<multitext>
+			<font mergerule="replace">sheettext</font>
+			<frame name="textlinesmall" offset="0,-1,0,0" />
+		</multitext>
+	</template> 
+
+	<!-- Item -->
+	<template name="spacer_column_item">
+		<spacer_column>
+			<anchored>
+				<top offset="12" />
+			</anchored>
+		</spacer_column>
+	</template>
+	<template name="number_columnh_item">
+		<number_columnh>
+			<anchored width="40" height="20">
+				<top parent="columnanchor" anchor="bottom" relation="relative" offset="7" />
+				<left offset="110" />
+			</anchored>
+			<frame mergerule="replace" name="fielddark" offset="7,5,7,5" hidereadonly="true" />
+			<font>sheettext</font>
+		</number_columnh>
+	</template>
+	<template name="number_columnh_item_wide">
+		<number_columnh_item>
+			<anchored width="40" height="20">
+				<top parent="columnanchor" anchor="bottom" relation="relative" offset="7" />
+				<left offset="180" />
+			</anchored>
+		</number_columnh_item>
+	</template>
+	<template name="number_columnh1_close">
+		<number_columnh_item>
+			<anchored width="40" height="20">
+				<top parent="columnanchor" anchor="bottom" relation="relative" offset="5" />
+				<left offset="110" />
+			</anchored>
+		</number_columnh_item>
+	</template>
+	<template name="number_columnh2_close">
+		<number_columnh_item>
+			<anchored width="40" height="20">
+				<top parent="columnanchor" anchor="bottom" relation="current" offset="5" />
+				<left offset="160" />
+			</anchored>
+		</number_columnh_item>
+	</template>
+	<template name="number_columnh1">
+		<number_columnh_item>
+			<anchored>
+				<left offset="110" />
+			</anchored>
+		</number_columnh_item>
+	</template>
+	<template name="number_columnh2">
+		<number_columnh_item>
+			<anchored>
+				<top relation="current" />
+				<left offset="160" />
+			</anchored>
+		</number_columnh_item>
+	</template>
+	<template name="number_columnh3">
+		<number_columnh_item>
+			<anchored>
+				<top relation="current" />
+				<left offset="210" />
+			</anchored>
+		</number_columnh_item>
+	</template>
+	<template name="number_columnh4">
+		<number_columnh_item>
+			<anchored>
+				<top relation="current" />
+				<left offset="260" />
+			</anchored>
+		</number_columnh_item>
+	</template>
+	<template name="number_columnh5">
+		<number_columnh_item>
+			<anchored>
+				<top relation="current" />
+				<left offset="310" />
+			</anchored>
+		</number_columnh_item>
+	</template>
+	<template name="string_columnh_item">
+		<string_columnh>
+			<anchored>
+				<left offset="110" />
+			</anchored>
+		</string_columnh>
+	</template>
+	<template name="string_columnh_tablename">
+		<string_columnh>
+			<anchored height="20" >
+				<top relation="current" />
+				<left offset="110" />
+				<right merge="delete" />
+			</anchored>
+			<tabletype>Result</tabletype>
+			<disabled />
+			<script file="common/scripts/column_tablename.lua" />
+		</string_columnh>
+	</template>
+	<template name="number_columnh_tablemod">
+		<number_columnh_item>
+			<anchored>
+				<top relation="current" />
+				<left offset="310" />
+			</anchored>
+		</number_columnh_item>
+	</template>
+
+	<template name="combobox_columnh_skill">
+		<combobox_columnh>
+			<frame>
+				<name>fielddark</name>
+				<offset>7,5,7,5</offset>
+				<hidereadonly>true</hidereadonly>
+			</frame>
+			<listmaxsize>10</listmaxsize>
+		</combobox_columnh>
+	</template>
+	<template name="combobox_columnh_campaign">
+		<combobox_columnh>
+			<anchored>
+				<left offset="110" />
+			</anchored>
+			<frame>
+				<name>fielddark</name>
+				<offset>7,5,7,5</offset>
+				<hidereadonly>true</hidereadonly>
+			</frame>
+			<listmaxsize>10</listmaxsize>
+		</combobox_columnh>
+	</template>
+	<template name="combobox_columnh_item">
+		<combobox_columnh_campaign />
+	</template>
+	<template name="combobox_columnh_item_protection">
+		<combobox_columnh_item>
+			<script>
+				function onInit()
+					super.onInit();
+					setItems(Rules_ArmorTypes.ProtectionTypeList());
+				end
+			</script>
+		</combobox_columnh_item>
+	</template>
+	<template name="combobox_columnh_prof_prereq">
+		<combobox_columnh_campaign>
+			<anchored width="30" >
+				<top />
+				<right merge="delete" />
+			</anchored>
+			<listmaxsize>11</listmaxsize>
+			<script>
+				function onInit()
+					super.onInit();
+					setItems(Rules_Stats.AbbreviationList());
+				end
+			</script>
+		</combobox_columnh_campaign>
+	</template>
+
+	<template name="anchor_column_item">
+		<genericcontrol>
+			<anchored position="insidetop" offset="0,3" height="0"/>
+			<disabled />
+			<invisible />
+		</genericcontrol>
+	</template>
+	<template name="button_item_subwindow">
+		<button_text>
+			<anchored height="20">
+				<top parent="columnanchor" anchor="bottom" relation="relative" offset="0" />
+				<left offset="0" />
+				<right offset="-10" />
+			</anchored>
+		</button_text>
+	</template>
+	<template name="icon_item_expand">
+		<button_expand_base width="-1">
+			<anchored merge="replace">
+				<top relation="current" />
+				<left offset="10" />
+			</anchored>
+			<tooltip textres="item_tooltip_expand" />
+		</button_expand_base>
+	</template>
+	<template name="icon_item_collapse">
+		<button_collapse_base>
+			<anchored merge="replace">
+				<top relation="current" />
+				<left offset="10" />
+			</anchored>
+			<tooltip textres="item_tooltip_collapse" />
+		</button_collapse_base>
+	</template>
+	<template name="subwindow_item">
+		<subwindow>
+			<anchored>
+				<top anchor="bottom" relation="relative" offset="0" />
+				<left />
+				<right>
+					<anchor>right</anchor>
+				</right>
+			</anchored>
+			<activate/>
+		</subwindow>
+	</template>
+
+	<!-- Profession -->
+	<template name="list_column_prof_skillcost">
+		<list_column>
+			<anchored>
+				<top parent="columnanchor" anchor="bottom" relation="relative" offset="15" />
+			</anchored>
+			<allowdelete merge="delete" />
+			<class>prof_skillcost_item</class>
+			<script>
+				function onFilter(w)
+					local node = w.getDatabaseNode();
+					local sModuleName = DB.getValue(node, "modulename", "");
+					local bFilter = false;
+					if sModuleName then
+						local aModule = Module.getModuleInfo(sModuleName);
+						if sModuleName == "" or (aModule and aModule.loaded) then
+							bFilter = true;
+						end
+					end
+					return bFilter;
+				end
+			</script>
+		</list_column>  
+	</template>
+	<template name="list_column_level_bonuses">
+		<list_column>
+			<anchored>
+				<top parent="columnanchor" anchor="bottom" relation="relative" offset="15" />
+			</anchored>
+			<allowdelete merge="delete" />
+			<class>prof_level_bonus_item</class>
+		</list_column>  
+	</template>
+
+	<template name="RMC_label_fieldtop">
+		<label_fieldtop>
+			<anchored position="above" offset="0,1" />
+			<font>sheetlabelsmall</font>
+			<center/>
+		</label_fieldtop>  
+	</template>
+
+	<!-- Race -->
+	<template name="row_heading_race">
+		<row_heading>	
+			<font>sheetlabel</font>
+		</row_heading>
+	</template>
+	<template name="number_boxed_race">
+		<number_boxed>
+			<frame mergerule="replace" hidereadonly="true" />
+		</number_boxed>
+	</template>
+
+	<!-- Skill -->
+	<template name="number_columnh_skill">
+		<number_columnh>
+			<frame mergerule="replace" name="fielddark" offset="7,5,7,5" hidereadonly="true" />
+			<font>sheettext</font>
+		</number_columnh>
+	</template>
+</root>

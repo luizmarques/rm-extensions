@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<root>
+
+	<announcement text="Feature: RMC - Spell Caster" font="emotefont" icon="RMC-Logo" /> 
+
+	<properties>
+		<name>Feature: RMC - Spell Caster</name>
+		<version>4.5</version>
+		<loadorder>35</loadorder>
+		<ruleset>
+		<name>RolemasterClassic</name>
+		</ruleset>
+	</properties>
+	
+		
+	<base>
+	<!-- CAMPAIGN INFORMATION -->
+	<includefile source="campaign/record_npc.xml" />
+	<includefile source="campaign/record_spelllist.xml" />
+	<!-- CHARACTER SHEET -->
+	<includefile source="campaign/record_char_spells.xml" />
+	<!-- GRAPHICS -->
+	<includefile source="graphics/graphics_icons.xml" />
+		<!-- HIGH-LEVEL SCRIPTS -->
+	<script name="ActionBaseCasting" file="scripts/manager_action_basescasting.lua" />
+	<script name="Utilities" file="scripts/manager_utilities.lua" />
+	<script name="Rules_NPC" file="scripts/rules_npc.lua" />
+	<script name="StackManager" file="scripts/manager_stack.lua" />
+
+	</base>
+</root>

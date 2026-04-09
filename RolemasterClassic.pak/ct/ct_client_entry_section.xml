@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- Section - Move -->
+	<windowclass name="client_ct_section_move">
+		<sheetdata>
+			<hlink name="link" />
+
+			<icon_ct_section name="icon_section">
+				<icon>button_move_down</icon>
+			</icon_ct_section>
+
+			<anchor_ct_section name="anchor_section" />
+
+			<number_ct_RMC name="at">
+				<anchored to="anchor_section" position="insidetopleft" offset="5,25"/>
+				<script>
+					function update()
+						if getValue() &lt; 0 or getValue() &gt; 20 then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+				</script>
+			</number_ct_RMC>
+			<label_fieldtop name="at_label">
+				<anchored to="at" />
+				<static text="AT" />
+			</label_fieldtop>
+			<number_ct_RMC name="atmiss">
+				<anchored to="at" position="righthigh" offset="5,0" width="25" height="20" />
+			</number_ct_RMC>
+			<label_fieldtop name="atmiss_label">
+				<anchored to="atmiss" />
+				<static text="Mis.Pen." />
+			</label_fieldtop>
+			<number_ct_RMC_redlow name="db">
+				<anchored to="atmiss" position="righthigh" offset="5,0" width="25" height="20" />
+			</number_ct_RMC_redlow>
+			<label_fieldtop name="db_label">
+				<anchored to="db" />
+				<static text="DB" />
+			</label_fieldtop>
+			<diceholder_ct_RMC name="movemaneuver_background">
+				<anchored to="db" position="righthigh" offset="5,0" width="25" height="20" />
+			</diceholder_ct_RMC>
+			<number_ct_RMC name="movemaneuver" source="mnbonus">
+				<anchored to="db" position="righthigh" offset="5,0" width="25" height="20" />
+				<script>
+					function action(draginfo)
+						local rActor = ActorManager.resolveActor(window.getDatabaseNode());
+						ActionSkill.performRoll(draginfo, rActor, ActionSkill.GenericMM, 0, ActionSkill.MM);
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</number_ct_RMC>
+			<label_fieldtop name="movemaneuver_label">
+				<anchored to="movemaneuver" />
+				<static text="MM" />
+			</label_fieldtop>
+			<diceholder_ct_RMC name="move_background">
+				<anchored to="movemaneuver" position="righthigh" offset="5,0" width="25" height="20" />
+			</diceholder_ct_RMC>
+			<number_ct_RMC name="move" source="baserate">
+				<anchored to="movemaneuver" position="righthigh" offset="5,0" width="25" height="20" />
+				<script>
+					function update()
+						if getValue() &lt; 1 then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+					function action(draginfo)
+						local rActor = ActorManager.resolveActor(window.getDatabaseNode());
+						local sColumnTitle = window.pacedifficulty.getValue();
+						ActionSkill.performRoll(draginfo, rActor, ActionSkill.MovementMM, 0, ActionSkill.MM, sColumnTitle);
+						return true;
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</number_ct_RMC>
+			<label_fieldtop name="moveLabel">
+				<anchored to="move" />
+				<static text="Move" />
+			</label_fieldtop>
+			<string_ct name="pace">
+				<anchored to="move" position="righthigh" offset="5,0" width="85" height="20" />
+				<center />
+				<readonly />
+				<empty text="x0 None" />
+				<tooltip text="The Pace being moved this turn" />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					function onValueChanged()
+						window.pacedifficulty.setValue(Rules_Move.PaceDifficulty(getValue()));		
+					end
+				</script>
+			</string_ct>
+			<label_fieldtop name="pace_label">
+				<anchored to="pace" />
+				<static text="Pace" />
+			</label_fieldtop>
+			<DropDown name="pacedropdown">
+				<target>pace</target>
+				<position>0,3</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Move.PaceList());
+					end
+				</script>
+			</DropDown>
+			<simplestringc name="pacedifficulty">
+				<anchored to="pace" position="righthigh" offset="5,0" width="50" height="20" />
+				<center/>
+				<readonly />
+				<tooltip text="The Difficulty of the Move Maneuver for this Pace" />
+			</simplestringc>
+			<label_fieldtop name="pacedifficulty_label">
+				<anchored to="pacedifficulty" />
+				<static text="Difficulty" />
+			</label_fieldtop>
+			<number_ct_RMC name="potentialdistance">
+				<anchored to="pacedifficulty" position="righthigh" offset="5,0" width="25" height="20" />
+				<readonly />
+				<tooltip text="The Potential Distance that can be moved with a 100% MM result" />
+			</number_ct_RMC>
+			<label_fieldtop name="potentialdistance_label">
+				<anchored to="potentialdistance" />
+				<static text="Pot." />
+			</label_fieldtop>
+			<number_ct_RMC name="manueverresult">
+				<anchored to="potentialdistance" position="righthigh" offset="5,0" width="25" height="20" />
+				<tooltip text="The Result of the Move Maneuver for the move" />
+			</number_ct_RMC>
+			<label_fieldtop name="manueverresult_label">
+				<anchored to="manueverresult" />
+				<static text="MM%" />
+			</label_fieldtop>
+			<number_ct_RMC name="maxdistance">
+				<anchored to="manueverresult" position="righthigh" offset="5,0" width="25" height="20" />
+				<readonly />
+				<tooltip text="The Maximum Distance that can be moved this turn" />
+			</number_ct_RMC>
+			<label_fieldtop name="maxdistance_label">
+				<anchored to="maxdistance" />
+				<static text="Max" />
+			</label_fieldtop>
+			<number_ct_RMC name="actualdistance">
+				<anchored to="maxdistance" position="righthigh" offset="5,0" width="25" height="20" />
+				<tooltip text="Enter the Actual Distance moved this turn" />
+				<nodrop />
+			</number_ct_RMC>
+			<label_fieldtop name="actualdistance_label">
+				<anchored to="actualdistance" />
+				<static text="Dist." />
+			</label_fieldtop>
+			<number_ct_RMC name="movepercent">
+				<anchored to="actualdistance" position="righthigh" offset="5,0" width="25" height="20" />
+				<readonly />
+				<tooltip text="This is the % of Activity used for this move" />
+				<script>
+					function onDoubleClick(x, y)
+						ModifierStack.addSlot("Move Activity %", -1 * getValue());
+					end
+					function onDragStart(button, x, y, draginfo)
+						draginfo.setType("number");
+						draginfo.setDescription("Move Activity %");
+						draginfo.setStringData("Move Activity % "..(-1 * getValue()));
+						draginfo.setNumberData(-1 * getValue());
+						return true;
+					end
+				</script>
+			</number_ct_RMC>
+			<modifier name="movepercent_modifier">
+				<anchored to="movepercent" />
+			</modifier>
+			<label_fieldtop name="movepercent_label">
+				<anchored to="movepercent" />
+				<static text="% Act" />
+			</label_fieldtop>
+			<number_ct_RMC_redlow name="exhaustionmax">
+				<anchored to="movepercent" position="righthigh" offset="5,0" width="30" height="20" />
+				<nodrop />
+			</number_ct_RMC_redlow>
+			<label_fieldtop name="exhaustionmaxLabel">
+				<anchored to="exhaustionmax" />
+				<static text="Ex Max" />
+			</label_fieldtop>
+			<number_ct_RMC name="exhaustioncurrent">
+				<anchored to="exhaustionmax" position="righthigh" offset="5,0" width="30" height="20" />
+				<script>
+					function update()
+						if getValue() &lt; 0 or getValue() &gt; window.exhaustionmax.getValue() then
+							setColor(ColorManager.getUIColor("field_error"));
+						else
+							setColor(nil);
+						end
+					end
+				</script>
+			</number_ct_RMC>
+			<label_fieldtop name="exhaustioncurrentLabel">
+				<anchored to="exhaustioncurrent" />
+				<static text="Ex Cur" />
+			</label_fieldtop>
+			
+			<frame_ct_section name="frame_section">
+				<anchored>
+					<left parent="icon_section" anchor="right" offset="0" />
+					<bottom parent="at" offset="10" />
+				</anchored>
+			</frame_ct_section>
+		</sheetdata>
+	</windowclass>
+
+	<!-- Section - Active -->
+	<windowclass name="client_ct_section_active">
+		<script file="ct/scripts/ct_section_active.lua" />
+		<sheetdata>
+			<hs name="type">
+				<script>
+					function onValueChanged()
+						window.onTypeChanged();
+					end
+				</script>
+			</hs>
+			<hn name="parrymelee" source="parry.meleebonus">
+				<script>
+					function onValueChanged()
+						window.onParryChanged();
+					end
+				</script>
+			</hn>
+			<hn name="parrymissile" source="parry.missilebonus">
+				<script>
+					function onValueChanged()
+						window.onParryChanged();
+					end
+				</script>
+			</hn>
+
+			<icon_ct_section name="icon_section">
+				<icon>button_sword_down</icon>
+			</icon_ct_section>
+
+			<anchor_ct_section name="anchor_section" />
+
+			<list_ct_section_full name="attacks">
+				<anchored>
+					<top offset="25" />
+					<right offset="-52" />
+					<sizelimits>
+						<minimum height="20" />
+					</sizelimits>
+				</anchored>
+				<class>combattracker_attack</class>
+				<datasource>.weapons</datasource>
+				<script>
+					function onSortCompare(w1, w2)
+						local bPC = CombatManager2.isPC(window.getDatabaseNode());
+						return CombatManager2.onSortCompareAttackDefense(bPC, w1, w2);
+					end
+				</script>
+			</list_ct_section_full>
+			<label name="attack_label">
+				<anchored to="attacks" position="aboveleft" offset="30,0" width="80" />
+				<font>sheetlabelsmallbold</font>
+				<static text="Attack" />
+				<center/>
+			</label>
+			<label name="notes_label">
+				<anchored to="attacks" position="aboveright" offset="10,0" width="30" />
+				<font>sheetlabelsmallbold</font>
+				<static text="Notes" />
+				<center/>
+			</label>
+			<label name="attackOB_label">
+				<anchored to="notes_label" position="lefthigh" offset="35,0" width="40" />
+				<font>sheetlabelsmallbold</font>
+				<static text="Att. OB" />
+				<center/>
+			</label>
+			<label name="ob_label">
+				<anchored to="attackOB_label" position="lefthigh" offset="5,0" width="30" />
+				<font>sheetlabelsmallbold</font>
+				<static text="OB" />
+				<center/>
+			</label>
+			<label name="hits_multiplier_label">
+				<anchored to="ob_label" position="lefthigh" offset="10,0" width="30" />
+				<font>sheetlabelsmallbold</font>
+				<static text="Mult" />
+				<center/>
+			</label>
+
+			<ct_active_result_roll name="result_roll" />
+			<ct_active_result_roll_label name="result_roll_label" />
+			
+			<frame_ct_section name="frame_section">
+				<anchored>
+					<left parent="icon_section" anchor="right" offset="0" />
+					<bottom parent="attacks" offset="10" />
+				</anchored>
+			</frame_ct_section>
+		</sheetdata>
+	</windowclass>
+
+	<!-- Section - Defense -->
+	<windowclass name="client_ct_section_defense">
+		<script file="ct/scripts/ct_section_defense.lua" />
+		<sheetdata>
+			<hn name="parrymelee" source="parry.meleebonus" />
+			<hn name="parrymissile" source="parry.missilebonus" />
+
+			<icon_ct_section name="icon_section">
+				<icon>button_shield_down</icon>
+			</icon_ct_section>
+
+			<anchor_ct_section name="anchor_section" />
+
+			<list_ct_section_full name="defences">
+				<anchored>
+					<top offset="25" />
+					<sizelimits>
+						<minimum height="20" />
+					</sizelimits>
+				</anchored>
+				<class>combattracker_defence</class>
+				<datasource>.defences</datasource>
+				<script>
+					function onSortCompare(w1, w2)
+						local bPC = CombatManager2.isPC(window.getDatabaseNode());
+						return CombatManager2.onSortCompareAttackDefense(bPC, w1, w2);
+					end
+				</script>
+			</list_ct_section_full>
+			<label name="defence_label">
+				<anchored to="defences" position="aboveleft" offset="25,0" width="80" />
+				<font>sheetlabelsmallbold</font>
+				<static text="Defense" />
+				<center/>
+			</label>
+			<label name="missile_label">
+				<anchored to="defences" position="aboveright" offset="5,0" width="40" />
+				<font>sheetlabelsmallbold</font>
+				<static text="Missile" />
+				<center/>
+			</label>
+			<label name="melee_label">
+				<anchored to="missile_label" position="lefthigh" offset="0,0" width="40" />
+				<font>sheetlabelsmallbold</font>
+				<static text="Melee" />
+				<center/>
+			</label>
+			<label name="all_label">
+				<anchored to="melee_label" position="lefthigh" offset="5,0" width="30" />
+				<font>sheetlabelsmallbold</font>
+				<static text="All?" />
+				<center/>
+			</label>
+
+			<frame_ct_section name="frame_section">
+				<anchored>
+					<left parent="icon_section" anchor="right" offset="0" />
+					<bottom parent="defences" offset="10" />
+				</anchored>
+			</frame_ct_section>
+		</sheetdata>
+	</windowclass>
+</root>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="reference_attack_spell_list">
+ 		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = getDatabasePath(),
+					sTitle = "Spell Attacks",
+				};
+
+				local w = Interface.openWindow("reference_list", getDatabasePath());
+				ListManager.initSimpleListFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass> 
+	<windowclass name="referencespelllists">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local sRealm = DB.getValue(node, "realm", "");
+				local tList = {
+					sRecordType = "spelllist",
+					sSource = DB.getPath(node, "lists"),
+					sTitle = DB.getValue(node, "title", ""),
+					aColumns = {
+						{ sName = "name", sType = "string", sHeading = "List Name", nWidth=150 },
+						{ sName = "class", sType = "string", sHeading = "Class", nWidth=150 },
+					},
+					aGroups = { { sDBField = "realm" }, { sDBField = "class" } },
+					aGroupValueOrder = { string.format("%s - Open", sRealm), string.format("%s - Closed", sRealm),},
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+</root>

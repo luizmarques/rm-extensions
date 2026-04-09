@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="ps_main_content" merge="join">
+		<sheetdata>
+			<subwindow name="sub_labels">
+				<anchored height="60" />
+			</subwindow>
+		</sheetdata>
+	</windowclass>
+	<windowclass name="ps_main_labels">
+		<sheetdata>
+			<label_list_content_base name="hitslabel">
+				<anchored position="insidetopleft" offset="232,20" width="45" />
+				<static textres="ps_label_hits" />
+				<center />
+				<tooltip textres="ps_tooltip_hits" />
+			</label_list_content_base>
+			<label_list_content_base name="exhaustionlabel">
+				<anchored position="insidetopleft" offset="232,40" width="45" />
+				<static textres="ps_label_exhaustion" />
+				<center />
+				<tooltip textres="ps_tooltip_exhaustion" />
+			</label_list_content_base>		
+			<label_list_content_base name="pplabel">
+				<anchored position="insidetopleft" offset="260,20" width="45" />
+				<static textres="ps_label_pp" />
+				<center />
+				<tooltip textres="ps_tooltip_pp" />
+			</label_list_content_base>
+			<label_list_content_base name="spelladderlabel">
+				<anchored position="insidetopleft" offset="260,40" width="45" />
+				<static textres="ps_label_spelladder" />
+				<center />
+				<tooltip textres="ps_tooltip_spelladder" />
+			</label_list_content_base>		
+
+			<label_list_content_base name="statbonuseslabel">
+				<anchored position="insidetopleft" offset="315,0" width="135" />
+				<static textres="ps_label_statbonuses" />
+				<center />
+			</label_list_content_base>
+			<label_list_content_base name="constitutionlabel">
+				<anchored to="pplabel" position="righthigh" offset="0,0" width="25" />
+				<static textres="ps_label_constitution" />
+				<center />
+				<tooltip textres="ps_tooltip_constitution" />
+			</label_list_content_base>
+			<label_list_content_base name="agilitylabel">
+				<anchored to="constitutionlabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_agility" />
+				<center />
+				<tooltip textres="ps_tooltip_agility" />
+			</label_list_content_base>
+			<label_list_content_base name="selfdisciplinelabel">
+				<anchored to="agilitylabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_selfdiscipline" />
+				<center />
+				<tooltip textres="ps_tooltip_selfdiscipline" />
+			</label_list_content_base>
+			<label_list_content_base name="reasoninglabel">
+				<anchored to="selfdisciplinelabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_reasoning" />
+				<center />
+				<tooltip textres="ps_tooltip_reasoning" />
+			</label_list_content_base>
+			<label_list_content_base name="memorylabel">
+				<anchored to="reasoninglabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_memory" />
+				<center />
+				<tooltip textres="ps_tooltip_memory" />
+			</label_list_content_base>
+			<label_list_content_base name="strengthlabel">
+				<anchored to="spelladderlabel" position="righthigh" offset="0,0" width="25" />
+				<static textres="ps_label_strength" />
+				<center />
+				<tooltip textres="ps_tooltip_strength" />
+			</label_list_content_base>
+			<label_list_content_base name="quicknesslabel">
+				<anchored to="strengthlabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_quickness" />
+				<center />
+				<tooltip textres="ps_tooltip_quickness" />
+			</label_list_content_base>
+			<label_list_content_base name="presencelabel">
+				<anchored to="quicknesslabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_presence" />
+				<center />
+				<tooltip textres="ps_tooltip_presence" />
+			</label_list_content_base>
+			<label_list_content_base name="intuitionlabel">
+				<anchored to="presencelabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_intuition" />
+				<center />
+				<tooltip textres="ps_tooltip_intuition" />
+			</label_list_content_base>
+			<label_list_content_base name="empathylabel">
+				<anchored to="intuitionlabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_empathy" />
+				<center />
+				<tooltip textres="ps_tooltip_empathy" />
+			</label_list_content_base>
+
+			<label_list_content_base name="rrbonuseslabel">
+				<anchored position="insidetopleft" offset="480,0" width="135" />
+				<static textres="ps_label_rrbonuses" />
+				<center />
+			</label_list_content_base>
+			<label_list_content_base name="channelinglabel">
+				<anchored to="memorylabel" position="righthigh" offset="15,0" width="25" />
+				<static textres="ps_label_channeling" />
+				<center />
+				<tooltip textres="ps_tooltip_channeling" />
+			</label_list_content_base>
+			<label_list_content_base name="essencelabel">
+				<anchored to="channelinglabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_essence" />
+				<center />
+				<tooltip textres="ps_tooltip_essence" />
+			</label_list_content_base>
+			<label_list_content_base name="mentalismlabel">
+				<anchored to="essencelabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_mentalism" />
+				<center />
+				<tooltip textres="ps_tooltip_mentalism" />
+			</label_list_content_base>
+			<label_list_content_base name="poisonlabel">
+				<anchored to="mentalismlabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_poison" />
+				<center />
+				<tooltip textres="ps_tooltip_poison" />
+			</label_list_content_base>
+			<label_list_content_base name="diseaselabel">
+				<anchored to="poisonlabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_disease" />
+				<center />
+				<tooltip textres="ps_tooltip_disease" />
+			</label_list_content_base>
+			<label_list_content_base name="chan_mentlabel">
+				<anchored to="empathylabel" position="righthigh" offset="15,0" width="25" />
+				<static textres="ps_label_chan_ment" />
+				<center />
+				<tooltip textres="ps_tooltip_chan_ment" />
+			</label_list_content_base>
+			<label_list_content_base name="ess_chanlabel">
+				<anchored to="chan_mentlabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_ess_chan" />
+				<center />
+				<tooltip textres="ps_tooltip_ess_chan" />
+			</label_list_content_base>
+			<label_list_content_base name="ment_esslabel">
+				<anchored to="ess_chanlabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_ment_ess" />
+				<center />
+				<tooltip textres="ps_tooltip_ment_ess" />
+			</label_list_content_base>
+			<label_list_content_base name="arcanelabel">
+				<anchored to="ment_esslabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_arcane" />
+				<center />
+				<tooltip textres="ps_tooltip_arcane" />
+			</label_list_content_base>
+			<label_list_content_base name="terrorlabel">
+				<anchored to="arcanelabel" position="righthigh" offset="7,0" width="25" />
+				<static textres="ps_label_terror" />
+				<center />
+				<tooltip textres="ps_tooltip_terror" />
+			</label_list_content_base>
+
+			<label_list_content_base name="movelabel">
+				<anchored to="diseaselabel" position="righthigh" offset="15,0" width="25" />
+				<static textres="ps_label_move" />
+				<center />
+				<tooltip textres="ps_tooltip_move" />
+			</label_list_content_base>
+			<label_list_content_base name="movementmaneuverlabel">
+				<anchored to="terrorlabel" position="righthigh" offset="15,0" width="25" />
+				<static textres="ps_label_movementmaneuver" />
+				<center />
+				<tooltip textres="ps_tooltip_movementmaneuver" />
+			</label_list_content_base>
+
+			<label_list_content_base name="perceptionlabel">
+				<anchored to="movelabel" position="righthigh" offset="15,0" width="25" />
+				<static textres="ps_label_perception" />
+				<center />
+				<tooltip textres="ps_tooltip_perception" />
+			</label_list_content_base>
+		</sheetdata>
+	</windowclass>
+	<windowclass name="ps_main_rolls">
+		<margins control="0,0,0,10" />
+		<script>
+			function onInit()
+				OptionsManager.registerCallback("REVL", update);
+				self.update();
+			end
+			function onClose()
+				OptionsManager.unregisterCallback("REVL", update);
+			end
+			function update()
+				hiderollresults.setVisible(OptionsManager.isOption("REVL", "on"));
+			end
+		</script>
+		<sheetdata>
+			<genericcontrol name="leftanchor">
+				<anchored position="insidetopleft" offset="0,10" width="0" height="20" />
+				<disabled />
+			</genericcontrol>
+			
+			<buttonfield name="hiderollresults">
+				<anchored to="leftanchor" height="20" width="20">
+					<top />
+					<left anchor="right" relation="relative" offset="10" />
+				</anchored>
+				<frame name="fielddark" offset="10,8,10,6" />
+				<state icon="visibilityon" tooltipres="ps_tooltip_showrollon" />
+				<state icon="visibilityoff" tooltipres="ps_tooltip_showrolloff" />
+			</buttonfield>
+
+			<genericcontrol name="statframe">
+				<anchored to="leftanchor" height="20" width="310">
+					<top />
+					<left anchor="right" relation="relative" offset="15" />
+				</anchored>
+				<frame name="groupbox" offset="10,10,10,10" />
+			</genericcontrol>			
+			<button_roll name="statroll">
+				<anchored to="statframe" position="insidetopleft" offset="2,0" />
+				<script file="ps/scripts/ps_roll_stat.lua" />
+			</button_roll>
+			<label name="statlabel">
+				<anchored to="statroll" position="righthigh" offset="3,0" />
+				<static textres="ps_label_groupstat" />
+			</label>
+			<combobox name="statselected">
+				<anchored to="statroll" position="righthigh" offset="90,0" width="80" height="20" />
+				<default textres="ps_default_groupstat" />
+				<listdirection>down</listdirection>
+				<listmaxsize>5</listmaxsize>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Stats.DisplayNameList());
+					end
+				</script>
+			</combobox>
+			<combobox name="statdifficulty">
+				<anchored to="statroll" position="righthigh" offset="180,0" width="100" height="20" />
+				<default textres="ps_default_groupskilldifficulty" />
+				<listdirection>down</listdirection>
+				<listmaxsize>5</listmaxsize>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Modifiers.DifficultyNameList());
+					end
+				</script>
+			</combobox>
+
+			<genericcontrol name="resistanceframe">
+				<anchored to="statframe" position="belowleft" offset="0,15" height="20" width="310" />
+				<frame name="groupbox" offset="10,10,10,10" />
+			</genericcontrol>			
+			<button_roll name="resistanceroll">
+				<anchored to="resistanceframe" position="insidetopleft" offset="2,0" />
+				<script file="ps/scripts/ps_roll_resistance.lua" />
+			</button_roll>
+			<label name="resistancelabel">
+				<anchored to="resistanceroll" position="righthigh" offset="3,0" />
+				<static textres="ps_label_groupresistance" />
+			</label>
+			<combobox name="resistanceselected">
+				<anchored to="resistanceroll" position="righthigh" offset="90,0" width="80" height="20" />
+				<default textres="ps_default_groupresistance" />
+				<listdirection>down</listdirection>
+				<listmaxsize>5</listmaxsize>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_RR.PartySheetList());
+					end
+				</script>
+			</combobox>
+
+			<genericcontrol name="primaryskillframe">
+				<anchored to="leftanchor" height="20" width="370">
+					<top />
+					<left anchor="right" relation="relative" offset="15" />
+				</anchored>
+				<frame name="groupbox" offset="10,10,10,10" />
+			</genericcontrol>							
+			<button_roll name="primaryskillroll">
+				<anchored to="primaryskillframe" position="insidetopleft" offset="2,0" />
+				<script file="ps/scripts/ps_roll_primaryskill.lua" />
+			</button_roll>
+			<label name="primaryskilllabel">
+				<anchored to="primaryskillroll" position="righthigh" offset="3,0" />
+				<static textres="ps_label_groupprimaryskill" />
+			</label>	
+			<combobox name="primaryskillselected">
+				<anchored to="primaryskillroll" position="righthigh" offset="100,0" width="130" height="20" />
+				<default textres="ps_default_groupprimaryskill" />
+				<listdirection>down</listdirection>
+				<listmaxsize>5</listmaxsize>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Skills.PrimarySkillList());
+					end
+				</script>
+			</combobox>
+			<combobox name="primaryskilldifficulty">
+				<anchored to="primaryskillroll" position="righthigh" offset="240,0" width="100" height="20" />
+				<default textres="ps_default_groupskilldifficulty" />
+				<listdirection>down</listdirection>
+				<listmaxsize>5</listmaxsize>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Modifiers.DifficultyNameList());
+					end
+				</script>
+			</combobox>
+
+			<genericcontrol name="secondaryskillframe">
+				<anchored to="primaryskillframe" position="belowleft" offset="0,15" height="20" width="370" />
+				<frame name="groupbox" offset="10,10,10,10" />
+			</genericcontrol>							
+			<button_roll name="secondaryskillroll">
+				<anchored to="secondaryskillframe" position="insidetopleft" offset="2,0" />
+				<script file="ps/scripts/ps_roll_secondaryskill.lua" />
+			</button_roll>
+			<label name="secondaryskilllabel">
+				<anchored to="secondaryskillroll" position="righthigh" offset="3,0" />
+				<static textres="ps_label_groupsecondaryskill" />
+			</label>	
+			<combobox name="secondaryskillselected">
+				<anchored to="secondaryskillroll" position="righthigh" offset="100,0" width="130" height="20" />
+				<default textres="ps_default_groupsecondaryskill" />
+				<listdirection>down</listdirection>
+				<listmaxsize>5</listmaxsize>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Skills.SecondarySkillList());
+					end
+				</script>
+			</combobox>
+			<combobox name="secondaryskilldifficulty">
+				<anchored to="secondaryskillroll" position="righthigh" offset="240,0" width="100" height="20" />
+				<default textres="ps_default_groupskilldifficulty" />
+				<listdirection>down</listdirection>
+				<listmaxsize>5</listmaxsize>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Modifiers.DifficultyNameList());
+					end
+				</script>
+			</combobox>
+		</sheetdata>
+	</windowclass>
+	
+	<windowclass name="ps_mainitem">
+		<margins control="0,0,0,10" />
+		<frame>fieldlight</frame>
+		<script>
+			function onInit()
+				OptionsManager.registerCallback("SHPC", onOptionChanged);
+				onOptionChanged();
+			end
+
+			function onClose()
+				OptionsManager.unregisterCallback("SHPC", onOptionChanged);
+			end
+
+			function onOptionChanged()
+				hpbar.onValueChanged();
+				ppbar.onValueChanged();
+				spelladderbar.onValueChanged();
+				exhaustionbar.onValueChanged();
+			end
+		</script>
+		<sheetdata>
+			<hlink name="link">
+				<script>
+					function onValueChanged()
+						window.portrait.update();
+					end
+				</script>
+			</hlink>
+			<hnx name="hptotal" />
+			<hnx name="wounds" />
+			<hnx name="hd" />
+			<hnx name="hdused" />
+
+			<portrait_ps name="portrait">
+				<bounds>10,12,40,40</bounds>
+			</portrait_ps>
+
+			<string_labeled name="name">
+				<anchored position="insidetopleft" offset="55,7" width="85" height="20" />
+				<empty textres="library_recordtype_empty_charsheet" />
+				<label>Name</label>
+			</string_labeled>
+			<string_labeled name="race">
+				<anchored position="insidetopleft" offset="150,7" width="85" height="20" />
+				<label>Race</label>
+			</string_labeled>
+			<string_labeled name="profession">
+				<anchored position="insidetopleft" offset="55,30" width="140" height="20" />
+				<label>Profession</label>
+			</string_labeled>
+			<number_labeled name="level">
+				<anchored position="insidetopleft" offset="205,30" width="30" />
+				<empty textres="ps_empty_class" />
+				<labelres>char_label_level</labelres>
+			</number_labeled>
+
+			<progressbar name="hpbar">
+				<anchored position="insidetopleft" offset="245,10" width="10" height="45" />
+				<source>
+					<max>hitsmax</max>
+					<used>hitsdamage</used>
+				</source>
+				<textprefix>
+					<textres>hp</textres>
+				</textprefix>
+				<noautotext />
+				<script>
+					function onValueChanged()
+						setFillColor(ColorManager.getHealthColor(1 - getPercent(), true));
+						if Session.IsHost or OptionsManager.isOption("SHPC", "detailed") then
+							setAutoText();
+						else
+							setText("");
+						end
+					end
+				</script>
+			</progressbar>
+			<progressbar name="exhaustionbar">
+				<anchored position="insidetopleft" offset="258,10" width="10" height="45" />
+				<source>
+					<max>exhaustionmax</max>
+					<used>exhaustionused</used>
+				</source>
+				<textprefix>
+					<textres>exhaustion</textres>
+				</textprefix>
+				<noautotext />
+				<script>
+					function onValueChanged()
+						setFillColor(ColorManager.getUsageColor(1 - getPercent(), true));
+
+						if Session.IsHost or OptionsManager.isOption("SHPC", "detailed") then
+							setAutoText();
+						else
+							setText("");
+						end
+					end
+				</script>
+			</progressbar>
+			<progressbar name="ppbar">
+				<anchored position="insidetopleft" offset="271,10" width="10" height="45" />
+				<source>
+					<max>ppmax</max>
+					<used>ppused</used>
+				</source>
+				<textprefix>
+					<textres>pp</textres>
+				</textprefix>
+				<noautotext />
+				<script>
+					function onValueChanged()
+						setFillColor(ColorManager.getUsageColor(1 - getPercent(), true));
+
+						if Session.IsHost or OptionsManager.isOption("SHPC", "detailed") then
+							setAutoText();
+						else
+							setText("");
+						end
+					end
+				</script>
+			</progressbar>
+			<progressbar name="spelladderbar">
+				<anchored position="insidetopleft" offset="284,10" width="10" height="45" />
+				<source>
+					<max>spelladdermax</max>
+					<used>spelladderused</used>
+				</source>
+				<textprefix>
+					<textres>spelladder</textres>
+				</textprefix>
+				<noautotext />
+				<script>
+					function onValueChanged()
+						setFillColor(ColorManager.getUsageColor(1 - getPercent(), true));
+
+						if Session.IsHost or OptionsManager.isOption("SHPC", "detailed") then
+							setAutoText();
+						else
+							setText("");
+						end
+					end
+				</script>
+			</progressbar>
+
+			<number_ps_statbonus name="constitution">
+				<anchored to="spelladderbar" position="righthigh" offset="10,1" />
+			</number_ps_statbonus>			
+			<number_ps_statbonus name="agility">
+				<anchored to="constitution" position="righthigh" offset="7,0" />
+			</number_ps_statbonus>			
+			<number_ps_statbonus name="selfdiscipline">
+				<anchored to="agility" position="righthigh" offset="7,0" />
+			</number_ps_statbonus>			
+			<number_ps_statbonus name="reasoning">
+				<anchored to="selfdiscipline" position="righthigh" offset="7,0" />
+			</number_ps_statbonus>		
+			<number_ps_statbonus name="memory">
+				<anchored to="reasoning" position="righthigh" offset="7,0" />
+			</number_ps_statbonus>			
+			<number_ps_statbonus name="strength">
+				<anchored to="constitution" position="belowleft" offset="0,3" />
+			</number_ps_statbonus>
+			<number_ps_statbonus name="quickness">
+				<anchored to="agility" position="belowleft" offset="0,3" />
+			</number_ps_statbonus>
+			<number_ps_statbonus name="presence">
+				<anchored to="selfdiscipline" position="belowleft" offset="0,3" />
+			</number_ps_statbonus>
+			<number_ps_statbonus name="intuition">
+				<anchored to="reasoning" position="belowleft" offset="0,3" />
+			</number_ps_statbonus>
+			<number_ps_statbonus name="empathy">
+				<anchored to="memory" position="belowleft" offset="0,3" />
+			</number_ps_statbonus>
+
+			<number_ps_rrbonus name="channeling">
+				<anchored to="memory" position="righthigh" offset="15,0" />
+			</number_ps_rrbonus>			
+			<number_ps_rrbonus name="essence">
+				<anchored to="channeling" position="righthigh" offset="7,0" />
+			</number_ps_rrbonus>			
+			<number_ps_rrbonus name="mentalism">
+				<anchored to="essence" position="righthigh" offset="7,0" />
+			</number_ps_rrbonus>			
+			<number_ps_rrbonus name="poison">
+				<anchored to="mentalism" position="righthigh" offset="7,0" />
+			</number_ps_rrbonus>		
+			<number_ps_rrbonus name="disease">
+				<anchored to="poison" position="righthigh" offset="7,0" />
+			</number_ps_rrbonus>			
+			<number_ps_rrbonus name="chan_ment">
+				<anchored to="channeling" position="belowleft" offset="0,3" />
+			</number_ps_rrbonus>
+			<number_ps_rrbonus name="ess_chan">
+				<anchored to="essence" position="belowleft" offset="0,3" />
+			</number_ps_rrbonus>
+			<number_ps_rrbonus name="ment_ess">
+				<anchored to="mentalism" position="belowleft" offset="0,3" />
+			</number_ps_rrbonus>
+			<number_ps_rrbonus name="arcane">
+				<anchored to="poison" position="belowleft" offset="0,3" />
+			</number_ps_rrbonus>
+			<number_ps_rrbonus name="terror">
+				<anchored to="disease" position="belowleft" offset="0,3" />
+			</number_ps_rrbonus>
+
+			<number_ps_move name="move">
+				<anchored to="disease" position="righthigh" offset="15,0" />
+			</number_ps_move>			
+			<number_ps_movementmaneuver name="movementmaneuver">
+				<anchored to="move" position="belowleft" offset="0,3" />
+			</number_ps_movementmaneuver>
+
+			<number_ps_skill name="Perception">
+				<anchored to="move" position="righthigh" offset="15,0" />
+				<target>Perception</target>
+			</number_ps_skill>			
+
+			<button_idelete name="idelete">
+				<anchored position="insidetopright" offset="10,10" />
+			</button_idelete>
+		</sheetdata>
+	</windowclass>
+</root>

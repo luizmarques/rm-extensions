@@ -1,0 +1,260 @@
+﻿<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<template name="header_section_tableresolver">
+		<stringcontrol>
+			<anchored to="contentframe" position="insidetopleft" width="138" height="20" />
+			<frame name="headergray" />
+			<font>sheetlabel</font>
+		</stringcontrol>
+	</template>
+	
+	<template name="numberc_tableresolver">
+		<numbercontrol>
+			<anchored position="right" offset="10" width="35" />
+			<font>sheettext</font>
+			<frame name="fieldlight" offset="4,4,4,4" />
+			<keyeditframe name="fieldfocus" offset="4,4,4,4" />
+		</numbercontrol>
+	</template>
+
+	<template name="linkfield_tableresolver">
+		<linkfield>
+			<anchored position="righthigh" offset="2,3" width="20" height="20" />
+			<closetoggle />
+			<invisible />
+		</linkfield>
+	</template>
+	
+	<template name="stringc_labeltop_tableresolver">
+		<stringcontrol>
+			<anchored position="aboveleft" offset="0,-1" width="35" />
+			<font>sheetlabelsmall</font>
+			<center/>
+		</stringcontrol>
+	</template>
+	
+	<!-- subwindow which displays the actual table contents -->
+	<template name="tableview">
+		<subwindow>
+			<class>tableview_window</class>
+			<activate/>
+			<script>
+				local datasource = nil;
+				local innerwindow = nil;
+				local tableviewName = nil;
+				local selection = {unmodified="",roll="",title=""};
+
+				function getTableName()
+					return RMTableManager.getTableName(datasource);
+				end
+
+				function getTableID()
+					return RMTableManager.getTableID(datasource);
+				end
+
+				function getTableType()
+					return RMTableManager.getTableType(datasource);
+				end
+
+				function getTableData()
+					return RMTableManager.getTableData(datasource);
+				end
+
+				function setTitlebarVisible(flag)
+					if innerwindow and innerwindow.setTitlebarVisible then
+						innerwindow.setTitlebarVisible(flag);
+					end
+				end
+
+				function isBound()
+					if datasource then
+						return true;
+					end
+					return false;
+				end
+
+				function setActive(flag)
+					if innerwindow then
+						innerwindow.setActive(flag);
+					end
+				end
+
+				function showSelection()
+					if innerwindow then
+						innerwindow.showSelection();
+					end
+				end
+
+				function setResizePending()
+					if innerwindow then
+						innerwindow.setResizePending();
+					end
+				end
+
+				function selectRow(unmodified,roll)
+					if not unmodified then
+						selection.unmodified = "";
+					else
+						selection.unmodified = unmodified .. "";
+					end
+					if not roll then
+						selection.roll = "";
+					else
+						selection.roll = roll .. "";
+					end
+					if innerwindow then
+						innerwindow.selectRow(selection.unmodified,selection.roll);
+					end
+				end
+
+				function selectColumn(title)
+					if not title then
+						selection.title = "";
+					else
+						selection.title = title .. "";
+					end
+					if innerwindow then
+						innerwindow.selectColumn(selection.title);
+					end
+				end
+
+				function onWheel(notches)
+					if innerwindow then
+						return innerwindow.onWheel(notches);
+					else
+						return false;
+					end
+				end
+
+				function onDrop(x,y,dragdata)
+					local customData = dragdata.getCustomData();
+					local tablenode = nil;
+					--[[ check if a number ]]
+					if (dragdata.isType("number") or dragdata.isType("rmdice") or dragdata.isType("resulttable")) and innerwindow and innerwindow.isActive() then
+						local roll = dragdata.getNumberData();
+						if tableviewName == "resultgrid" then
+							if roll ~= window.result_roll.getValue() then
+								window.result_roll.setValue(roll);
+							end
+							local nCritMod = window.crit_mod.getValue();
+							roll = roll + nCritMod;
+							if nCritMod ~= 0 then
+								Comm.deliverChatMessage({icon="icon_info", font="systemfont", text="NOTE: The crit mod (".. nCritMod .. ") was applied to the roll when determining the result row. The roll with the crit mod = " .. roll .. ".", secret=true});
+							end
+						end
+						selectRow(roll,roll);
+						showSelection();
+						return true;
+					elseif not customData or not customData.type or customData.type~="RMCTable" then
+						return false;
+					end
+					tablenode = RMTableManager.getNode(customData.tableID);
+					if tablenode then
+						local sFumbleRange = DB.getValue(tablenode, "Fumble.Range", nil);
+						if sFumbleRange then
+							local nLoc = string.find(sFumbleRange, "-");
+							if nLoc then
+								sFumbleRange = string.sub(sFumbleRange, nLoc + 1);						
+							end
+						end
+						Rules_Combat.SetFumble(tonumber(sFumbleRange));
+						if tableviewName == "resultgrid" then
+							local win = window.resultlist.createWindow();
+							win.resulttable.setValue(customData.tableID);
+							win.name.setValue(customData.tableName);
+							win.code.setValue("");
+							win.severity.setValue("");
+							win.result_name.setValue(customData.tableName);
+						end
+						bind(tablenode, Rules_Combat.GetFumble());
+					end
+					return true;
+				end
+
+				function bind(tablenode, nFumble, sTableViewName)
+					datasource = tablenode;
+					tableviewName = sTableViewName;
+					if not datasource and isVisible() then
+						setVisible(false);
+					elseif datasource and not isVisible() then
+						setVisible(true);
+					end
+					if innerwindow then
+						innerwindow.bind(datasource, nFumble);
+						if self.bound then
+							self.bound(datasource);
+						end
+					end
+				end
+
+				function onInstanceCreated()
+					if super and super.onInstanceCreated then
+						super.onInstanceCreated();
+					end
+					innerwindow = self.subwindow;
+					if self.instanceCreated then
+						self.instanceCreated(self.subwindow);
+					end
+					if not innerwindow then
+						return;
+					end
+					innerwindow.bind(datasource);
+					if self.bound then
+						self.bound(datasource);
+					end
+					innerwindow.selectRow(selection.unmodified,selection.roll)
+					innerwindow.selectColumn(selection.title)
+					innerwindow.showSelection();
+					innerwindow.registerParent(self);
+				end
+			</script>
+		</subwindow>
+	</template>
+
+	<template name="tableview_cell">
+		<stringcontrolX>
+			<anchored>
+				<top>
+					<anchor>top</anchor>
+				</top>
+				<left>
+					<anchor>left</anchor>
+				</left>
+				<size>
+					<width>0</width>
+					<height>0</height>
+				</size>
+			</anchored>
+			<frame name="rowshade" offset="0,0,-1,-1" />
+			<font>tablecell_normal</font>
+			<static/>
+			<center/>
+			<multilinespacing>12</multilinespacing>
+			<script file="utility/scripts/tableview_cell.lua"/>
+		</stringcontrolX>
+	</template>
+
+	<template name="tableview_degree">
+		<stringcontrolX>
+			<bounds>0,0,0,0</bounds>
+			<frame name="rowshade" offset="0,0,-1,-1" />
+			<font>tablecell_header</font>
+			<static/>
+			<center/>
+			<multilinespacing>12</multilinespacing>
+			<script file="utility/scripts/tableview_cell.lua"/>
+		</stringcontrolX>
+	</template>
+
+	<template name="stringc_labeled_tr">
+		<stringc_labeled>
+			<readonly/>
+		</stringc_labeled>
+	</template>
+</root>

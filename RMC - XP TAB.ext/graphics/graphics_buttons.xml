@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- Common -->
+	<icon name="button_arrowdown" file="graphics/buttons/button_arrowdown.png" />
+	<icon name="button_arrowdown_down" file="graphics/buttons/button_arrowdown_down.png" />
+
+</root>

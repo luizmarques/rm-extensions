@@ -1,0 +1,1509 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="charsheet_combat">
+		<margins control="0,0,0,2" />
+		<sheetdata>
+			<!-- WEAPONS -->
+			<frame_char name="weaponlistframe">
+				<anchored position="insidetop">
+					<bottom offset="-270" />
+				</anchored>
+			</frame_char>
+			<header_section name="header_combat">
+				<anchored to="weaponlistframe" />
+				<static textres="char_heading_combat" />
+			</header_section>
+
+			<genericcontrol name="rightanchor">
+				<anchored to="weaponlistframe" position="insidetopright" offset="0,10" width="0" />
+				<invisible />
+			</genericcontrol>
+			<label_content_list_column name="lblRange">
+				<anchored to="rightanchor" width="150">
+					<top />
+					<right anchor="left" relation="relative" offset="-30" />
+				</anchored>
+				<static textres="char_label_combat_range" />
+			</label_content_list_column>
+			<label_content_list_column name="fumble_label">
+				<anchored to="rightanchor" width="30">
+					<top />
+					<right anchor="left" relation="relative" offset="-5" />
+				</anchored>
+				<static textres="char_label_combat_fumble" />
+			</label_content_list_column>
+			<label_content_list_column name="ob_label">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right anchor="left" relation="relative" offset="-5" />
+				</anchored>
+				<static textres="char_label_combat_ob" />
+			</label_content_list_column>
+			<label_content_list_column name="ob_nonid_label">
+				<anchored to="rightanchor" width="35">
+					<top />
+					<right anchor="left" relation="relative" offset="0" />
+				</anchored>
+				<static textres="char_label_combat_nonid" />
+				<gmvisibleonly />
+			</label_content_list_column>
+
+			<windowlist name="weaponlist">
+				<anchored to="weaponlistframe" position="insidetop" offset="-15,25">
+					<bottom offset="-40" />
+				</anchored>
+				<class>charsheet_weaponwindow</class>
+				<datasource>.weapons</datasource>
+				<allowdelete />
+				<script file="campaign/scripts/charsheet_weaponlist.lua" />
+			</windowlist>
+			<scrollbar_content_base>
+				<anchored to="weaponlist" />
+				<target>weaponlist</target>
+			</scrollbar_content_base>
+
+			<button_text_sm name="button_attacks_martial_arts">
+				<anchored to="weaponlistframe" position="insidebottomleft" offset="20,15" width="105" />
+				<state textres="char_label_combat_martial_arts" />
+				<tooltip textres="char_tooltip_combat_martial_arts" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("reference_attack_martial_arts", "reference.martialartsattacklist@Arms Law");
+					end
+				</script>
+			</button_text_sm>
+			<button_text_sm name="button_attacks_spells">
+				<anchored to="button_attacks_martial_arts" position="righthigh" offset="10,0" width="105" />
+				<state textres="char_label_combat_spell_attacks" />
+				<tooltip textres="char_tooltip_combat_spell_attacks" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("reference_attack_spell_list", "reference.spellattacklist@Spell Law");
+					end
+				</script>
+			</button_text_sm>
+
+			<frame_char name="frame_equipment">
+				<anchored position="insidebottom" offset="0,175" height="95" />
+			</frame_char>
+			<header_section name="header_equipment">
+				<anchored to="frame_equipment" />
+				<static textres="char_heading_equipment" />
+			</header_section>
+
+			<combobox_labeled_RMC name="equipped_armor">
+				<anchored to="frame_equipment" position="insidetopleft" offset="15,25" width="130" height="20" />
+				<labelres>char_label_equipped_armor</labelres>
+				<tooltip textres="char_tooltip_equipped_armor" />
+				<script>
+					local sOldValue = nil;
+					local bIsRefreshing = false;
+					
+					function onInit()
+						super.onInit();
+
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+						DB.addHandler(sPath .. ".*", "onDelete", onDelete);
+
+						sOldValue = getValue();
+						updateList();
+						refreshFields();
+					end
+
+					function onValueChanged()
+						refreshFields();
+						sOldValue = getValue();
+					end
+
+					function onDelete(nodeToBeDeleted)
+						local sItemName = ItemManager2.getDisplayName(nodeToBeDeleted);
+						if sItemName == getValue() then
+							setValue("");
+						end
+						refreshFields();
+					end
+
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						handleNameChange();
+						updateList();
+						refreshFields();
+					end
+
+					function updateList()
+						local nodeChar = window.getDatabaseNode();
+						clear();
+						addItems(ItemManager2.CharArmorList(nodeChar));
+						refreshFields();
+					end
+
+					function refreshFields()
+						if not bIsRefreshing then
+							bIsRefreshing = true;
+							local nodeChar = window.getDatabaseNode();
+							local nodeInventoryList = DB.createChild(nodeChar, "inventorylist");
+							local iMinMMPenalty = 0;
+							local iMaxMMPenalty = 0;
+							local iMissilePenalty = 0;
+							local iQUPenalty = 0;
+							local iAT = 1;
+							window.equipped_armor_link.setValue();
+
+							if nodeInventoryList then
+								for _, vItem in pairs(DB.getChildren(nodeChar, "inventorylist")) do
+									local sItemType = DB.getValue(vItem, "type", "");
+									if sItemType == "Armor" then
+										local sItemName = ItemManager2.getDisplayName(vItem);
+										if getValue() == sItemName then
+											iMinMMPenalty = DB.getValue(vItem, "minimum_mm_penalty", 0);
+											iMaxMMPenalty = DB.getValue(vItem, "maximum_mm_penalty", 0);
+											iMissilePenalty = DB.getValue(vItem, "missile_penalty", 0);
+											iQUPenalty = DB.getValue(vItem, "quickness_penalty", 0);
+											iAT = DB.getValue(vItem, "armortype", 1);
+											window.equipped_armor_link.setValue("item", DB.getPath(vItem));
+										end
+									end
+								end
+							end
+							if sOldValue == "" and getValue() == "" then
+								
+							else
+								window.at.setValue(iAT);
+								window.mmmin.setValue(iMinMMPenalty);
+								window.mmmax.setValue(iMaxMMPenalty);
+								window.atmiss.setValue(iMissilePenalty);
+								window.qupen.setValue(iQUPenalty);
+							end
+							window.atname.setValue(getValue());
+							window.mmpenalty.setValue(Rules_PC.MMPenalty(window.getDatabaseNode()));
+							bIsRefreshing = false;
+						end
+					end
+					
+					function handleNameChange()
+						if getValue() ~= "" and window.equipped_armor_link then
+							local _, sRecordName = window.equipped_armor_link.getValue();
+							if sRecordName and sRecordName ~="" then
+								local nodeItem = DB.findNode(sRecordName);
+								if nodeItem and window.equipped_armor_link.isVisible() then
+									setValue(ItemManager2.getDisplayName(nodeItem));
+								end
+							end
+						end
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<linkfield name="equipped_armor_link">
+				<anchored to="equipped_armor" position="righthigh" width="20" height="20" />
+				<description field="equipped_armor" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					
+					function onValueChanged()
+						if isEmpty() then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+					end
+				</script>
+			</linkfield>
+			
+			<combobox_labeled_RMC name="equipped_helmet">
+				<anchored to="equipped_armor" position="below" offset="0,10" height="20" />
+				<labelres>char_label_equipped_helmet</labelres>
+				<tooltip textres="char_tooltip_equipped_helmet" />
+				<script>
+					local bIsRefreshing = false;
+
+					function onInit()
+						super.onInit();
+
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+						DB.addHandler(sPath .. ".*", "onDelete", onDelete);
+
+						updateList();
+						refreshFields();
+					end
+
+					function onValueChanged()
+						refreshFields();
+					end
+
+					function onDelete(nodeToBeDeleted)
+						local sItemName = ItemManager2.getDisplayName(nodeToBeDeleted);
+						if sItemName == getValue() then
+							setValue("");
+						end
+						refreshFields();
+					end
+
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						handleNameChange();
+						updateList();
+						refreshFields();
+					end
+
+					function updateList()
+						local charNode = window.getDatabaseNode();
+						clear();
+						addItems(ItemManager2.CharHelmetList(charNode));
+						refreshFields();
+					end
+					
+					function refreshFields()
+						if not bIsRefreshing then
+							bIsRefreshing = true;
+							getItemLink();
+							bIsRefreshing = false;
+						end
+					end
+					
+					function handleNameChange()
+						if getValue() ~= "" and window.equipped_helmet_link then
+							local _, sRecordName = window.equipped_helmet_link.getValue();
+							if sRecordName and sRecordName ~="" then
+								local nodeItem = DB.findNode(sRecordName);
+								if nodeItem and window.equipped_helmet_link.isVisible() then
+									setValue(ItemManager2.getDisplayName(nodeItem));
+								end
+							end
+						end
+					end
+
+					function getItemLink()
+						local nodeChar = window.getDatabaseNode();
+						local sClass, sNodeName = Rules_PC.GetInventoryItemLink(nodeChar, getValue(), ItemManager2.CategoryHelmet);
+						window.equipped_helmet_link.setValue(sClass, sNodeName);
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<linkfield name="equipped_helmet_link">
+				<anchored to="equipped_helmet" position="righthigh" width="20" height="20" />
+				<description field="equipped_helmet" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					
+					function onValueChanged()
+						if isEmpty() then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+					end
+				</script>
+			</linkfield>
+
+			<combobox_labeled_RMC name="equipped_primary_hand">
+				<anchored to="equipped_armor" position="righthigh" offset="25,0" width="130" height="20" />
+				<labelres>char_label_equipped_primary_hand</labelres>
+				<tooltip textres="char_tooltip_equipped_primary_hand" />
+				<script>
+					local bIsRefreshing = false;
+
+					function onInit()
+						super.onInit();
+
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+						DB.addHandler(sPath .. ".*", "onDelete", onDelete);
+
+						updateList();
+						refreshFields();
+					end
+
+					function onValueChanged()
+						refreshFields();
+					end
+
+					function onDelete(nodeToBeDeleted)
+						local sItemName = ItemManager2.getDisplayName(nodeToBeDeleted);
+						if sItemName == getValue() then
+							setValue("");
+						end
+						refreshFields();
+					end
+
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						handleNameChange();
+						updateList();
+						refreshFields();
+					end
+
+					function updateList()
+						local charNode = window.getDatabaseNode();
+						clear();
+						addItems(ItemManager2.CharPrimaryHandList(charNode));
+						refreshFields();
+					end
+					
+					function refreshFields()
+						if not bIsRefreshing then
+							bIsRefreshing = true;
+							getItemLink();
+							bIsRefreshing = false;
+						end
+					end
+
+					function handleNameChange()
+						if getValue() ~= "" and window.equipped_primary_hand_link then
+							local _, sRecordName = window.equipped_primary_hand_link.getValue();
+							if sRecordName and sRecordName ~="" then
+								local nodeItem = DB.findNode(sRecordName);
+								if nodeItem and window.equipped_primary_hand_link.isVisible() then
+									setValue(ItemManager2.getDisplayName(nodeItem));
+								end
+							end
+						end
+					end
+
+					function getItemLink()
+						local nodeChar = window.getDatabaseNode();
+						local sClass, sNodeName = Rules_PC.GetInventoryItemLink(nodeChar, getValue(), ItemManager2.CategoryPrimaryHand);
+						window.equipped_primary_hand_link.setValue(sClass, sNodeName);
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<linkfield name="equipped_primary_hand_link">
+				<anchored to="equipped_primary_hand" position="righthigh" width="20" height="20" />
+				<description field="equipped_primary_hand" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					
+					function onValueChanged()
+						if isEmpty() then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+					end
+				</script>
+			</linkfield>
+
+			<combobox_labeled_RMC name="equipped_secondary_hand">
+				<anchored to="equipped_primary_hand" position="below" offset="0,10" height="20" />
+				<labelres>char_label_equipped_secondary_hand</labelres>
+				<tooltip textres="char_tooltip_equipped_secondary_hand" />
+				<script>
+					local bIsRefreshing = false;
+
+					function onInit()
+						super.onInit();
+
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+						DB.addHandler(sPath .. ".*", "onDelete", onDelete);
+
+						updateList();
+						refreshFields();
+					end
+
+					function onValueChanged()
+						refreshFields();
+					end
+
+					function onDelete(nodeToBeDeleted)
+						local sItemName = ItemManager2.getDisplayName(nodeToBeDeleted);
+						if sItemName == getValue() then
+							setValue("");
+						end
+						refreshFields();
+					end
+
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						handleNameChange();
+						updateList();
+						refreshFields();
+					end
+
+					function updateList()
+						local charNode = window.getDatabaseNode();
+						clear();
+						addItems(ItemManager2.CharSecondaryHandList(charNode));
+						refreshFields();
+					end
+					
+					function refreshFields()
+						if not bIsRefreshing then
+							bIsRefreshing = true;
+							getItemLink();
+							bIsRefreshing = false;
+						end
+					end
+
+					function handleNameChange()
+						if getValue() ~= "" and window.equipped_secondary_hand_link then
+							local _, sRecordName = window.equipped_secondary_hand_link.getValue();
+							if sRecordName and sRecordName ~="" then
+								local nodeItem = DB.findNode(sRecordName);
+								if nodeItem and window.equipped_secondary_hand_link.isVisible() then
+									setValue(ItemManager2.getDisplayName(nodeItem));
+								end
+							end
+						end
+					end
+
+					function getItemLink()
+						local nodeChar = window.getDatabaseNode();
+						local sClass, sNodeName = Rules_PC.GetInventoryItemLink(nodeChar, getValue(), ItemManager2.CategorySecondaryHand);
+						window.equipped_secondary_hand_link.setValue(sClass, sNodeName);
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<linkfield name="equipped_secondary_hand_link">
+				<anchored to="equipped_secondary_hand" position="righthigh" width="20" height="20" />
+				<description field="equipped_secondary_hand" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					
+					function onValueChanged()
+						if isEmpty() then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+					end
+				</script>
+			</linkfield>
+
+			<combobox_labeled_RMC name="equipped_adder_multiplier">
+				<anchored to="equipped_primary_hand" position="righthigh" offset="25,0" width="130" height="20" />
+				<labelres>char_label_equipped_adder_multiplier</labelres>
+				<tooltip textres="char_tooltip_equipped_adder_multiplier" />
+				<script>
+					local bIsRefreshing = false;
+
+					function onInit()
+						super.onInit();
+
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+						DB.addHandler(sPath .. ".*", "onDelete", onDelete);
+
+						updateList();
+						refreshFields();
+					end
+
+					function onValueChanged()
+						refreshFields();
+					end
+
+					function onDelete(nodeToBeDeleted)
+						local sItemName = ItemManager2.getDisplayName(nodeToBeDeleted);
+						if sItemName == getValue() then
+							setValue("");
+						end
+						refreshFields();
+					end
+
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						handleNameChange();
+						updateList();
+						refreshFields();
+					end
+
+					function updateList()
+						local charNode = window.getDatabaseNode();
+						clear();
+						addItems(ItemManager2.CharAdderMultiplierList(charNode));
+						refreshFields();
+					end
+
+					function refreshFields()
+						if not bIsRefreshing then
+							bIsRefreshing = true;
+							local nodeChar = window.getDatabaseNode();
+							Rules_PC.PPMult(nodeChar, getValue());
+							Rules_PC.SpellAdder(nodeChar, getValue());
+							getItemLink();
+							bIsRefreshing = false;
+						end
+					end
+
+					function handleNameChange()
+						if getValue() ~= "" and window.equipped_adder_multiplier_link then
+							local _, sRecordName = window.equipped_adder_multiplier_link.getValue();
+							if sRecordName and sRecordName ~="" then
+								local nodeItem = DB.findNode(sRecordName);
+								if nodeItem then
+									local bID = (DB.getValue(nodeItem, "isidentified", 1) == 1);
+									if bID and window.equipped_adder_multiplier_link.isVisible() then
+										setValue(ItemManager2.getDisplayName(nodeItem));
+									else
+										setValue("");
+									end
+								end
+							end
+						end
+					end
+
+					function getItemLink()
+						local nodeChar = window.getDatabaseNode();
+						local sClass, sNodeName = Rules_PC.GetInventoryItemLink(nodeChar, getValue(), ItemManager2.CategoryAdderMultipler);
+						window.equipped_adder_multiplier_link.setValue(sClass, sNodeName);
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<linkfield name="equipped_adder_multiplier_link">
+				<anchored to="equipped_adder_multiplier" position="righthigh" width="20" height="20" />
+				<description field="equipped_adder_multiplier" />
+				<closetoggle />
+				<invisible />
+				<script>
+					function onInit()
+						onValueChanged();
+					end
+					
+					function onValueChanged()
+						if isEmpty() then
+							setVisible(false);
+						else
+							setVisible(true);
+						end
+					end
+				</script>
+			</linkfield>
+
+			<frame_char name="frame_protection">
+				<anchored position="insidebottom" offset="0,105" height="70" />
+			</frame_char>
+			<header_section name="header_protection">
+				<anchored to="frame_protection" />
+				<static textres="char_heading_protection" />
+				<tooltip textres="char_tooltip_protection" />
+			</header_section>
+			<label_content_list_column name="protection_head_label">
+				<anchored to="frame_protection" position="insidetopleft" offset="10,28" width="70" />
+				<static textres="char_label_protection_head" />
+			</label_content_list_column>
+			<label_content_list_column name="protection_face_label">
+				<anchored to="protection_head_label" position="righthigh" offset="5,0" width="70" />
+				<static textres="char_label_protection_face" />
+			</label_content_list_column>
+			<label_content_list_column name="protection_neck_label">
+				<anchored to="protection_face_label" position="righthigh" offset="5,0" width="70" />
+				<static textres="char_label_protection_neck" />
+			</label_content_list_column>
+			<label_content_list_column name="protection_torso_label">
+				<anchored to="protection_neck_label" position="righthigh" offset="5,0" width="70" />
+				<static textres="char_label_protection_torso" />
+			</label_content_list_column>
+			<label_content_list_column name="protection_arms_label">
+				<anchored to="protection_torso_label" position="righthigh" offset="5,0" width="70" />
+				<static textres="char_label_protection_arms" />
+			</label_content_list_column>
+			<label_content_list_column name="protection_legs_label">
+				<anchored to="protection_arms_label" position="righthigh" offset="5,0" width="70" />
+				<static textres="char_label_protection_legs" />
+			</label_content_list_column>
+
+			<row_heading_protection name="protection_head" source="protection.head">
+				<anchored to="frame_protection" position="insidetopleft" offset="15,40" height="20" />
+				<labelres>char_label_protection_head</labelres>
+				<tooltip textres="char_tooltip_protection" />
+				<readonly />
+				<center />
+				<script>
+					function onInit()
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "equipped_helmet_link"), "onUpdate", self.update);
+						DB.addHandler(DB.getPath(node, "equipped_armor_link"), "onUpdate", self.update);
+						self.update();
+					end
+					
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						update();
+					end
+
+					function update()
+						local nodeChar = window.getDatabaseNode();
+						setValue(ItemManager2.HeadProtection(nodeChar));						
+					end
+				</script>
+			</row_heading_protection>
+			<row_heading_protection name="protection_face" source="protection.face">
+				<anchored to="protection_head" />
+				<labelres>char_label_protection_face</labelres>
+				<tooltip textres="char_tooltip_protection" />
+				<readonly />
+				<center />
+				<script>
+					function onInit()
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "equipped_helmet_link"), "onUpdate", self.update);
+						DB.addHandler(DB.getPath(node, "equipped_armor_link"), "onUpdate", self.update);
+						self.update();
+					end
+					
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						update();
+					end
+
+					function update()
+						local nodeChar = window.getDatabaseNode();
+						setValue(ItemManager2.FaceProtection(nodeChar));						
+					end
+				</script>
+			</row_heading_protection>
+			<row_heading_protection name="protection_neck" source="protection.neck">
+				<anchored to="protection_face" />
+				<labelres>char_label_protection_neck</labelres>
+				<tooltip textres="char_tooltip_protection" />
+				<readonly />
+				<center />
+				<script>
+					function onInit()
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "equipped_helmet_link"), "onUpdate", self.update);
+						DB.addHandler(DB.getPath(node, "equipped_armor_link"), "onUpdate", self.update);
+						self.update();
+					end
+					
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						update();
+					end
+
+					function update()
+						local nodeChar = window.getDatabaseNode();
+						setValue(ItemManager2.NeckProtection(nodeChar));						
+					end
+				</script>
+			</row_heading_protection>
+			<row_heading_protection name="protection_torso" source="protection.torso">
+				<anchored to="protection_neck" />
+				<labelres>char_label_protection_torso</labelres>
+				<tooltip textres="char_tooltip_protection" />
+				<readonly />
+				<center />
+				<script>
+					function onInit()
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "equipped_helmet_link"), "onUpdate", self.update);
+						DB.addHandler(DB.getPath(node, "equipped_armor_link"), "onUpdate", self.update);
+						self.update();
+					end
+					
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						update();
+					end
+
+					function update()
+						local nodeChar = window.getDatabaseNode();
+						setValue(ItemManager2.TorsoProtection(nodeChar));						
+					end
+				</script>
+			</row_heading_protection>
+			<row_heading_protection name="protection_arms" source="protection.arms">
+				<anchored to="protection_torso" />
+				<labelres>char_label_protection_arms</labelres>
+				<tooltip textres="char_tooltip_protection" />
+				<readonly />
+				<center />
+				<script>
+					function onInit()
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "equipped_helmet_link"), "onUpdate", self.update);
+						DB.addHandler(DB.getPath(node, "equipped_armor_link"), "onUpdate", self.update);
+						self.update();
+					end
+					
+					function onClose()
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.removeHandler(sPath, "onChildUpdate", onChildUpdate);
+					end
+
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						update();
+					end
+
+					function update()
+						local nodeChar = window.getDatabaseNode();
+						setValue(ItemManager2.ArmsProtection(nodeChar));						
+					end
+				</script>
+			</row_heading_protection>
+			<row_heading_protection name="protection_legs" source="protection.legs">
+				<anchored to="protection_arms" />
+				<labelres>char_label_protection_legs</labelres>
+				<tooltip textres="char_tooltip_protection" />
+				<readonly />
+				<center />
+				<script>
+					function onInit()
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", onChildUpdate);
+
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "equipped_helmet_link"), "onUpdate", self.update);
+						DB.addHandler(DB.getPath(node, "equipped_armor_link"), "onUpdate", self.update);
+						self.update();
+					end
+					
+					function onChildUpdate(nodeParent, nodeChildUpdated)
+						update();
+					end
+
+					function update()
+						local nodeChar = window.getDatabaseNode();
+						setValue(ItemManager2.LegsProtection(nodeChar));						
+					end
+				</script>
+			</row_heading_protection>
+
+      		<!-- DEFENCE  -->
+			<frame_char name="defenceframe">
+				<anchored position="insidebottom" height="105" />
+			</frame_char>
+			<label>
+				<anchored to="defenceframe" position="insidetopleft" offset="15,19" />
+				<static>Armor Type</static>
+			</label>
+			<number_readonly name="at" >
+				<anchored to="defenceframe" position="insidetopleft" offset="15,38" height="20" />
+				<readonly/>
+				<script>
+					function onValueChanged(init)
+						refresh();
+					end
+
+					function refresh()
+						window.mmpenalty.setValue(Rules_PC.MMPenalty(window.getDatabaseNode()));
+						if string.lower(OptionsManager.getOption("CCAD")) == string.lower(Interface.getString("option_val_on")) then
+							if getValue() == 1 then
+								window.dbad.setValue(Rules_PC.AdrenalDefence(window.getDatabaseNode()));
+							else
+								window.dbad.setValue(0);
+							end
+							window.dbad.setReadOnly(true);
+							window.dbad.setFrame("fieldlight", 4, 4, 4, 4);
+						else
+							window.dbad.setReadOnly(false);
+							window.dbad.setFrame("fielddark", 4, 4, 4, 4);
+							window.dbad.setStateFrame("keyedit", "fieldfocus", 4, 4, 4, 4);
+						end
+					end
+
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						
+						if getValue()==0 then
+							setValue(1);
+						end
+						OptionsManager.registerCallback("CCAD", refresh);
+						refresh();
+					end
+
+					function onClose()
+						OptionsManager.unregisterCallback("CCAD", refresh);
+					end
+				</script>
+			</number_readonly>			
+			<stringc_noframe_static name="atname">
+				<anchored to="defenceframe" position="insidetopleft" offset="55,39" width="170" height="20" />
+			</stringc_noframe_static>
+			<label_content_list_column>
+				<anchored to="defenceframe" position="insidetopleft" offset="230,5" width="230" />
+				<controlline />
+				<static>Defensive Bonus</static>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						if Session.IsHost then
+							setAnchor("left", "", "left", "absolute", 190);
+							setAnchoredWidth(270);
+						end
+					end
+				</script>
+			</label_content_list_column>
+			<number_readonly name="dbstat" >
+				<anchored to="atname" position="righthigh" offset="5,0" height="20" />
+				<displaysign/>
+			</number_readonly>			
+			<label_fieldtop name="dbstat_label">
+				<anchored to="dbstat" />
+				<static textres="char_label_db_stat" />
+			</label_fieldtop>
+			<genericcontrol name="dbstat_info">
+				<anchored to="dbstat" position="righthigh" offset="-7,-5" height="12" width="12" />
+				<icon>icon_info</icon>
+				<tooltip textres="tooltip_move_stat_bonus_reduced" />
+				<invisible />
+			</genericcontrol>
+			<number_readonly name="db_nonid" >
+				<anchored to="dbstat" position="left" offset="5" />
+				<displaysign/>
+				<invisible />
+				<tooltip textres="ct_tooltip_db_nonid" />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						if Session.IsHost then
+							setVisible(true);
+						end
+					end
+				</script>
+			</number_readonly>			
+			<label_fieldtop name="db_nonid_label">
+				<anchored to="db_nonid" />
+				<static textres="char_label_db_nonid" />
+				<invisible />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						if Session.IsHost then
+							setVisible(true);
+						end
+					end
+				</script>
+			</label_fieldtop>
+			<number_readonly name="dbmagic" >
+				<anchored to="dbstat" position="righthigh" offset="5,0" height="20" />
+				<displaysign/>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", refresh);
+						DB.addHandler(sPath .. ".*", "onDelete", refresh);
+
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "equipped_helmet_link"), "onUpdate", self.refresh);
+						DB.addHandler(DB.getPath(node, "equipped_armor_link"), "onUpdate", self.refresh);
+						DB.addHandler(DB.getPath(node, "equipped_primary_hand_link"), "onUpdate", self.refresh);
+						DB.addHandler(DB.getPath(node, "equipped_secondary_hand_link"), "onUpdate", self.refresh);
+						DB.addHandler(DB.getPath(node, "equipped_adder_multiplier_link"), "onUpdate", self.refresh);
+						self.refresh();
+					end
+
+					function refresh()
+						window.db_nonid.setValue(Rules_PC.MagicDBNoID(window.getDatabaseNode()));
+						setValue(Rules_PC.MagicDB(window.getDatabaseNode()));
+					end
+				</script>
+			</number_readonly>			
+			<label_fieldtop name="dbmagic_label">
+				<anchored to="dbmagic" />
+				<static textres="char_label_db_magic" />
+			</label_fieldtop>
+			<number_readonly name="dbad" >
+				<anchored to="dbmagic" position="righthigh" offset="5,0" height="20" />
+				<displaysign/>
+			</number_readonly>			
+			<label_fieldtop name="dbad_label">
+				<anchored to="dbad" />
+				<static textres="char_label_db_adrenaldefense" />
+			</label_fieldtop>
+			<number_readonly name="dbshield" >
+				<anchored to="dbad" position="righthigh" offset="5,0" height="20" />
+				<displaysign/>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						local nodeChar = window.getDatabaseNode();
+						local sPath = DB.getPath(nodeChar, "inventorylist");
+						DB.addHandler(sPath, "onChildUpdate", refresh);
+						DB.addHandler(sPath .. ".*", "onDelete", refresh);
+
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "equipped_secondary_hand"), "onUpdate", self.refresh);
+						self.refresh();
+					end
+
+					function refresh()
+						setValue(Rules_PC.ShieldDB(window.getDatabaseNode()));
+					end
+				</script>
+			</number_readonly>			
+			<label_fieldtop name="dbshield_label">
+				<anchored to="dbshield" />
+				<static textres="char_label_db_shield" />
+			</label_fieldtop>
+			<number_boxed name="dbother" >
+				<anchored to="dbshield" position="righthigh" offset="5,0" height="20" />
+				<displaysign/>
+			</number_boxed>			
+			<label_fieldtop name="dbother_label">
+				<anchored to="dbother" />
+				<static textres="char_label_db_other" />
+			</label_fieldtop>
+			<number_readonly name="dbtotal" >
+				<anchored to="dbother" position="righthigh" offset="5,0" height="20" />
+				<displaysign/>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						local nodeChar = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(Rules_PC.DBStatNode(nodeChar)), "onUpdate", update);
+						DB.addHandler(DB.getPath(nodeChar, "dbmagic"), "onUpdate", update);
+						DB.addHandler(DB.getPath(nodeChar, "dbad"), "onUpdate", update);
+						DB.addHandler(DB.getPath(nodeChar, "dbshield"), "onUpdate", update);
+						DB.addHandler(DB.getPath(nodeChar, "dbother"), "onUpdate", update);
+						DB.addHandler(DB.getPath(nodeChar, "dbpen"), "onUpdate", update);
+						
+						update();
+					end
+					function onClose()
+						local nodeChar = window.getDatabaseNode();
+						DB.removeHandler(DB.getPath(Rules_PC.DBStatNode(nodeChar)), "onUpdate", update);
+						DB.removeHandler(DB.getPath(nodeChar, "dbmagic"), "onUpdate", update);
+						DB.removeHandler(DB.getPath(nodeChar, "dbad"), "onUpdate", update);
+						DB.removeHandler(DB.getPath(nodeChar, "dbshield"), "onUpdate", update);
+						DB.removeHandler(DB.getPath(nodeChar, "dbother"), "onUpdate", update);
+						DB.removeHandler(DB.getPath(nodeChar, "dbpen"), "onUpdate", update);
+					end
+
+					function update()
+						local nStat = Rules_PC.DBStatBonus(window.getDatabaseNode());
+						local nMagic = window.dbmagic.getValue();
+						local nAD = window.dbad.getValue();
+						local nShield = window.dbshield.getValue();
+						local nOther = window.dbother.getValue();
+						local nPenalty = window.dbpen.getValue();
+						if nStat &gt; 0 and nPenalty &lt; 0 then
+							nStat = nStat + nPenalty;
+							if nStat &lt; 0 then
+								nStat = 0;
+							end
+							window.dbstat_info.setVisible(true);
+						else
+							window.dbstat_info.setVisible(false);
+						end
+						window.dbstat.setValue(nStat);
+						window.db.setValue(nStat + nMagic + nAD + nOther);
+						setValue(nStat + nMagic + nAD + nShield + nOther);
+					end
+				</script>
+			</number_readonly>			
+			<label_fieldtop name="dbtotal_label">
+				<anchored to="dbtotal" />
+				<static textres="char_label_db_total" />
+			</label_fieldtop>
+			<hn name="db" />
+
+			<label name="armor_mm_label">
+				<anchored to="defenceframe" position="insidetopleft" offset="15,74" width="210" height="20" />
+				<static>Armor Maneuver Modifications</static>
+			</label>
+			<number_readonly name="mmmin" >
+				<anchored to="armor_mm_label" position="righthigh" offset="5,0" height="20" />
+				<displaysign/>
+			</number_readonly>			
+			<label_fieldtop name="mmmin_label">
+				<anchored to="mmmin" />
+				<static textres="char_label_mm_minimum" />
+			</label_fieldtop>
+			<number_readonly name="mmmax" >
+				<anchored to="mmmin" position="righthigh" offset="15,0" height="20" />
+				<displaysign/>
+			</number_readonly>			
+			<label_fieldtop name="mmmax_label">
+				<anchored to="mmmax" />
+				<static textres="char_label_mm_maximum" />
+			</label_fieldtop>
+			<number_readonly name="mmpenalty" >
+				<anchored to="mmmax" position="righthigh" offset="15,0" height="20" />
+				<frame name="ghostdice" />
+				<displaysign/>
+				<script>
+					function action(draginfo)
+						local charNode = window.getDatabaseNode();
+						local rActor = ActorManager.resolveActor(charNode);
+						local sSkillName = ActionSkill.GenericMM;
+						local nSkillMod = 0;
+						local nSkillType = ActionSkill.MM;
+						ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</number_readonly>			
+			<label_fieldtop name="mmpenalty_label">
+				<anchored to="mmpenalty" />
+				<static textres="char_label_mm_penalty" />
+			</label_fieldtop>
+			<number_readonly name="atmiss" >
+				<anchored to="mmpenalty" position="righthigh" offset="15,0" height="20" />
+				<displaysign/>
+			</number_readonly>			
+			<label_fieldtop name="atmiss_label">
+				<anchored to="atmiss" />
+				<static textres="char_label_missile_penalty" />
+			</label_fieldtop>
+			<number_readonly name="dbpen" >
+				<anchored to="atmiss" position="righthigh" offset="15,0" height="20" />
+				<displaysign/>
+				<script>
+					function onInit()
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "qupen"), "onUpdate", self.refresh);
+						self.refresh();
+					end
+
+					function refresh()
+						local nPenalty = Rules_PC.ArmorQuicknessPenalty(window.getDatabaseNode());
+						setValue(nPenalty);
+					end
+				</script>
+			</number_readonly>			
+			<number_boxed name="qupen" >
+				<invisible />
+			</number_boxed>			
+			<label_fieldtop name="dbpen_label">
+				<anchored to="dbpen" />
+				<static textres="char_label_quickness_penalty" />
+			</label_fieldtop>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charsheet_weaponwindow">
+		<sizelimits>
+			<minimum height="22" />
+			<maximum height="22" />
+		</sizelimits>
+		<script>
+			local sOldRecordName = "";
+			
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				registerMenuItem(Interface.getString("list_menu_deleteitem"), "delete", 6);
+				registerMenuItem(Interface.getString("list_menu_deleteconfirm"), "delete", 6, 7);
+				
+				local nodeItem = DB.getParent(getDatabaseNode());
+				local sRecordName = DB.getValue(nodeItem, "recordname", "");
+
+				if sRecordName ~= "" then
+					window.open.setValue("item", sRecordName);
+					DB.deleteChild(nodeItem, "recordname");
+				end
+				onLinkChanged();
+			end
+				
+			function onMenuSelection(selection, subselection)
+				if selection == 6 and subselection == 7 then
+					delete();
+				end
+			end
+
+			function onLinkChanged()
+				local sClass, sRecordName = open.getValue();
+				if sOldRecordName ~= "" then
+					local nodeOldItem = DB.findNode(sOldRecordName);
+					if nodeOldItem then
+						DB.removeHandler(DB.getPath(nodeOldItem, "isidentified"), "onUpdate", refreshName);
+					end
+				end
+				sOldRecordName = sRecordName;
+				if sRecordName then
+					local nodeNewItem = DB.findNode(sRecordName);
+					if nodeNewItem then
+						DB.addHandler(DB.getPath(nodeNewItem, "isidentified"), "onUpdate", refreshName);
+					end
+					if string.find(sRecordName, ".inventorylist.") then
+						linkFields(sRecordName);
+					end
+				end
+			end
+			
+			function linkFields(sRecordName)
+				local nodeInventoryItem = DB.findNode(sRecordName);
+				if nodeInventoryItem then
+					name.setLink(DB.createChild(nodeInventoryItem, "name", "string"), true);
+					nonid_name.setLink(DB.createChild(nodeInventoryItem, "nonid_name", "string"), true);
+					local nodeIsIdentified = DB.findNode(sRecordName .. ".isidentified");
+					if nodeIsIdentified then
+						isidentified.setLink(nodeIsIdentified, true);
+					else
+						isidentified.setLink(DB.createChild(nodeInventoryItem, "isidentified", "number"), true);
+						DB.setValue(nodeInventoryItem, "isidentified", "number", 1);
+					end
+					type.setLink(DB.createChild(nodeInventoryItem, "type", "string"), true);
+					associatedskill.setLink(DB.createChild(nodeInventoryItem, "associatedskill", "string"), true);
+					rng1.setLink(DB.createChild(nodeInventoryItem, "rng1", "number"), true);
+					mod1.setLink(DB.createChild(nodeInventoryItem, "mod1", "number"), true);
+					rng2.setLink(DB.createChild(nodeInventoryItem, "rng2", "number"), true);
+					mod2.setLink(DB.createChild(nodeInventoryItem, "mod2", "number"), true);
+					rng3.setLink(DB.createChild(nodeInventoryItem, "rng3", "number"), true);
+					mod3.setLink(DB.createChild(nodeInventoryItem, "mod3", "number"), true);
+					rng4.setLink(DB.createChild(nodeInventoryItem, "rng4", "number"), true);
+					mod4.setLink(DB.createChild(nodeInventoryItem, "mod4", "number"), true);
+					rng5.setLink(DB.createChild(nodeInventoryItem, "rng5", "number"), true);
+					mod5.setLink(DB.createChild(nodeInventoryItem, "mod5", "number"), true);
+					rng6.setLink(DB.createChild(nodeInventoryItem, "rng6", "number"), true);
+					mod6.setLink(DB.createChild(nodeInventoryItem, "mod6", "number"), true);
+					
+					ob_nonid.setLink(DB.createChild(nodeInventoryItem, "ob_nonid", "number"), true);
+					ob.setLink(DB.createChild(nodeInventoryItem, "ob", "number"), true);
+					fumble.setLink(DB.createChild(nodeInventoryItem, "fumble", "number"), true);
+					meleebonus.setLink(DB.createChild(nodeInventoryItem, "meleebonus", "number"), true);
+					missilebonus.setLink(DB.createChild(nodeInventoryItem, "missilebonus", "number"), true);
+				end
+			end
+
+			function delete()
+				local node = getDatabaseNode();
+				local nodeChar = DB.getChild(node, "...");
+				if not node then
+					close();
+					return;
+				end
+				local sClass, sRecordName = DB.getValue(node, "open", nil);
+				if not sRecordName or sRecordName == "" then
+					DB.deleteNode(node);
+				elseif sRecordName and string.find(sRecordName, ".inventorylist.") then
+					nodeItem = DB.findNode(sRecordName);
+					if nodeItem then
+						ItemManager2.charRemoveItem(nodeItem);
+						DB.deleteNode(nodeItem);
+					else
+						DB.deleteNode(node);
+					end
+				else
+					DB.deleteNode(node);
+				end
+			end
+
+			function isWeapon()
+				local node = getDatabaseNode();
+				local vType = DB.getValue(node, "type", 0);
+				if vType == "Shield" or vType == 7 then
+					return false; 
+				else
+					return true;
+				end
+			end
+			
+			function refreshName()
+				local bID = true;
+				local sClass, sRecordName = DB.getValue(getDatabaseNode(), "open", nil);
+				if sRecordName ~= "" then
+					local nodeLink = DB.findNode(sRecordName);
+					if nodeLink then
+						bID = (DB.getValue(nodeLink, "isidentified", 1) == 1);
+					end
+				end
+
+				if bID then
+					displayname.setValue(name.getValue());
+				else
+					displayname.setValue(nonid_name.getValue());
+				end
+			end
+		</script>
+		<sheetdata>
+			<!-- Hidden fields -->
+			<numberfieldX name="rngslots">
+				<bounds>0,0,0,0</bounds>
+				<invisible/>
+			</numberfieldX>
+			<hsx name="name">
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						window.refreshName();
+					end
+					
+					function onValueChanged()
+						if super and super.onValueChanged then
+							super.onValueChanged();
+						end
+						window.refreshName();
+					end
+				</script>
+			</hsx>
+			<hsx name="nonid_name">
+				<empty textres="library_recordtype_empty_nonid_item" />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						window.refreshName();
+					end
+					
+					function onValueChanged()
+						if super and super.onValueChanged then
+							super.onValueChanged();
+						end
+						window.refreshName();
+					end
+				</script>
+			</hsx>
+			<hnx name="isidentified">
+				<default>1</default>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						window.refreshName();
+					end
+					
+					function onValueChanged()
+						if super and super.onValueChanged then
+							super.onValueChanged();
+						end
+						window.refreshName();
+					end
+				</script>
+			</hnx>
+			<hsx name="type">
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						refresh();
+					end
+					
+					function onValueChanged()
+						if super and super.onValueChanged then
+							super.onValueChanged();
+						end
+						refresh();
+					end
+					
+					function refresh()
+						local iswpn = window.isWeapon();
+						window.table.setVisible(iswpn);
+						window.dblabel1.setVisible(not iswpn);
+						window.dblabel2.setVisible(not iswpn);
+						window.ob.setVisible(iswpn);
+						window.meleebonus.setVisible(not iswpn);
+						window.missilebonus.setVisible(not iswpn);
+						window.fumble.setVisible(iswpn);
+						window.ranges.setVisible(iswpn);
+						if Session.IsHost then
+							window.ob_nonid.setVisible(iswpn);
+						else
+							window.ob_nonid.setVisible(false);
+						end
+					end
+				</script>
+			</hsx>
+			<hsx name="associatedskill" />
+			<hnx name="rng1" />
+			<hnx name="mod1" />
+			<hnx name="rng2" />
+			<hnx name="mod2" />
+			<hnx name="rng3" />
+			<hnx name="mod3" />
+			<hnx name="rng4" />
+			<hnx name="mod4" />
+			<hnx name="rng5" />
+			<hnx name="mod5" />
+			<hnx name="rng6" />
+			<hnx name="mod6" />
+			<hs name="table" />
+
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<!-- Visible fields -->
+			<link_listitem_left name="open">
+				<class>item</class>
+				<script>
+					function onValueChanged()
+						window.onLinkChanged();
+					end
+				</script>
+			</link_listitem_left>
+
+			<string_listitem_right_noframe_static name="ranges">
+				<anchored width="150" />
+				<empty>None</empty>
+				<script>
+					local suspend = false;
+
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+
+						local node = window.getDatabaseNode();
+						local sClass, sRecordName = DB.getValue(node, "open", nil);
+						if sRecordName and string.find(sRecordName, ".inventorylist.") then
+							node = DB.findNode(sRecordName);
+						end
+
+						if node then
+							for r=1,6 do
+								local nodeMod = DB.createChild(node, "mod"..r,"number");
+								DB.addHandler(DB.getPath(nodeMod), "onUpdate", self.recalc);
+								local nodeRng = DB.createChild(node, "rng"..r,"number");
+								DB.addHandler(DB.getPath(nodeRng), "onUpdate", self.recalc);
+							end
+							local nodeRngSlots = DB.createChild(node, "rngslots","number");
+							DB.addHandler(DB.getPath(nodeRngSlots), "onUpdate", self.recalc);
+						end
+						recalc();
+					end
+
+					function recalc()
+						local node = window.getDatabaseNode();
+						local sClass, sRecordName = DB.getValue(node, "open", nil);
+						if sRecordName and string.find(sRecordName, ".inventorylist.") then
+							node = DB.findNode(sRecordName);
+						end
+
+						if node then
+							local rng = window.rngslots.getValue();
+							local rangetext = "";
+							if suspend then
+								return;
+							else
+								suspend = true;
+							end
+							local nRanges = 0;
+							for r=1,6 do
+								local nRange = DB.getValue(node, "rng" .. r, -1);
+								local nMod = DB.getValue(node, "mod" .. r, 0);
+								if nMod ~= 0 then
+									nRanges = nRanges + 1;
+								end
+								if nRange &gt; -1 and nRanges &gt; 0 then
+									local modtxt = nMod;
+									if modtxt &gt;= 0 then
+										modtxt = "+" .. modtxt;
+									end
+									if r==1 then
+										rangetext = nRange .. ": " .. modtxt;
+									else
+										rangetext = rangetext .. ", " .. nRange .. ": " .. modtxt;
+									end
+								end
+							end
+
+							setValue(rangetext);
+							suspend = false;
+						end
+					end
+				</script>
+			</string_listitem_right_noframe_static>
+			<number_listitem_right_static name="fumble">
+				<anchored width="25" />
+				<tabtarget next="ranges" prev="ob" />
+				<script file="common/scripts/number_crosslink.lua" />
+			</number_listitem_right_static>
+			<number_listitem_right_static name="ob">
+				<anchored width="25" />
+				<tabtarget next="fumble" prev="ob_nonid" />
+				<script file="common/scripts/number_crosslink.lua" />
+			</number_listitem_right_static>
+			<number_listitem_right_static name="ob_nonid">
+				<anchored width="25" />
+				<gmvisibleonly />
+				<tabtarget next="ob" prev="displayname" />
+				<script file="common/scripts/number_crosslink.lua" />
+			</number_listitem_right_static>
+
+			<number_listitem_right_static name="missilebonus">
+				<anchored width="25">
+					<right relation="relative" offset="-30" postoffset="-5" />
+				</anchored>
+				<script file="common/scripts/number_crosslink.lua" />
+			</number_listitem_right_static>
+			<stringc_listitem_right_noframe_static name="dblabel2">
+				<anchored width="60" />
+				<static textres="char_label_combat_db_missile" />
+				<invisible />
+			</stringc_listitem_right_noframe_static>
+			<number_listitem_right_static name="meleebonus">
+				<anchored width="25">
+					<right relation="relative" offset="-30" postoffset="-5" />
+				</anchored>
+				<script file="common/scripts/number_crosslink.lua" />
+			</number_listitem_right_static>
+			<stringc_listitem_right_noframe_static name="dblabel1">
+				<anchored width="55" />
+				<static textres="char_label_combat_db_melee" />
+				<invisible />
+			</stringc_listitem_right_noframe_static>
+
+			<string_listitem_center_noframe_static name="displayname">
+				<script>
+					function onValueChanged()
+						if getValue() == "item" and getValue() == window.name.getValue() then
+							setValue(window.name.getValue());
+						end
+					end
+				</script>
+			</string_listitem_center_noframe_static>
+		</sheetdata>
+	</windowclass>
+</root>

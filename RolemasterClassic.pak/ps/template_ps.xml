@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<template name="number_ps_rmc">
+		<number_ps_linked>
+			<anchored width="25" height="20" />
+			<gmrollable2 />
+			<script>
+				function onInit()
+					super.onInit();
+					if not Session.IsHost then
+						setEnabled(false);
+					end
+				end
+			</script>
+		</number_ps_linked>
+	</template>
+	<template name="number_ps_statbonus">
+		<number_ps_rmc>
+			<displaysign />
+			<script>
+				function action(draginfo)
+					if not Session.IsHost then
+						return false;
+					end
+
+					local nodeChar = window.link.getTargetDatabaseNode();
+					if not nodeChar then
+						return false;
+					end
+
+					local rActor = ActorManager.resolveActor(nodeChar);
+					local sStatAbbr = Rules_Stats.GetAbbrFromName(getName());
+					ActionStat.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, sStatAbbr);
+					return true;
+				end
+				function onDragStart(button, x, y, draginfo)
+					return self.action(draginfo);
+				end
+				function onDoubleClick(x,y)
+					return self.action();
+				end
+			</script>
+		</number_ps_rmc>
+	</template>
+	<template name="number_ps_rrbonus">
+		<number_ps_rmc>
+			<displaysign />
+			<script>
+				function action(draginfo)
+					if not Session.IsHost then
+						return false;
+					end
+
+					local nodeChar = window.link.getTargetDatabaseNode();
+					if not nodeChar then
+						return false;
+					end
+
+					local rActor = ActorManager.resolveActor(nodeChar);
+					local nodeRR, sName = Rules_RR.PartySheetGetNodeAndName(DB.getPath(nodeChar), getName());
+					ActionResistance.performRoll(draginfo, rActor, ActionRMDice.OpenEnded, nodeRR, sName);
+					return true;
+				end
+				function onDragStart(button, x, y, draginfo)
+					return self.action(draginfo);
+				end
+				function onDoubleClick(x,y)
+					return self.action();
+				end
+			</script>
+		</number_ps_rmc>
+	</template>
+	<template name="number_ps_move">
+		<number_ps_rmc>
+			<script>
+				function action(draginfo)
+					if not Session.IsHost then
+						return false;
+					end
+
+					local nodeChar = window.link.getTargetDatabaseNode();
+					if not nodeChar then
+						return false;
+					end
+
+					local rActor = ActorManager.resolveActor(nodeChar);
+					local sSkillName = ActionSkill.MovementMM;
+					local nSkillMod = 0;
+					local nSkillType = ActionSkill.MM;
+					ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+					return true;
+				end
+				function onDragStart(button, x, y, draginfo)
+					return self.action(draginfo);
+				end
+				function onDoubleClick(x,y)
+					return self.action();
+				end
+			</script>
+		</number_ps_rmc>
+	</template>
+	<template name="number_ps_movementmaneuver">
+		<number_ps_rmc>
+			<displaysign />
+			<script>
+				function action(draginfo)
+					if not Session.IsHost then
+						return false;
+					end
+
+					local nodeChar = window.link.getTargetDatabaseNode();
+					if not nodeChar then
+						return false;
+					end
+
+					local rActor = ActorManager.resolveActor(nodeChar);
+					local sSkillName = ActionSkill.GenericMM;
+					local nSkillMod = 0;
+					local nSkillType = ActionSkill.MM;
+					ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+					return true;
+				end
+				function onDragStart(button, x, y, draginfo)
+					return self.action(draginfo);
+				end
+				function onDoubleClick(x,y)
+					return self.action();
+				end
+			</script>
+		</number_ps_rmc>
+	</template>
+	<template name="number_ps_skill">
+		<number_ps_rmc>
+			<displaysign />
+			<script>
+				function action(draginfo)
+					if not Session.IsHost then
+						return false;
+					end
+
+					local nodeChar = window.link.getTargetDatabaseNode();
+					if not nodeChar then
+						return false;
+					end
+
+					local rActor = ActorManager.resolveActor(nodeChar);
+					local sSkillName = getName();
+					local nodeSkill = Rules_PC.SkillNode(nodeChar, sSkillName);
+					if nodeSkill then
+						nSkillMod = DB.getValue(nodeSkill, "total", 0);
+						nSkillType = DB.getValue(nodeSkill, "type", "");
+						ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+					else
+						nSkillType = Rules_Skills.SkillType(sSkillName);
+						nSkillMod = Rules_PC.SkillTotal(nodeChar, sSkillName);
+						ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+					end
+					return true;
+				end
+				function onDragStart(button, x, y, draginfo)
+					return self.action(draginfo);
+				end
+				function onDoubleClick(x,y)
+					return self.action();
+				end
+			</script>
+		</number_ps_rmc>
+	</template>
+</root>

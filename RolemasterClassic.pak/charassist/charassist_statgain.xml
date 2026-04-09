@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<template name="column_heading_stat">
+		<column_heading>
+			<anchored to="rightanchor" width="35" height="12">
+				<top />
+				<right anchor="left" relation="relative" offset="-5" />
+			</anchored>
+			<controlline />
+		</column_heading>
+	</template>
+	<template name="number_listitem_right_static_stat_gain">
+		<number_listitem_right_static>
+			<anchored width="35">
+				<top />
+				<right relation="relative" offset="-5" postoffset="0" />
+			</anchored>
+			<font name="sheettext" />
+			<hideonvalue merge="delete" />
+		</number_listitem_right_static>
+	</template>
+	<template name="number_listitem_right_static_stat_gain_roll">
+		<number_listitem_right_static_stat_gain>
+			<anchored height="20" />
+			<frame name="ghostdice" offset="0,1,0,0" />
+		</number_listitem_right_static_stat_gain>
+	</template>
+
+
+	<windowclass name="charassist_statgain" copy="charsheethelper_base">
+		<sizelimits>
+			<minimum width="350" height="425" />
+		</sizelimits>
+		<helplinkres>help_charassist_statgain</helplinkres>
+		<sheetdata>
+			<windowtitlebar_charsheethelper name="title">
+				<prefix>charlevel_heading_statgain</prefix>
+			</windowtitlebar_charsheethelper>
+
+			<!-- HEADER -->
+			<area_content_framed_groupbox_top name="charinfoframe">
+				<anchored height="25" />
+			</area_content_framed_groupbox_top>
+			<string_labeled name="name">
+				<anchored to="charinfoframe" position="insidetop" offset="0,0" height="20" />
+				<label>name</label>
+			</string_labeled>
+
+			<!-- FOOTER -->
+			<area_content_framed_groupbox_narrow_bottom name="footerframe">
+				<anchored height="40" />
+			</area_content_framed_groupbox_narrow_bottom>
+			<button_text name="button_statgain_viewtable">
+				<anchored to="footerframe" position="insidetopleft" offset="10,10" width="110" height="20" />
+				<state textres="char_label_stat_gain_table_view" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("referencetable", "reference.RMtables.statsgaintable@Character Law");
+					end
+				</script>
+			</button_text>
+			<button_text name="button_statgain_apply">
+				<anchored to="footerframe" position="insidetopright" offset="10,10" width="70" height="20" />
+				<state textres="char_label_stat_gain_apply" />
+				<tooltip textres="char_tooltip_stat_gain_apply" />
+				<script>
+					function onButtonPress()
+						readyToApply = true;
+						for i, win in ipairs(window.abilities.getWindows()) do
+							if win.statgainroll.getValue() &lt; 1 then
+								readyToApply = false;
+							end
+						end
+						if not readyToApply then
+							statmsg = window.name.getValue() .. "\r"
+							statmsg = statmsg .. "Stat Gain: Can't apply stat gain until all stats have been rolled.\r";
+							msgicon = "indicator_stop";
+						else							
+							statmsg = window.name.getValue() .. "\r"
+							statmsg = statmsg .. "Stat Gain Results: \r";
+							msgicon = "icon_info";
+							for i, win in ipairs(window.abilities.getWindows()) do
+								statmsg = statmsg .. win.label.getValue() .. "          ";
+								if win.result.getValue() &gt; -1 then
+									statmsg = statmsg .. "+";
+								end
+								statmsg = statmsg .. win.result.getValue() .. "           (" .. win.newtemp.getValue() .. "/" .. win.potential.getValue() .. ")\r";
+								win.temp.setValue(win.newtemp.getValue());
+								win.statgainroll.setValue(0);
+							end
+						end
+						local msg = {font = "msgfont", icon = msgicon, mode = "system"};
+						msg.text = statmsg;
+						Comm.deliverChatMessage(msg);
+					end
+				</script>
+			</button_text>
+			<button_text name="button_statgain_rollall">
+				<anchored to="button_statgain_apply" position="lefthigh" offset="15,0" width="70" height="20" />
+				<state textres="char_label_stat_gain_roll_all" />
+				<tooltip textres="char_tooltip_stat_gain_roll_all" />
+				<script>
+					function onButtonPress()
+						for i, win in ipairs(window.abilities.getWindows()) do
+							win.statgainroll.action();
+						end
+					end
+				</script>
+			</button_text>
+
+			<!-- CONTENT -->
+			<area_content_framed_groupbox name="abilityframe" />
+			<genericcontrol name="rightanchor">
+				<anchored to="abilityframe" position="insidetopright" offset="0,8" width="0" />
+				<invisible />
+			</genericcontrol>
+			<column_heading_stat name="temp_new_label">
+				<anchored width="35" />
+				<static textres="char_label_stat_temp_new" />
+			</column_heading_stat>
+			<column_heading_stat name="result_label">
+				<static textres="char_label_stat_result" />
+			</column_heading_stat>
+			<column_heading_stat name="roll_label">
+				<static textres="char_label_stat_roll" />
+			</column_heading_stat>
+			<column_heading_stat name="stat_diff_label">
+				<static textres="char_label_stat_diff" />
+			</column_heading_stat>
+			<column_heading_stat name="stat_pot_label">
+				<static textres="char_label_stat_pot" />
+			</column_heading_stat>
+			<column_heading_stat name="stat_temp_label">
+				<static textres="char_label_stat_temp" />
+			</column_heading_stat>
+			<column_heading_stat name="stat_abbr_label">
+				<anchored width="50" />
+				<static textres="char_label_stat_abbr" />
+			</column_heading_stat>
+
+			<windowlist name="abilities">
+				<anchored to="abilityframe" position="insidetop" offset="0,20">
+					<bottom />
+				</anchored>
+				<class>charassist_statgain_abilitywindow</class>
+				<datasource>.abilities</datasource>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						--[[ load the stat list ]]
+						local statList = Rules_Stats.List();
+						for i = 1, #statList do
+							addEntry(statList[i].name, statList[i].label, statList[i].devStat, statList[i].order);
+						end
+						--[[ force a re-sort ]]
+						applySort();
+					end
+
+					function addEntry(name, label, dev, order)
+						local node = DB.getChild(getDatabaseNode(), name);
+						local win;
+						if not node then
+							node = DB.createChild(getDatabaseNode(), name);
+						end
+						for i,w in ipairs(getWindows()) do
+							if DB.getName(w.getDatabaseNode())==name then
+								win = w;
+							end
+						end
+						if win then
+							win.label.setValue(label);
+							win.order.setValue(order);
+						end
+					end
+
+					function onSortCompare(w1, w2)
+						return (w1.order.getValue() &gt; w2.order.getValue());
+					end
+				</script>
+			</windowlist>
+			<scrollbar_content_base>
+				<anchored to="abilities" />
+				<target>abilities</target>
+			</scrollbar_content_base>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charassist_statgain_abilitywindow">
+		<sizelimits>
+			<minimum height="22" />
+			<maximum height="22" />
+		</sizelimits>
+		<script file="charassist/scripts/statgain_abilitywindow.lua" />
+		<sheetdata>
+			<hnc name="order" />
+			<hn name="dev" />
+			
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<number_listitem_right_static_stat_gain name="newtemp" />
+			<number_listitem_right_static_stat_gain name="result" />
+			<number_listitem_right_static_stat_gain_roll name="statgainroll">
+				<script>
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+						ActionStatGain.performRoll(draginfo, rActor, ActionRMDice.D100, window.label.getValue());
+
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</number_listitem_right_static_stat_gain_roll>
+			<number_listitem_right_static_stat_gain name="difference" />
+			<number_listitem_right_static_stat_gain name="potential" />
+			<number_listitem_right_static_stat_gain name="temp" />
+
+			<string_listitem_center_noframe_static name="label" />
+		</sheetdata>
+	</windowclass>
+</root>

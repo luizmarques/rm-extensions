@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<string name="tab_character">Character</string>
+	<string name="tab_spell_skill">Spell/Skill</string>
+	<string name="tab_primary">Pri Skills</string>
+	<string name="tab_secondary">Sec Skills</string>
+	<string name="tab_levelbonus">Lvl Bonus</string>
+	
+	<!-- Desktop -->
+	<framedef name="desktop">
+		<bitmap file="graphics/frames/desktop.png" />
+		<topleft rect="0,0,6,6" />
+		<top rect="6,0,500,6" />
+		<left rect="0,6,6,500" />
+		<middle rect="6,6,500,500" />
+		<bottomleft rect="0,500,6,6" />
+		<bottom rect="6,500,500,6" />
+	</framedef>
+
+	<!-- Controls -->
+	<framedef name="ghost">
+		<bitmap file="graphics/frames/ghost.png" />
+		<offset>3,3,3,3</offset>
+	</framedef>
+	<framedef name="ghostdice">
+		<bitmap file="graphics/frames/d100icon.png" />
+		<decal rect="0,0,40,20" />
+	</framedef>
+	<framedef name="textlinedice">
+		<bitmap file="graphics/frames/textlinedice.png" />
+		<middle rect="0,0,30,20" />
+	</framedef>
+	<framedef name="textline">
+		<bitmap file="graphics/frames/textline.png" />
+		<middle rect="0,0,100,20" />
+	</framedef>
+	<framedef name="textlinesmall">
+		<bitmap file="graphics/frames/textline.png" />
+		<middle rect="0,2,100,14" />
+	</framedef>
+
+	<!-- Scrollbars / Sliders -->
+	<framedef name="sliderv">
+		<bitmap file="graphics/frames/sliderv.png" />
+		<top rect="0,0,15,4"/>
+		<middle rect="0,4,15,4"/>
+		<bottom rect="0,8,15,4"/>
+	</framedef>
+	<framedef name="sliderh">
+		<bitmap file="graphics/frames/sliderh.png" />
+		<left rect="0,0,4,15"/>
+		<middle rect="4,0,4,15"/>
+		<right rect="8,0,4,15"/>
+	</framedef>
+
+	<!-- Misc -->
+	<framedef name="Hilight10">
+		<bitmap file="graphics/frames/hilight_10.png" />
+		<offset>0,0,0,0</offset>
+	</framedef>
+	<framedef name="Hilight20">
+		<bitmap file="graphics/frames/hilight_20.png" />
+		<offset>0,0,0,0</offset>
+	</framedef>
+</root>

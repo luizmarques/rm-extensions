@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<template name="string_labeled" merge="join">
+		<stringu>
+			<keyeditframe name="rowshade" offset="0,-3,0,0" />
+		</stringu>
+	</template>
+	<template name="stringc_labeled" merge="join">
+		<stringcu>
+			<keyeditframe name="rowshade" offset="0,-3,0,0" />
+		</stringcu>
+	</template>
+	<template name="number_labeled">
+		<numberfield>
+			<anchored height="20" />
+			<font>sheettext</font>
+			<frame name="textlinesmall" offset="0,-3,0,0" />
+			<keyeditframe name="rowshade" offset="0,-3,0,0" />
+			<script>
+				labelwidget = nil;
+			
+				function onInit()
+					if labelres then
+						labelwidget = addTextWidget({ 
+							font = "sheetlabelinline", 
+							text = Interface.getString(labelres[1]):upper(),
+						});
+					elseif label then
+						labelwidget = addTextWidget({ 
+							font = "sheetlabelinline", 
+							text = label[1]:upper(),
+						});
+					end
+					if labelwidget then
+						local w,h = labelwidget.getSize();
+						labelwidget.setPosition("bottomleft", w/2, h/2-5);
+					end
+				end
+			</script>
+		</numberfield>
+	</template>
+	<template name="tablefield">
+		<stringcontrolX>
+			<script file="common/scripts/template_tablefield.lua" />
+			<static/>
+		</stringcontrolX>
+	</template>
+
+	<template name="scrollbar">
+		<scrollbarcontrol>
+			<anchored position="right" offset="0,0" width="16" />
+			<frame name="scrollbar_base" offset="0,0,0,0" />
+			<normal name="scrollbutton_normal">
+				<minimum height="40" />
+			</normal>
+		</scrollbarcontrol>
+	</template>
+	<template name="RMC_scrollbar">
+		<scrollbarcontrol>
+			<anchored>
+				<size>
+					<width>16</width>
+				</size>
+			</anchored>
+			<frame>
+				<name>scrollbar_base</name>
+				<offset>0,0,0,0</offset>
+			</frame>
+			<normal>
+				<name>scrollbutton_normal</name>
+			</normal>
+		</scrollbarcontrol>
+	</template>
+	<template name="scrollbar2">
+		<genericcontrol>
+			<anchored>
+				<left anchor="right" />
+				<top anchor="bottom" />
+			</anchored>
+			<frame name="Hilight10" />
+			<script file="common/scripts/template_scrollbar.lua"/>
+		</genericcontrol>
+	</template>
+	<template name="scrollbar_slider">
+		<genericcontrol>
+			<anchored position="insidetopleft" width="15" height="15" />
+			<frame name="sliderv" />
+			<script>
+				local parent = nil;
+
+				function onDragStart(...)
+					if parent and parent.sliderDragged then
+						return parent.sliderDragged(...);
+					else
+						return false;
+					end
+				end
+
+				function onDrag(...)
+					if parent and parent.sliderDragged then
+						return parent.sliderDragged(...);
+					else
+						return false;
+					end
+				end
+
+				function onClickDown(...)
+					if parent and parent.sliderClicked then
+						return parent.sliderClicked(...);
+					else
+						return false;
+					end
+				end
+
+				function onWheel(...)
+					if parent and parent.onWheel then
+						return parent.onWheel(...);
+					else
+						return false;
+					end
+				end
+
+				function onDragEnd(...)
+					if parent and parent.sliderDragEnded then
+						return parent.sliderDragEnded(...);
+					else
+						return false;
+					end
+				end
+
+				function registerParent(source)
+					parent = source;
+				end
+			</script>
+		</genericcontrol>
+	</template>
+
+	<template name="numberfieldX">
+		<numberfield>
+			<fontcolor>
+				<readonly mergerule="replace">#CC444844</readonly>
+				<mousescroll mergerule="replace">#FFFFFFFF</mousescroll>
+			</fontcolor>
+			<script file="common/scripts/numbercontrolX.lua"/>
+		</numberfield>
+	</template>
+	<template name="numberfieldX_underlined_text">
+		<numberfieldX>
+			<frame name="fielddark" offset="5,5,5,5" />
+			<keyeditframe name="fieldfocus" offset="5,5,5,5" />
+			<font>sheettext</font>
+		</numberfieldX>
+	</template>
+	<template name="numberfieldX_underlined_bold">
+		<numberfieldX>
+			<frame name="fielddark" offset="5,5,5,5" />
+			<keyeditframe name="fieldfocus" offset="5,5,5,5" />
+			<font>sheettext</font>
+		</numberfieldX>
+	</template>
+	<template name="numberfieldX_roll">
+		<numberfieldX>
+			<frame name="fieldlight" offset="5,5,5,5" />
+			<keyeditframe name="fieldlight" offset="5,5,5,5" />
+			<font>sheettext</font>
+		</numberfieldX>
+	</template>
+	<template name="numbercontrolX">
+		<numbercontrol>
+			<fontcolor>
+				<readonly mergerule="replace">#CC554844</readonly>
+				<mousescroll mergerule="replace">#FFFFFFFF</mousescroll>
+			</fontcolor>
+			<script file="common/scripts/numbercontrolX.lua"/>
+		</numbercontrol>
+	</template>
+	<template name="stringfieldX">
+		<stringfield>
+			<script file="common/scripts/stringcontrolX.lua"/>
+		</stringfield>
+	</template>
+	<template name="stringfieldX_underlined_text">
+		<stringfieldX>
+			<frame name="fielddark" offset="5,5,5,5" />
+			<keyeditframe name="fieldfocus" offset="5,5,5,5" />
+			<font>sheettext</font>
+		</stringfieldX>
+	</template>
+	<template name="stringcontrolX">
+		<stringcontrol>
+			<script file="common/scripts/stringcontrolX.lua"/>
+		</stringcontrol>
+	</template>
+	<template name="stringcontrolX_underlined_text">
+		<stringcontrolX>
+			<frame name="textline" offset="0,1,0,0" />
+			<keyeditframe name="rowshade" offset="0,1,0,0" />
+			<font>sheettext</font>
+		</stringcontrolX>
+	</template>
+	<template name="sortablelist">
+		<windowlist>
+			<sortradialposition mergerule="replace">3</sortradialposition>
+
+			<sortfield mergerule="resetandadd">
+				<nosortfieldsdefined />
+			</sortfield>
+
+			<defaultsort mergerule="replace">
+				<nodefaultsortdefined />
+			</defaultsort>
+			<script file="common/scripts/sortablelist.lua" />
+		</windowlist>
+	</template>
+	<template name="multitext">
+		<stringcontrolX>
+			<statelabels mergerule="resetandadd">
+				<state>On</state>
+				<state>Off</state>
+			</statelabels>
+			<script file="common/scripts/template_multitext.lua" />
+			<static />
+		</stringcontrolX>
+	</template>
+	<template name="modifier">
+		<genericcontrol>
+			<anchored>
+				<position>righthigh</position>
+				<offset>-7</offset>
+				<size>
+					<width>10</width>
+					<height>10</height>
+				</size>
+			</anchored>
+			<icon>indicator_modifier</icon>
+		</genericcontrol>
+	</template>
+</root>

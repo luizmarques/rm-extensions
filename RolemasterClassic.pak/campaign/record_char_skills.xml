@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<template name="number_listitem_right_static_skill_total">
+		<number_listitem_right_static>
+			<anchored width="30">
+				<top />
+				<right relation="relative" offset="-1" postoffset="0" />
+			</anchored>
+			<frame name="" />
+			<hideonvalue merge="delete" />
+			<displaysign/>
+			<script>
+				function onInit()
+					super.onInit();
+					refresh();
+				end
+
+				function refresh()
+					local sProgression = window.progression.getValue();
+					local nRank = window.rank.getValue();
+					local nTotal = 0; 
+					local nRankBonus = window.rankbonus.getValue();
+					local nStatBonus = window.statbonus.getValue();
+					local nLevelBonus = window.level.getValue();
+					local nItemBonus = window.item.getValue();
+					local nSpecialBonus = window.special.getValue();
+					local nMiscBonus = window.misc.getValue()
+					
+					if sProgression == "Standard" or sProgression == "Base (rank x 5)" then
+						nTotal = nRankBonus + nStatBonus + nLevelBonus + nItemBonus + nSpecialBonus + nMiscBonus;
+					elseif sProgression == "Hits" then
+						nTotal = math.floor(nRankBonus * (1 + nStatBonus/100)) + nLevelBonus + nItemBonus + nSpecialBonus + nMiscBonus;
+					elseif sProgression == "Power Point" then
+						nTotal = math.floor(nRankBonus * nStatBonus) + nLevelBonus + nItemBonus + nSpecialBonus + nMiscBonus;
+					else
+						nTotal = nRankBonus + nStatBonus + nLevelBonus + nItemBonus + nSpecialBonus + nMiscBonus;
+					end
+					
+					setValue(nTotal);
+				end
+
+				function onValueChanged()
+					local charNode = DB.getChild(window.getDatabaseNode(), "...");
+					local skillName = window.name.getValue();
+					local skillFullName = window.fullname.getValue();
+					local skillTotal = getValue();
+					if window.type.getValue() == 4 then
+						Rules_PC.MMPenalty(charNode);
+					end
+					Rules_PC.SkillTotalChanged(charNode, skillName, skillFullName, skillTotal);
+				end
+			</script>
+		</number_listitem_right_static>
+	</template>
+	<template name="number_listitem_right_static_skill_modifier">
+		<number_listitem_right_static>
+			<anchored width="25">
+				<top />
+				<right relation="relative" offset="-1" postoffset="0" />
+			</anchored>
+			<font>sheettext</font>
+			<frame name="" />
+			<hideonvalue merge="delete" />
+			<displaysign/>
+			<delaykeyupdate merge="delete" />
+			<script>
+				function onValueChanged()
+					window.total.refresh();
+				end
+			</script>
+		</number_listitem_right_static>
+	</template>
+	<template name="number_listitem_right_skill_modifier">
+		<number_listitem_right>
+			<anchored width="25">
+				<top />
+				<right relation="relative" offset="-1" postoffset="0" />
+			</anchored>
+			<font>sheettext</font>
+			<frame name="" />
+			<hideonvalue merge="delete" />
+			<displaysign/>
+			<delaykeyupdate merge="delete" />
+			<script>
+				function onValueChanged()
+					window.total.refresh();
+				end
+			</script>
+		</number_listitem_right>
+	</template>
+	<template name="number_listitem_right_skill_rank">
+		<number_listitem_right>
+			<anchored width="25">
+				<top />
+				<right relation="relative" offset="-1" postoffset="0" />
+			</anchored>
+			<font>sheettext</font>
+			<frame name="" />
+			<hideonvalue merge="delete" />
+			<delaykeyupdate merge="delete" />
+			<script>
+				function onValueChanged()
+					local sProgression = window.progression.getValue();
+					local nRank = window.rank.getValue();
+
+					if sProgression == "Standard" or sProgression == "Base (rank x 5)" then
+						local nRankBonus = Rules_Skills.RankBonus(nRank, Rules_Skills.GetProgressionID(sProgression));
+						window.rankbonus.setValue(nRankBonus);
+					elseif sProgression == "Power Point" then
+						window.rankbonus.setValue(nRank);
+						window.statbonus.setValue(Rules_PC.RealmPPMultiplier(window.windowlist.window.getDatabaseNode()));
+					end
+				end
+			</script>
+		</number_listitem_right>
+	</template>
+	<template name="string_listitem_right_skill">
+		<string_listitem_right>
+			<anchored width="25">
+				<top />
+				<right relation="relative" offset="-6" postoffset="0" />
+			</anchored>
+			<frame name="" />
+			<center />
+			<multilinespacing merge="delete" />
+		</string_listitem_right>
+	</template>
+	<template name="multitext_listitem_right_skill_calc">
+		<multitext>
+			<anchored to="rightanchor" width="35" height="20">
+				<top />
+				<right relation="relative" offset="-6" postoffset="0" />
+			</anchored>
+			<font>sheettext</font>
+			<center/>
+			<frame name="" />
+			<stateframe>
+				<keyedit name="fieldfocus" offset="5,5,5,5" />
+				<hover name="fieldfocus" offset="5,5,5,5" hidereadonly="true" />
+				<drophilight name="fieldfocus" offset="5,5,5,5" hidereadonly="true" />
+			</stateframe>
+			<statelabels>
+				<state>Std.</state>
+				<state>Base</state>
+				<state>Hits</state>
+				<state>Man.</state>
+				<state>PP</state>
+			</statelabels>
+			<script>
+				function onStateChanged()
+					local nCalc = getState();
+					local sProgression = Rules_Skills.GetProgressionName(nCalc);
+					window.progression.setValue(sProgression);
+					window.total.refresh();
+
+					if sProgression == "Standard" or sProgression == "Base (rank x 5)" then
+						window.total.refresh();
+					elseif sProgression == "Hits" then
+						window.total.refresh();
+					elseif sProgression == "Power Point" then
+						window.statbonus.setValue(Rules_PC.RealmPPMultiplier(window.windowlist.window.getDatabaseNode()));
+						window.total.refresh();
+					else
+						window.total.refresh();
+					end
+				end
+			</script>
+		</multitext>
+	</template>
+
+	<windowclass name="charsheet_skills">
+		<script>
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				OptionsManager.registerCallback("CL23G", refresh);
+				OptionsManager.registerCallback("CL23T", refresh);
+				DB.addHandler(DB.getPath(getDatabaseNode(), "level"), "onUpdate", refresh);
+				DB.addHandler(DB.getPath(getDatabaseNode(), "profession"), "onUpdate", refresh);
+				refresh();
+			end
+
+			function onClose()
+				OptionsManager.unregisterCallback("CL23G", refresh);
+				OptionsManager.unregisterCallback("CL23T", refresh);
+				DB.removeHandler(DB.getPath(getDatabaseNode(), "level"), "onUpdate", refresh);
+				DB.removeHandler(DB.getPath(getDatabaseNode(), "profession"), "onUpdate", refresh);
+			end
+			
+			function refresh()
+				local nodeChar = getDatabaseNode();
+				local _, sProfessionNodeName = DB.getValue(nodeChar, "professionlink", nil);
+				local nodeProfession = DB.findNode(sProfessionNodeName);
+				local nLevel = DB.getValue(nodeChar, "level", 0);
+				local sOpt23G = string.lower(OptionsManager.getOption("CL23G"));
+				local sLevelBonusNodeName = Rules_Skills.GetLevelBonusNodeName(sOpt23G);
+				for i, winSkill in ipairs(skills.getWindows()) do
+					if winSkill.level then
+						local nLevelBonus = 0;
+						if winSkill.fullname.getValue() == "Body Development" or winSkill.name.getValue() == "Body Development" then
+							local nRanks = winSkill.rank.getValue();
+							nLevelBonus = Rules_Skills.GetSkillLevelBonus(winSkill.getDatabaseNode(), sLevelBonusNodeName, nodeProfession, nRanks);
+						else
+							nLevelBonus = Rules_Skills.GetSkillLevelBonus(winSkill.getDatabaseNode(), sLevelBonusNodeName, nodeProfession, nLevel);
+						end
+
+						if not (sOpt23G == string.lower(Interface.getString("option_val_none"))) then
+							winSkill.level.setValue(nLevelBonus);
+							winSkill.level.setReadOnly(true);
+						else
+							winSkill.level.setReadOnly(false);
+						end
+					end
+				end
+			end
+		</script>
+		<sheetdata>
+			<hs name="profession" />
+			<hn name="skill_perception_total" source="links.skill_perception_total" />
+
+			<frame_char name="skillframe">
+				<anchored position="insidetop" offset="0,0">
+					<bottom offset="-20" />
+				</anchored>
+			</frame_char>
+
+			<!-- Headings -->
+			<header_section name="skillslabel">
+				<anchored to="skillframe" />
+				<static textres="char_heading_skills" />
+			</header_section>
+
+			<genericcontrol name="rightanchor">
+				<anchored to="skillframe" position="insidetopright" offset="13,15" width="0" />
+				<invisible />
+			</genericcontrol>
+			<column_heading_skill name="totallabel">
+				<anchored width="30" />
+				<static textres="char_label_skill_total" />
+			</column_heading_skill>
+			<column_heading_skill name="misclabel">
+				<static textres="char_label_skill_misc" />
+			</column_heading_skill>
+			<column_heading_skill name="speclabel">
+				<static textres="char_label_skill_special" />
+			</column_heading_skill>
+			<column_heading_skill name="itemlabel">
+				<static textres="char_label_skill_item" />
+			</column_heading_skill>
+			<column_heading_skill name="levellabel">
+				<anchored width="20" />
+				<static textres="char_label_skill_level" />
+			</column_heading_skill>
+			<column_heading_skill name="statlabel">
+				<static textres="char_label_skill_stat" />
+			</column_heading_skill>
+			<column_heading_skill name="rankbonuslabel">
+				<anchored width="30" />
+				<static textres="char_label_skill_rankbonus" />
+			</column_heading_skill>
+			<column_heading_skill name="ranklabel">
+				<static textres="char_label_skill_rank" />
+			</column_heading_skill>
+			<column_heading_skill name="costlabel">
+				<anchored width="35" />
+				<static textres="char_label_skill_cost" />
+			</column_heading_skill>
+			<column_heading_skill name="calclabel">
+				<anchored width="35" />
+				<static textres="char_label_skill_calc" />
+			</column_heading_skill>
+			
+
+			<!-- Skill list -->
+			<windowlist name="skills">
+				<anchored>
+					<to>skillframe</to>
+					<position>over</position>
+					<offset>-15,-15</offset>
+					<top>
+						<parent>skillframe</parent>
+						<anchor>top</anchor>
+						<offset>28</offset>
+					</top>
+				</anchored>
+				<datasource>.skills</datasource>
+				<class>charsheet_skillwindow</class>
+				<sortby><control>shortname</control></sortby>
+				<child />
+				<child><backcolor>1A40301E</backcolor></child>
+				<script file="campaign/scripts/charsheet_skilllist.lua" />
+			</windowlist>
+			<scrollbar>
+				<anchored>
+					<to>skills</to>
+					<position>right</position>
+					<offset>-3,-4</offset>
+				</anchored>
+				<target>skills</target>
+			</scrollbar>
+
+			<button_text name="button_skilldev_openwindow">
+				<anchored to="skillframe" position="belowright" offset="10,0" width="130" height="20" />
+				<state textres="char_label_skill_dev" />
+				<tooltip textres="char_tooltip_skill_dev" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("charassist_skilldev", window.getDatabasePath());
+					end
+				</script>
+			</button_text>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charsheet_skillwindow">
+		<sizelimits>
+			<minimum>
+				<height>22</height>
+			</minimum>
+			<maximum>
+				<height>44</height>
+			</maximum>
+		</sizelimits>
+		<script file="campaign/scripts/charsheet_skillwindow.lua" />
+		<sheetdata>
+			<!-- hidden fields -->
+			<hs name="fullname"/>
+			<hs name="name"/>
+			<hs name="class"/>
+			<hn name="type"/>
+			<hs name="skilltype"/>
+			<hs name="group"/>
+			<hs name="progression"/>
+			<hs name="stats"/>
+			<hn name="armorfactor"/>
+			<hs name="core_level_bonus_group" source="levelbonus.core"/>
+			<hs name="rm2_level_bonus_group" source="levelbonus.rm2"/>
+			<hs name="rmfrp_level_bonus_group" source="levelbonus.rmfrp"/>
+			<hs name="rmcompanion2_level_bonus_group" source="levelbonus.rmcompanion2"/>
+
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<!-- visible fields -->
+			<link_listitem_left name="open">
+				<class>skill</class>
+			</link_listitem_left>
+
+			<number_listitem_right_static_skill_total name="total" />
+			<number_listitem_right_skill_modifier name="misc" />
+			<number_listitem_right_skill_modifier name="special" />
+			<number_listitem_right_skill_modifier name="item" />
+			<number_listitem_right_skill_modifier name="level">
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+					end
+				</script>
+			</number_listitem_right_skill_modifier>
+			<number_listitem_right_static_skill_modifier name="statbonus" />
+			<number_listitem_right_skill_modifier name="rankbonus">
+				<anchored width="30" />
+			</number_listitem_right_skill_modifier>
+			<number_listitem_right_skill_rank name="rank" />
+			<string_listitem_right_skill name="cost" />
+			<multitext_listitem_right_skill_calc name="calc" />
+			
+			<dice_ghost name="diceholder">
+				<bounds>15,0,100,20</bounds>
+			</dice_ghost>
+			<string_listitem_center_noframe_static name="shortname">
+				<script>
+					local sem = false;
+
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						update();
+					end
+					function onValueChanged()
+						if sem then
+							return;
+						end
+
+						sem = true;
+						window.parseShortName();
+						sem = false;
+					end
+					function update()
+						if sem then
+							return;
+						end
+
+						sem = true;
+						local nm = window.name.getValue();
+						local sts = window.stats.getValue();
+						local name = nm;
+						if sts~="" then
+							name = name .. " (" .. sts .. ")";
+						end
+						setValue(name);
+						setTooltipText(name);
+						sem = false;
+					end
+
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+						local skillNode = window.getDatabaseNode();
+						if skillNode then
+							sSkillName = DB.getValue(skillNode, "name", "");
+							nSkillMod = DB.getValue(skillNode, "total", 0);
+							nSkillType = DB.getValue(skillNode, "type", "");
+							ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+							return true;
+						else
+							Comm.deliverChatMessage({text="ERROR: Can't find skill node", font="systemfont", icon = "error"});
+						end
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</string_listitem_center_noframe_static>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charsheet_skillgroup">
+		<frame>metalplate</frame>
+		<sizelimits>
+			<minimum>
+				<height>30</height>
+			</minimum>
+			<maximum>
+				<height>30</height>
+			</maximum>
+		</sizelimits>
+		<sheetdata>
+			<stringcontrol name="name">
+				<bounds>15,5,-1,20</bounds>
+				<font>subwindowsmalltitle</font>
+				<static />
+			</stringcontrol>
+		</sheetdata>
+	</windowclass>
+</root>

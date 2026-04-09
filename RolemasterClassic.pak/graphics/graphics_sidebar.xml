@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+
+    <!-- RolemasterClassic (Common) -->
+    <icon name="sidebar_icon_link_rolemaster_tables" file="graphics/sidebar/sidebar_icon_link_rmtables.png" />
+    <icon name="sidebar_icon_link_tableresolver" file="graphics/sidebar/sidebar_icon_link_tableresolver.png" />
+    <icon name="sidebar_icon_recordtype_profession" file="graphics/sidebar/sidebar_icon_class.png" />
+    <icon name="sidebar_icon_recordtype_spelllist" file="graphics/sidebar/sidebar_icon_spell.png" />
+
+</root>

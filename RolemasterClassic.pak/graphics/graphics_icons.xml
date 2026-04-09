@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- Common -->
+	<icon name="iron_crown_logo" file="graphics/icons/iron_crown_logo.png" />
+	<icon name="details" file="graphics/icons/details.png" />
+	<icon name="details_down" file="graphics/icons/details_down.png" />
+	<icon name="indicator_flagsmall" file="graphics/icons/indicator_flagsmall.png" />
+	<icon name="footer_wide" file="graphics/icons/footer_wide.png" />
+	<icon name="indicator_dropdown" file="graphics/icons/indicator_dropdown.png" />
+	<icon name="indicator_dropdown_active" file="graphics/icons/indicator_dropdown_active.png" />
+	<icon name="indicator_modifier" file="graphics/icons/plus01.png" />
+	<icon name="icon_info" file="graphics/icons/icon_info.png" />
+
+	<icon name="button_checkoff" file="graphics/icons/indicator_checkon.png" />
+	<icon name="button_checkoff" file="graphics/icons/indicator_checkoff.png" />
+	<icon name="field_rollable" file="graphics/icons/indicator_fullattackdie.png" />
+	<icon name="field_rollable_transparent" file="graphics/icons/indicator_fullattackdie.png" />
+
+	<!-- Chat -->
+	<icon name="resting" file="graphics/icons/resting.png" />
+	<icon name="chat_wait" file="graphics/icons/chat_wait.png" />
+
+	<!-- Desktop -->
+	<icon name="modcollector" file="graphics/icons/modcollector.png" />
+	<icon name="modcollector_counter" file="graphics/icons/modcollector_counter.png" />
+	<icon name="d100icon" file="graphics/icons/d100icon.png" />
+	<icon name="minimized" file="graphics/icons/minimized.png" />
+	<icon name="minimized_encounter" file="graphics/icons/minimized_encounter.png" />
+	<icon name="minimized_image" file="graphics/icons/minimized_image.png" />
+	<icon name="minimized_combat" file="graphics/icons/minimized_combat.png" />
+	<icon name="minimized_item" file="graphics/icons/minimized_item.png" />
+	<icon name="minimized_npc" file="graphics/icons/minimized_npc.png" />
+	<icon name="minimized_pc" file="graphics/icons/minimized_pc.png" />
+	<icon name="minimized_utility" file="graphics/icons/minimized_utility.png" />
+	<icon name="minimized_reference" file="graphics/icons/minimized_reference.png" />
+	<icon name="minimized_note" file="graphics/icons/minimized_note.png" />
+	
+	<!-- Character Sheet Skill icons -->
+	<icon name="locked" file="graphics/icons/locked.png" />
+	<icon name="unlocked" file="graphics/icons/unlocked.png" />
+
+	<!-- Rolls -->
+	<icon name="roll_cast" file="graphics/icons/roll_cast.png" />
+	<icon name="roll_attack" file="graphics/icons/roll_attack.png" />
+	<icon name="roll_attack_miss" file="graphics/icons/roll_attack_miss.png" />
+	<icon name="roll_attack_hit" file="graphics/icons/roll_attack_hit.png" />
+	<icon name="roll_attack_crit" file="graphics/icons/roll_attack_crit.png" />
+	<icon name="roll_damage" file="graphics/icons/roll_damage.png" />
+	<icon name="roll_heal" file="graphics/icons/roll_heal.png" />
+	<icon name="roll_crit_head" file="graphics/icons/roll_crit_head.png" />
+	<icon name="roll_crit_head_true" file="graphics/icons/roll_crit_head_true.png" />
+	<icon name="roll_crit_head_false" file="graphics/icons/roll_crit_head_false.png" />
+	<icon name="roll_crit_face" file="graphics/icons/roll_crit_face.png" />
+	<icon name="roll_crit_face_true" file="graphics/icons/roll_crit_face_true.png" />
+	<icon name="roll_crit_face_false" file="graphics/icons/roll_crit_face_false.png" />
+	<icon name="roll_crit_neck" file="graphics/icons/roll_crit_neck.png" />
+	<icon name="roll_crit_neck_true" file="graphics/icons/roll_crit_neck_true.png" />
+	<icon name="roll_crit_neck_false" file="graphics/icons/roll_crit_neck_false.png" />
+	<icon name="roll_crit_torso" file="graphics/icons/roll_crit_torso.png" />
+	<icon name="roll_crit_torso_true" file="graphics/icons/roll_crit_torso_true.png" />
+	<icon name="roll_crit_torso_false" file="graphics/icons/roll_crit_torso_false.png" />
+	<icon name="roll_crit_arms" file="graphics/icons/roll_crit_arms.png" />
+	<icon name="roll_crit_arms_true" file="graphics/icons/roll_crit_arms_true.png" />
+	<icon name="roll_crit_arms_false" file="graphics/icons/roll_crit_arms_false.png" />
+	<icon name="roll_crit_legs" file="graphics/icons/roll_crit_legs.png" />
+	<icon name="roll_crit_legs_true" file="graphics/icons/roll_crit_legs_true.png" />
+	<icon name="roll_crit_legs_false" file="graphics/icons/roll_crit_legs_false.png" />
+	<icon name="roll_crit_shield" file="graphics/icons/roll_crit_shield.png" />
+	<icon name="roll_crit_shield_true" file="graphics/icons/roll_crit_shield_true.png" />
+	<icon name="roll_crit_shield_false" file="graphics/icons/roll_crit_shield_false.png" />
+	<icon name="indicator_statrolled" file="graphics/icons/indicator_statrolled.png" />
+
+	<!-- Tokens - Effects - General -->
+	<icon name="cond_mustparry" file="graphics/token/token_cond_mustparry.png" />
+	<icon name="cond_dead" file="graphics/token/token_cond_dead.png" />
+	<icon name="cond_dying" file="graphics/token/token_cond_dying.png" />
+
+	<!-- Tokenbag/Assets -->
+	<icon name="tokenbag" file="graphics/icons/tokenbag.png" />
+	<icon name="tokenbagup" file="graphics/icons/tokenbag_up.png" />
+
+	<!-- Combat Tracker -->
+	<icon name="ct_active" file="graphics/icons/indicator_ctactive.png" />
+	<icon name="indicator_ctactive" file="graphics/icons/indicator_ctactive.png" />
+	<icon name="indicator_ctpassive" file="graphics/icons/indicator_ctpassive.png" />
+	<icon name="indicator_ctffempty" file="graphics/icons/indicator_ctffempty.png" />
+	<icon name="indicator_ctfffriend" file="graphics/icons/indicator_ctfffriend.png" />
+	<icon name="indicator_ctffneutral" file="graphics/icons/indicator_ctffneutral.png" />
+	<icon name="indicator_ctfffoe" file="graphics/icons/indicator_ctfffoe.png" />
+	<icon name="indicator_linked" file="graphics/icons/indicator_linked.png" />
+	<icon name="icon_sameround" file="graphics/icons/icon_sameround.png" />
+	<icon name="icon_nextround" file="graphics/icons/icon_nextround.png" />
+	<icon name="icon_table"     file="graphics/icons/icon_table.png" />
+	<icon name="icon_notable"   file="graphics/icons/icon_notable.png" />
+	<icon name="indicator_turnos" file="graphics/icons/indicator_turnos.png" />
+	<icon name="indicator_turntaken" file="graphics/icons/indicator_turntaken.png" />
+	<icon name="visibilityon" file="graphics/icons/visibilityon.png" />
+	<icon name="visibilityoff" file="graphics/icons/visibilityoff.png" />
+
+	<!-- Table Resolver -->
+	<icon name="icon_dieresult" file="graphics/icons/icon_dieresult.png" />
+
+</root>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root version="3.0" release="2.3" logo="logo.png">
+	<announcement text="Rolemaster Classic ruleset v2.3.29 (2026-03-17) for Fantasy Grounds\rCopyright 2026 SmiteWorks USA, LLC and Aurigas Aldeberon LLC" font="emotefont" icon="iron_crown_logo" />
+
+	<!-- ATTRIBUTES -->
+	<description>
+		<displayname>Rolemaster (Classic)</displayname>
+		<text>Rolemaster Classic is a re-release of ICE's original Rolemaster System.</text>
+		<author>Aurigas Aldeberon LLC., 2009-2026</author>
+		<website>http://www.ironcrown.com</website>
+	</description>
+
+	<importinfo>
+		<acceptfrom ruleset="RolemasterClassic" />
+	</importinfo>
+
+	<!-- Layers -->
+	<importruleset source="CoreRPG" />
+
+	<!-- GAME ELEMENTS -->
+	<includefile source="gameelements.xml" />
+
+	<!-- GRAPHICS -->
+	<includefile source="graphics/graphics_buttons.xml" />
+	<includefile source="graphics/graphics_fonts.xml" />
+	<includefile source="graphics/graphics_frames.xml" />
+	<includefile source="graphics/graphics_icons.xml" />
+	<includefile source="graphics/graphics_radial.xml" />
+	<includefile source="graphics/graphics_sidebar.xml" />
+
+	<!-- String resources -->
+	<includefile source="strings/strings_RMC.xml" />
+
+	<!-- TEMPLATES -->
+	<includefile source="common/template_windows.xml" />
+
+	<includefile source="common/template_common.xml" />
+	<includefile source="common/template_dropdown.xml" />
+	<includefile source="common/template_combobox_RMC.xml" />
+
+	<includefile source="campaign/template_campaign.xml" />
+	<includefile source="utility/template_tables.xml" />
+
+	<!-- DESKTOP -->
+	<script name="DesktopRMC" file="scripts/data_desktop_RMC.lua" />
+	<script name="LibraryDataRMC" file="scripts/data_library_RMC.lua" />
+	<includefile source="desktop/desktop_panels.xml" />
+	<includefile source="desktop/desktop_classes.xml" />
+
+	<!-- Utility -->
+	<includefile source="utility/utility_effects.xml" />
+	<includefile source="utility/utility_tables.xml" />
+
+	<!-- CAMPAIGN INFORMATION -->
+	<includefile source="campaign/campaign_chars.xml" />
+
+	<includefile source="campaign/record_battle.xml" />
+	<includefile source="campaign/record_item.xml" />
+	<includefile source="campaign/record_npc.xml" />
+	<includefile source="campaign/record_quest.xml" />
+
+	<includefile source="campaign/record_race.xml" />
+	<includefile source="campaign/record_profession.xml" />
+	<includefile source="campaign/record_skill.xml" />
+	<includefile source="campaign/record_spelllist.xml" />
+
+	<!-- CHARACTER SHEET -->
+	<includefile source="campaign/template_char.xml" />
+	<includefile source="campaign/record_char.xml" />
+	<includefile source="campaign/record_char_main.xml" />
+	<includefile source="campaign/record_char_combat.xml" />
+	<includefile source="campaign/record_char_skills.xml" />
+	<includefile source="campaign/record_char_spells.xml" />
+	<includefile source="campaign/record_char_inventory.xml" />
+	<includefile source="campaign/record_char_notes.xml" />
+
+	<!-- CHARACTER ASSISTANT -->
+	<includefile source="charassist/charassist_statgen.xml" />
+	<includefile source="charassist/charassist_statgain.xml" />
+	<includefile source="charassist/charassist_skilldev.xml" />
+
+	<!-- Party sheet -->
+	<includefile source="ps/template_ps.xml" />
+	<includefile source="ps/ps_main.xml" />
+	<includefile source="ps/ps_xp.xml" />
+	<script name="PartyManager2" file="ps/scripts/manager_ps2.lua" />
+
+	<!-- COMBAT TRACKER -->
+	<includefile source="ct/template_ct.xml" />
+	<includefile source="ct/ct_host.xml" />
+	<includefile source="ct/ct_host_entry.xml" />
+	<includefile source="ct/ct_host_entry_section.xml" />
+	<includefile source="ct/ct_client.xml" />
+	<includefile source="ct/ct_client_entry.xml" />
+	<includefile source="ct/ct_client_entry_section.xml" />
+
+	<!-- REFERENCE -->
+	<includefile source="ref/ref_book_arms_law.xml" />
+	<includefile source="ref/ref_book_char_law.xml" />
+	<includefile source="ref/ref_book_spell_law.xml" />
+	<includefile source="ref/ref_book_creatures_and_treasures.xml" />
+	<includefile source="ref/ref_table.xml" />
+
+	<!-- HIGH-LEVEL SCRIPTS -->
+	<script name="DataCommon" file="scripts/data_common.lua" />
+	<script name="GameSystem" file="scripts/manager_gamesystem.lua" />
+
+	<script name="ActorManagerRMC" file="scripts/manager_actor_RMC.lua" />
+	<script name="CampaignDataManager2" file="scripts/manager_campaigndata2.lua" />
+	<script name="CharManager" file="scripts/manager_char.lua" />
+	<script name="CharEncumbranceManagerRMC" file="scripts/manager_char_encumbrance_RMC.lua" />
+	<script name="CombatManager2" file="scripts/manager_combat2.lua" />
+	<script name="DiceRollManagerRMC" file="scripts/manager_dice_roll_rmc.lua" />
+	<script name="EffectManagerRMC" file="scripts/manager_effect_RMC.lua" />
+	<script name="ImageDeathMarkerManagerRMC" file="scripts/manager_image_deathmarker_RMC.lua" />
+	<script name="ReferenceManagerRMC" file="scripts/manager_reference_RMC.lua" />
+	<script name="ItemManager2" file="scripts/manager_item2.lua" />
+	<script name="TableManagerRMC" file="scripts/manager_table_rmc.lua" />
+	<script name="TokenManager2" file="scripts/manager_token2.lua" />
+	<script name="VersionManager2" file="scripts/manager_version2.lua" />
+	
+	<script name="ActionRMDice" file="scripts/manager_action_rmdice.lua" />
+	<script name="ActionStat" file="scripts/manager_action_stat.lua" />
+	<script name="ActionStatGen" file="scripts/manager_action_statgen.lua" />
+	<script name="ActionStatGain" file="scripts/manager_action_statgain.lua" />
+	<script name="ActionResistance" file="scripts/manager_action_resistance.lua" />
+	<script name="ActionSkill" file="scripts/manager_action_skill.lua" />
+	<script name="ActionInitiative" file="scripts/manager_action_initiative.lua" />
+	<script name="ActionAttack" file="scripts/manager_action_attack.lua" />
+	<script name="ActionSpellGain" file="scripts/manager_action_spellgain.lua" />
+	<script name="ActionDamage" file="scripts/manager_action_damage.lua" />
+	<script name="ActionHeal" file="scripts/manager_action_heal.lua" />
+	<script name="ActionResultTable" file="scripts/manager_action_resulttable.lua" />
+	<script name="ActionBaseCasting" file="scripts/manager_action_basescasting.lua" />
+
+	<script name="Rules_ArmorTypes" file="scripts/rules_armortypes.lua" />
+	<script name="Rules_Combat" file="scripts/rules_combat.lua" />
+	<script name="Rules_Constants" file="scripts/rules_constants.lua" />
+	<script name="Rules_Modifiers" file="scripts/rules_modifiers.lua" />
+	<script name="Rules_Move" file="scripts/rules_move.lua" />
+	<script name="Rules_NPC" file="scripts/rules_npc.lua" />
+	<script name="Rules_PC" file="scripts/rules_pc.lua" />
+	<script name="Rules_Professions" file="scripts/rules_professions.lua" />
+	<script name="Rules_Races" file="scripts/rules_races.lua" />
+	<script name="Rules_Realm" file="scripts/rules_realm.lua" />
+	<script name="Rules_RR" file="scripts/rules_rr.lua" />
+	<script name="Rules_Skills" file="scripts/rules_skills.lua" />
+	<script name="Rules_Spells" file="scripts/rules_spells.lua" />
+	<script name="Rules_Stats" file="scripts/rules_stats.lua" />
+	<script name="Rules_Tables" file="scripts/rules_tables.lua" />
+	<script name="Rules_Weapons" file="scripts/rules_weapons.lua" />
+
+	<script name="OptionManager" file="scripts/manager_options.lua" />
+	<script name="Options" file="scripts/options.lua" />
+	<script name="OptionsRMC" file="scripts/data_options_RMC.lua" />
+
+	<script name="RMTableManager" file="scripts/manager_rmtable.lua" />
+	<script name="StackManager" file="scripts/manager_stack.lua" />
+
+	<script name="ErrorHandler" file="scripts/manager_errorhandler.lua" />
+	<script name="Utilities" file="scripts/manager_utilities.lua" />
+</root>

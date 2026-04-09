@@ -1,0 +1,1437 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="item" merge="join">
+		<sizelimits>
+			<minimum width="410" />
+			<dynamic />
+		</sizelimits>
+		<script file="campaign/scripts/item.lua" />
+	</windowclass>
+	<windowclass name="item_header" merge="join">
+		<script>
+			function update()
+				super.update();
+
+				bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+				button_collapse_all.setVisible(not bReadOnly);
+				button_expand_all.setVisible(not bReadOnly);
+				if bReadOnly then
+					if parentcontrol.window.main and parentcontrol.window.main.subwindow then
+						parentcontrol.window.main.subwindow.expandSubwindows();
+					end
+				end
+			end
+		</script>
+		<sheetdata>
+			<button_collapse_base name="button_collapse_all" insertbefore="name" >
+				<anchored to="rightanchor">
+					<top />
+					<right anchor="left" relation="relative" offset="-5" />
+				</anchored>
+				<tooltip textres="item_tooltip_collapse_all" />
+				<script>
+					function onButtonPress()
+						window.parentcontrol.window.main.subwindow.collapseSubwindows()
+					end
+				</script>
+			</button_collapse_base >
+
+			<button_expand_base name="button_expand_all" insertbefore="name" >
+				<anchored to="rightanchor">
+					<top />
+					<right anchor="left" relation="relative" offset="-3" />
+				</anchored>
+				<tooltip textres="item_tooltip_expand_all" />
+				<script>
+					function onButtonPress()
+						window.parentcontrol.window.main.subwindow.expandSubwindows()
+					end
+				</script>
+			</button_expand_base>
+		</sheetdata>
+	</windowclass>
+	<windowclass name="item_main">
+		<margins control="0,0,0,2" />
+		<script file="campaign/scripts/item_main.lua" />
+		<sheetdata>
+			<anchor_column_item name="columnanchor" />
+			
+			<label_column name="nonid_notes_label">
+				<static textres="item_label_unidentifiednotes" />
+			</label_column>
+			<string_columnh_item name="nonid_notes" />
+
+			<line_column name="divider" />
+
+			<label_column name="type_label">
+				<static textres="item_label_type" />
+			</label_column>
+			<combobox_columnh_item name="type">
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(ItemManager2.TypeList());
+					end
+				</script>
+			</combobox_columnh_item>
+
+			<ft_columnh name="notes" />
+
+			<line_column name="divider_type" />
+
+			<button_item_subwindow name="button_armor_info">
+				<anchored>
+					<top parent="divider_type" anchor="bottom" relation="absolute" offset="0" />
+					<left offset="10" />
+				</anchored>
+				<state textres="item_label_button_armor" />
+				<script>
+					function onButtonPress()
+						if window.armor_info.isVisible() then
+							HideSubwindow();
+						else
+							ShowSubwindow();
+						end
+					end
+
+					function ShowSubwindow()
+						window.armor_info.setVisible(true);
+						window.armor_expand.setVisible(false);
+						window.armor_collapse.setVisible(true);
+						window.button_shield_info.setAnchor("top", "armor_info", "bottom", "relative", 0);
+					end
+
+					function HideSubwindow()
+						window.armor_info.setVisible(false);
+						window.armor_expand.setVisible(true);
+						window.armor_collapse.setVisible(false);
+						window.button_shield_info.setAnchor("top", "button_armor_info", "bottom", "relative", 10);
+					end
+				</script>
+			</button_item_subwindow>
+			<icon_item_expand name="armor_expand">
+				<anchored to="button_armor_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_expand>
+			<icon_item_collapse name="armor_collapse">
+				<anchored to="button_armor_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_collapse>
+			<subwindow_item name="armor_info">
+				<anchored>
+					<top parent="button_armor_info" anchor="bottom" relation="absolute" offset="0" />
+				</anchored>
+				<class>subwindow_armor</class>
+			</subwindow_item>
+
+			<button_item_subwindow name="button_shield_info">
+				<anchored>
+					<top parent="armor_info" anchor="bottom" relation="absolute" offset="0" />
+					<left offset="10" />
+				</anchored>
+				<state textres="item_label_button_shield" />
+				<script>
+					function onButtonPress()
+						if window.shield_info.isVisible() then
+							HideSubwindow();
+						else
+							ShowSubwindow();
+						end
+					end
+
+					function ShowSubwindow()
+						window.shield_info.setVisible(true);
+						window.shield_expand.setVisible(false);
+						window.shield_collapse.setVisible(true);
+						window.button_weapon_info.setAnchor("top", "shield_info", "bottom", "relative", 0);
+					end
+
+					function HideSubwindow()
+						window.shield_info.setVisible(false);
+						window.shield_expand.setVisible(true);
+						window.shield_collapse.setVisible(false);
+						window.button_weapon_info.setAnchor("top", "button_shield_info", "bottom", "relative", 10);
+					end
+				</script>
+			</button_item_subwindow>
+			<icon_item_expand name="shield_expand">
+				<anchored to="button_shield_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_expand>
+			<icon_item_collapse name="shield_collapse">
+				<anchored to="button_shield_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_collapse>
+			<subwindow_item name="shield_info">
+				<anchored>
+					<top parent="button_shield_info" anchor="bottom" relation="absolute" offset="0" />
+				</anchored>
+				<class>subwindow_shield</class>
+			</subwindow_item>
+
+			<button_item_subwindow name="button_weapon_info">
+				<anchored>
+					<top parent="shield_info" />
+					<left offset="10" />
+				</anchored>
+				<state textres="item_label_button_weapon" />
+				<script>
+					function onButtonPress()
+						if window.weapon_info.isVisible() then
+							HideSubwindow();
+						else
+							ShowSubwindow();
+						end
+					end
+
+					function ShowSubwindow()
+						window.weapon_info.setVisible(true);
+						window.weapon_expand.setVisible(false);
+						window.weapon_collapse.setVisible(true);
+						window.button_magicitem_info.setAnchor("top", "weapon_info", "bottom", "relative", 0);
+					end
+
+					function HideSubwindow()
+						window.weapon_info.setVisible(false);
+						window.weapon_expand.setVisible(true);
+						window.weapon_collapse.setVisible(false);
+						window.button_magicitem_info.setAnchor("top", "button_weapon_info", "bottom", "relative", 10);
+					end
+				</script>
+			</button_item_subwindow>
+			<icon_item_expand name="weapon_expand">
+				<anchored to="button_weapon_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_expand>
+			<icon_item_collapse name="weapon_collapse">
+				<anchored to="button_weapon_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_collapse>
+			<subwindow_item name="weapon_info">
+				<anchored>
+					<top parent="button_weapon_info" />
+				</anchored>
+				<class>subwindow_weapon</class>
+				<activate/>
+			</subwindow_item>
+
+			<button_item_subwindow name="button_magicitem_info">
+				<anchored>
+					<top parent="weapon_info" />
+					<left offset="10" />
+				</anchored>
+				<state textres="item_label_button_magicitem" />
+				<script>
+					function onButtonPress()
+						if window.magicitem_info.isVisible() then
+							HideSubwindow();
+						else
+							ShowSubwindow();
+						end
+					end
+
+					function ShowSubwindow()
+						window.magicitem_info.setVisible(true);
+						window.magicitem_expand.setVisible(false);
+						window.magicitem_collapse.setVisible(true);
+						window.button_herb_info.setAnchor("top", "magicitem_info", "bottom", "relative", 0);
+					end
+
+					function HideSubwindow()
+						window.magicitem_info.setVisible(false);
+						window.magicitem_expand.setVisible(true);
+						window.magicitem_collapse.setVisible(false);
+						window.button_herb_info.setAnchor("top", "button_magicitem_info", "bottom", "relative", 10);
+					end
+				</script>
+			</button_item_subwindow>
+			<icon_item_expand name="magicitem_expand">
+				<anchored to="button_magicitem_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_expand>
+			<icon_item_collapse name="magicitem_collapse">
+				<anchored to="button_magicitem_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_collapse>
+			<subwindow_item name="magicitem_info">
+				<anchored>
+					<top parent="button_magicitem_info" />
+				</anchored>
+				<class>subwindow_magicitem</class>
+				<activate/>
+			</subwindow_item>
+
+			<button_item_subwindow name="button_herb_info">
+				<anchored>
+					<top parent="magicitem_info" />
+					<left offset="10" />
+				</anchored>
+				<state textres="item_label_button_herb" />
+				<script>
+					function onButtonPress()
+						if window.herb_info.isVisible() then
+							HideSubwindow();
+						else
+							ShowSubwindow();
+						end
+					end
+
+					function ShowSubwindow()
+						window.herb_info.setVisible(true);
+						window.herb_expand.setVisible(false);
+						window.herb_collapse.setVisible(true);
+						window.button_transport_info.setAnchor("top", "herb_info", "bottom", "relative", 0);
+					end
+
+					function HideSubwindow()
+						window.herb_info.setVisible(false);
+						window.herb_expand.setVisible(true);
+						window.herb_collapse.setVisible(false);
+						window.button_transport_info.setAnchor("top", "button_herb_info", "bottom", "relative", 10);
+					end
+				</script>
+			</button_item_subwindow>
+			<icon_item_expand name="herb_expand">
+				<anchored to="button_herb_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_expand>
+			<icon_item_collapse name="herb_collapse">
+				<anchored to="button_herb_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_collapse>
+			<subwindow_item name="herb_info">
+				<anchored>
+					<top parent="button_herb_info" />
+				</anchored>
+				<class>subwindow_herb</class>
+				<activate/>
+			</subwindow_item>
+
+			<button_item_subwindow name="button_transport_info">
+				<anchored>
+					<top parent="herb_info" />
+					<left offset="10" />
+				</anchored>
+				<state textres="item_label_button_transport" />
+				<script>
+					function onButtonPress()
+						if window.transport_info.isVisible() then
+							HideSubwindow();
+						else
+							ShowSubwindow();
+						end
+					end
+
+					function ShowSubwindow()
+						window.transport_info.setVisible(true);
+						window.transport_expand.setVisible(false);
+						window.transport_collapse.setVisible(true);
+						window.button_general_info.setAnchor("top", "transport_info", "bottom", "relative", 0);
+					end
+
+					function HideSubwindow()
+						window.transport_info.setVisible(false);
+						window.transport_expand.setVisible(true);
+						window.transport_collapse.setVisible(false);
+						window.button_general_info.setAnchor("top", "button_transport_info", "bottom", "relative", 10);
+					end
+				</script>
+			</button_item_subwindow>
+			<icon_item_expand name="transport_expand">
+				<anchored to="button_transport_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_expand>
+			<icon_item_collapse name="transport_collapse">
+				<anchored to="button_transport_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_collapse>
+			<subwindow_item name="transport_info">
+				<anchored>
+					<top parent="button_transport_info" />
+				</anchored>
+				<class>subwindow_transport</class>
+				<activate/>
+			</subwindow_item>
+
+			<button_item_subwindow name="button_general_info">
+				<anchored>
+					<top parent="transport_info" />
+					<left offset="10" />
+				</anchored>
+				<state textres="item_label_button_general" />
+				<script>
+					function onButtonPress()
+						if window.general_info.isVisible() then
+							HideSubwindow();
+						else
+							ShowSubwindow();
+						end
+					end
+
+					function ShowSubwindow()
+						window.general_info.setVisible(true);
+						window.general_expand.setVisible(false);
+						window.general_collapse.setVisible(true);
+						window.button_esf_info.setAnchor("top", "general_info", "bottom", "relative", 0);
+					end
+
+					function HideSubwindow()
+						window.general_info.setVisible(false);
+						window.general_expand.setVisible(true);
+						window.general_collapse.setVisible(false);
+						window.button_esf_info.setAnchor("top", "button_general_info", "bottom", "relative", 10);
+					end
+				</script>
+			</button_item_subwindow>
+			<icon_item_expand name="general_expand">
+				<anchored to="button_general_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_expand>
+			<icon_item_collapse name="general_collapse">
+				<anchored to="button_general_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_collapse>
+			<subwindow_item name="general_info">
+				<anchored>
+					<top parent="button_general_info" />
+				</anchored>
+				<class>subwindow_general</class>
+				<activate/>
+			</subwindow_item>
+
+			<button_item_subwindow name="button_esf_info">
+				<anchored>
+					<top parent="general_info" />
+					<left offset="10" />
+				</anchored>
+				<state textres="item_label_button_esf" />
+				<script>
+					function onButtonPress()
+						if window.esf_info.isVisible() then
+							HideSubwindow();
+						else
+							ShowSubwindow();
+						end
+					end
+
+					function ShowSubwindow()
+						window.esf_info.setVisible(true);
+						window.esf_expand.setVisible(false);
+						window.esf_collapse.setVisible(true);
+					end
+
+					function HideSubwindow()
+						window.esf_info.setVisible(false);
+						window.esf_expand.setVisible(true);
+						window.esf_collapse.setVisible(false);
+					end
+				</script>
+			</button_item_subwindow>
+			<icon_item_expand name="esf_expand">
+				<anchored to="button_esf_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_expand>
+			<icon_item_collapse name="esf_collapse">
+				<anchored to="button_esf_info" height="20">
+					<top anchor="top" offset="-5" />
+					<right anchor="left" offset="-10" />
+				</anchored>
+			</icon_item_collapse>
+			<subwindow_item name="esf_info">
+				<anchored>
+					<top parent="button_esf_info" />
+				</anchored>
+				<class>subwindow_esf</class>
+				<activate/>
+			</subwindow_item>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="subwindow_armor">
+		<script>
+			function onInit()
+				self.update();
+			end
+			function update()
+				local nodeRecord = getDatabaseNode();
+				local bReadOnly = WindowManager.getReadOnlyState(nodeRecord);
+				local bID = ItemManager.getIDState(nodeRecord);
+
+				local tFields = {
+					"armortype", "defensebonus", "armor_mm_skill",
+					"protection_head", "protection_face", "protection_neck",
+					"protection_torso", "protection_arms", "protection_legs",
+					};
+				WindowManager.callSafeControlsUpdate(self, tFields, bReadOnly, not bID);
+
+				local tPenaltyFields = { "minimum_mm_penalty", "maximum_mm_penalty", "missile_penalty", "quickness_penalty", };
+				WindowManager.callSafeControlsSetLockMode(self, tPenaltyFields, bReadOnly);
+				if (bID or Session.IsHost) and (not minimum_mm_penalty.isEmpty() or not maximum_mm_penalty.isEmpty() or
+									not missile_penalty.isEmpty() or not quickness_penalty.isEmpty()) then 
+					bArmorPenalties = true;
+				else
+					bArmorPenalties = false;
+				end
+				local bShowPenalties = bID and (not bReadOnly or bArmorPenalties);
+				WindowManager.setControlVisibleWithLabel(self, "minimum_mm_penalty", bShowPenalties);
+				WindowManager.setControlVisibleWithLabel(self, "maximum_mm_penalty", bShowPenalties);
+				WindowManager.setControlVisibleWithLabel(self, "missile_penalty", bShowPenalties);
+				WindowManager.setControlVisibleWithLabel(self, "quickness_penalty", bShowPenalties);
+
+				local bShow = WindowManager.getAnyControlVisible(self, tFields);
+				armor_penalties_label.setVisible(bShowPenalties);
+				armor_penalties_spacer.setVisible(bShowPenalties);
+				divider.setVisible(bShow or bShowPenalties);
+			end
+		</script>
+		<sheetdata>
+			<anchor_column_item name="columnanchor" />
+
+			<label_column name="armortype_label">
+				<static textres="item_label_armortype" />
+			</label_column>
+			<number_columnh_item name="armortype" />
+			<label_column name="defensebonus_label">
+				<static textres="item_label_defensebonus" />
+			</label_column>
+			<number_columnh_item name="defensebonus" />
+
+			<spacer_column_item name="armor_penalties_spacer" />
+			<number_columnh1 name="minimum_mm_penalty">
+				<anchored>
+					<top relation="current" />
+				</anchored>
+			</number_columnh1>
+			<number_columnh2 name="maximum_mm_penalty" />
+			<number_columnh3 name="missile_penalty" />
+			<number_columnh4 name="quickness_penalty" />
+			<label_fieldtop_bold name="minimum_mm_penalty_label">
+				<anchored to="minimum_mm_penalty" />
+				<static textres="item_label_minimum_mm_penalty" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="maximum_mm_penalty_label">
+				<anchored to="maximum_mm_penalty" />
+				<static textres="item_label_maximum_mm_penalty" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="missile_penalty_label">
+				<anchored to="missile_penalty" />
+				<static textres="item_label_missile_penalty" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="quickness_penalty_label">
+				<anchored to="quickness_penalty" />
+				<static textres="item_label_quickness_penalty" />
+			</label_fieldtop_bold>
+			<label_column name="armor_penalties_label">
+				<anchored>
+					<top relation="relative" offset="7" />
+				</anchored>
+				<static textres="item_label_armor_penalties" />
+			</label_column>
+			<label_column name="armor_mm_skill_label">
+				<static textres="item_label_armor_mm_skill" />
+			</label_column>
+			<combobox_columnh_item name="armor_mm_skill">
+				<script>
+					function onInit()
+						super.onInit();
+						if Rules_Skills.ManeuveringInArmorSkillList then
+							local skillList = Rules_Skills.ManeuveringInArmorSkillList();
+							if skillList and #skillList &gt; 0 then
+								addItems(skillList);
+							else
+								window.armor_mm_skill_label.setVisible(false);
+								window.armor_mm_skill.setVisible(false);
+								setVisible(false);
+							end
+						end
+					end
+				</script>
+			</combobox_columnh_item>
+
+			<label_column name="protection_head_label">
+				<static textres="item_label_protection_head" />
+			</label_column>
+			<combobox_columnh_item_protection name="protection_head" />
+			<label_column name="protection_face_label">
+				<static textres="item_label_protection_face" />
+			</label_column>
+			<combobox_columnh_item_protection name="protection_face" />
+			<label_column name="protection_neck_label">
+				<static textres="item_label_protection_neck" />
+			</label_column>
+			<combobox_columnh_item_protection name="protection_neck" />
+			<label_column name="protection_torso_label">
+				<static textres="item_label_protection_torso" />
+			</label_column>
+			<combobox_columnh_item_protection name="protection_torso" />
+			<label_column name="protection_arms_label">
+				<static textres="item_label_protection_arms" />
+			</label_column>
+			<combobox_columnh_item_protection name="protection_arms" />
+			<label_column name="protection_legs_label">
+				<static textres="item_label_protection_legs" />
+			</label_column>
+			<combobox_columnh_item_protection name="protection_legs" />
+
+			<line_column name="divider" />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="subwindow_shield">
+		<script>
+			function onInit()
+				self.update();
+			end
+			function update()
+				local nodeRecord = getDatabaseNode();
+				local bReadOnly = WindowManager.getReadOnlyState(nodeRecord);
+				local bID = ItemManager.getIDState(nodeRecord);
+
+				local tFields = { "meleebonus", "missilebonus", };
+				WindowManager.callSafeControlsUpdate(self, tFields, bReadOnly, not bID);
+				divider.setVisible(WindowManager.getAnyControlVisible(self, tFields));
+			end
+		</script>
+		<sheetdata>
+			<anchor_column_item name="columnanchor" />
+
+			<!-- Shield -->
+			<label_column name="meleebonus_label">
+				<static textres="item_label_meleebonus" />
+			</label_column>
+			<number_columnh_item name="meleebonus" />
+			<label_column name="missilebonus_label">
+				<static textres="item_label_missilebonus" />
+			</label_column>
+			<number_columnh_item name="missilebonus" />
+
+			<line_column name="divider" />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="subwindow_weapon">
+		<script>
+			function onInit()
+				self.update();
+
+				Module.onModuleLoad = ModuleLoadUnload;
+				Module.onModuleUnload = ModuleLoadUnload;
+				ModuleLoadUnload();
+			end
+			function ModuleLoadUnload()
+				Rules_Tables.LoadLists();
+				
+				fumbletable.setItems(Rules_Tables.FumbleTableList());
+				self.onFumbleTableChanged();
+
+				attacktablename.setItems(Rules_Tables.TableList());
+				altcrit1name.setItems(Rules_Tables.TableList(Rules_Tables.TypeResult, Rules_Tables.ClassCritical));
+				altcrit2name.setItems(Rules_Tables.TableList(Rules_Tables.TypeResult, Rules_Tables.ClassCritical));
+				altcrit3name.setItems(Rules_Tables.TableList(Rules_Tables.TypeResult, Rules_Tables.ClassCritical));
+				addcrit1name.setItems(Rules_Tables.TableList(Rules_Tables.TypeResult, Rules_Tables.ClassCritical));
+				addcrit2name.setItems(Rules_Tables.TableList(Rules_Tables.TypeResult, Rules_Tables.ClassCritical));
+			end
+			function onFumbleTableChanged()
+				fumblecolumn.setItems(Rules_Tables.FumbleTableColumnList(fumbletable.getValue()));
+			end
+			function update()
+				local nodeRecord = getDatabaseNode();
+				local bReadOnly = WindowManager.getReadOnlyState(nodeRecord);
+				local bID = ItemManager.getIDState(nodeRecord);
+
+				local tWeaponFields = { "fumbletable", "fumblecolumn", "fumble", "weaponbonus", "ob", "hitsmultiplier", "associatedskill", "skillbonus", };
+				WindowManager.callSafeControlSetLockMode(self, "fumbletable", bReadOnly);
+				WindowManager.setControlVisibleWithLabel(self, "fumbletable", bID and (not bReadOnly or not fumbletable.isEmpty()));
+				WindowManager.callSafeControlsUpdate(self, { "fumblecolumn", "fumble", "weaponbonus", "ob", "hitsmultiplier", }, bReadOnly, not bID);
+				self.updateSkill(bReadOnly, bID);
+				local bShow = WindowManager.getAnyControlVisible(self, tWeaponFields);
+				divider.setVisible(bShow);
+				ob.refresh();
+
+				local tAttackFields = { "attacktablename", "criticaltable", "largecolumnname", "max_rank_size", };
+				WindowManager.callSafeControlSetLockMode(self, "attacktablename", bReadOnly);
+				WindowManager.setControlVisibleWithLabel(self, "attacktablename", bID and (not bReadOnly or not attacktablename.isEmpty()));
+				WindowManager.callSafeControlsUpdate(self, { "criticaltable", "largecolumnname", "max_rank_size", }, bReadOnly, not bID);
+				local bShowAttack = WindowManager.getAnyControlVisible(self, tAttackFields);
+				attacktable_label.setVisible(bShowAttack);
+				attacktable_spacer.setVisible(bShowAttack);
+				dividerAttack.setVisible(bShowAttack);
+
+				local tAltCritFields = { "altcrit1name", "altcrit2name", "altcrit3name", "altcrit1mod", "altcrit2mod", "altcrit3mod", };
+				WindowManager.callSafeControlSetLockMode(self, "altcrit1name", bReadOnly);
+				WindowManager.setControlVisibleWithLabel(self, "altcrit1name", bID and (not bReadOnly or not altcrit1name.isEmpty()));
+				WindowManager.callSafeControlSetLockMode(self, "altcrit2name", bReadOnly);
+				WindowManager.setControlVisibleWithLabel(self, "altcrit2name", bID and (not bReadOnly or not altcrit2name.isEmpty()));
+				WindowManager.callSafeControlSetLockMode(self, "altcrit3name", bReadOnly);
+				WindowManager.setControlVisibleWithLabel(self, "altcrit3name", bID and (not bReadOnly or not altcrit3name.isEmpty()));
+				WindowManager.callSafeControlsUpdate(self, { "altcrit1mod", "altcrit2mod", "altcrit3mod", }, bReadOnly, not bID);
+				local bShowAltCrit = WindowManager.getAnyControlVisible(self, tAltCritFields);
+				altcritable_label.setVisible(bShowAltCrit);
+				altcritable_spacer.setVisible(bShowAltCrit);
+				dividerAltCrits.setVisible(bShowAltCrit);
+
+				local tAddCritFields = { "addcrit1name", "addcrit2name", "addcrit1leveldiff", "addcrit2leveldiff", };
+				WindowManager.callSafeControlSetLockMode(self, "addcrit1name", bReadOnly);
+				WindowManager.setControlVisibleWithLabel(self, "addcrit1name", bID and (not bReadOnly or not addcrit1name.isEmpty()));
+				WindowManager.callSafeControlSetLockMode(self, "addcrit2name", bReadOnly);
+				WindowManager.setControlVisibleWithLabel(self, "addcrit2name", bID and (not bReadOnly or not addcrit2name.isEmpty()));
+				WindowManager.callSafeControlsUpdate(self, { "addcrit1leveldiff", "addcrit2leveldiff", }, bReadOnly, not bID);
+				local bShowAddCrit = WindowManager.getAnyControlVisible(self, tAddCritFields);
+				addcritable_label.setVisible(bShowAddCrit);
+				addcritable_spacer.setVisible(bShowAddCrit);
+				dividerAddCrits.setVisible(bShowAddCrit);
+
+				local tRangeFields = { "rng1", "rngmod1", "rng2", "rngmod2", "rng3", "rngmod3", "rng4", "rngmod4", "rng5", "rngmod5", "rng6", "rngmod6", };
+				WindowManager.callSafeControlsUpdate(self, tRangeFields, bReadOnly, not bID);
+				local bShowRange = WindowManager.getAnyControlVisible(self, tRangeFields);
+				range_mods_label.setVisible(bShowRange);
+				range_mods_spacer.setVisible(bShowRange);
+				dividerRange.setVisible(bShowRange);
+
+				local tVsATFields = { "at1_4", "at5_8", "at9_12", "at13_16", "at17_20", };
+				WindowManager.callSafeControlsUpdate(self, tVsATFields, bReadOnly, not bID);
+				local bShowVsAT = WindowManager.getAnyControlVisible(self, tVsATFields);
+				self.showAdjVsAT(bShowVsAT);
+				dividerVsAT.setVisible(bShowVsAT);
+			end
+			function updateSkill(bReadOnly, bID)
+				local nodeChar = DB.getChild(getDatabaseNode(), "...");
+				if ActorManager.getRecordType(nodeChar) == "charsheet" then
+					WindowManager.callSafeControlsUpdate(self, { "associatedskill", "skillbonus", }, bReadOnly, not bID);
+				else
+					WindowManager.setControlVisibleWithLabel(self, "associatedskill", false);
+					WindowManager.setControlVisibleWithLabel(self, "skillbonus", false);
+				end
+			end
+			function showAdjVsAT(bShow)
+				WindowManager.setControlVisibleWithLabel(self, "at1_4", bShow);
+				WindowManager.setControlVisibleWithLabel(self, "at5_8", bShow);
+				WindowManager.setControlVisibleWithLabel(self, "at9_12", bShow);
+				WindowManager.setControlVisibleWithLabel(self, "at13_16", bShow);
+				WindowManager.setControlVisibleWithLabel(self, "at17_20", bShow);
+				adj_vs_at_label.setVisible(bShow);
+				adj_vs_at_spacer.setVisible(bShow);
+			end
+		</script>
+		<sheetdata>
+			<anchor_column_item name="columnanchor" />
+			
+			<hn name="ob_nonid" />
+
+			<!-- Weapon -->
+			<label_column name="fumble_label">
+				<static textres="item_label_fumble" />
+			</label_column>
+			<number_columnh_item name="fumble" />
+			<label_column name="fumbletable_label">
+				<static textres="item_label_fumbletable" />
+			</label_column>
+			<hs name="fumbletableID" source="fumbletable.tableid" />
+			<combobox_column_tablename_fumble_item name="fumbletable">
+				<source><name>fumbletable.name</name></source>
+				<script>
+					function onValueChanged()
+						window.onFumbleTableChanged();
+					end
+				</script>
+			</combobox_column_tablename_fumble_item>
+			<label_column name="fumblecolumn_label">
+				<static textres="item_label_fumblecolumn" />
+			</label_column>
+			<combobox_columnh_item name="fumblecolumn">
+				<source><name>fumbletable.column</name></source>
+			</combobox_columnh_item>
+			<label_column name="weaponbonus_label">
+				<static textres="item_label_weaponbonus" />
+			</label_column>
+			<number_columnh_item name="weaponbonus" />
+			<label_column name="associatedskill_label">
+				<static textres="item_label_associatedskill" />
+			</label_column>
+			<combobox_columnh_item name="associatedskill">
+				<script>
+					function onInit()
+						super.onInit();
+						refresh();
+					end
+					function refresh()
+						local nodeChar = DB.getChild(window.getDatabaseNode(), "...");
+						local sType = ActorManager.getRecordType(nodeChar);
+						if sType == "charsheet" then
+							local skillList = Rules_PC.SkillList(nodeChar);
+							if #skillList &gt; 0 then
+								addItems(skillList);
+							end
+						else
+							window.associatedskill_label.setVisible(false);
+							window.associatedskill.setVisible(false);
+							setVisible(false);
+						end
+					end
+				</script>
+			</combobox_columnh_item>
+			<label_column name="skillbonus_label">
+				<static textres="item_label_skillbonus" />
+			</label_column>
+			<number_columnh_item name="skillbonus">
+				<readonly />
+				<script>
+					function onInit()
+						super.onInit();
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "associatedskill"), "onUpdate", self.refresh);
+						self.refresh();
+					end
+					function refresh()
+						local nodeChar = DB.getChild(window.getDatabaseNode(), "...");
+						local sType = ActorManager.getRecordType(nodeChar);
+						if sType == "charsheet" then
+							local nodeSkillBonus = getDatabaseNode();
+							if nodeSkillBonus then
+								local sAssociatedSkill = window.associatedskill.getValue();
+								if sAssociatedSkill then
+									local nNewOB = Rules_PC.SkillTotal(nodeChar, sAssociatedSkill);
+									if nNewOB and nNewOB ~= -25 then
+										nodeSkillBonus.setValue(nNewOB);
+									end
+								end
+							end
+						else
+							window.skillbonus_label.setVisible(false);
+							setVisible(false);
+						end
+					end
+				</script>
+			</number_columnh_item>
+			<label_column name="ob_label">
+				<static textres="item_label_ob" />
+			</label_column>
+			<number_columnh_item name="ob">
+				<readonly />
+				<script>
+					function onInit()
+						super.onInit();
+
+						local node = window.getDatabaseNode();
+						DB.addHandler(DB.getPath(node, "weaponbonus"), "onUpdate", self.refresh);
+						DB.addHandler(DB.getPath(node, "skillbonus"), "onUpdate", self.refresh);
+						self.refresh();
+					end
+					function refresh()
+						local nodeChar = DB.getChild(window.getDatabaseNode(), "...");
+						local sType = ActorManager.getRecordType(nodeChar);
+						if sType == "charsheet" then
+							local nodeItem = window.getDatabaseNode();
+							local bID = (DB.getValue(nodeItem, "isidentified", 1) == 1);
+							if bID then
+								setValue(window.skillbonus.getValue() + window.weaponbonus.getValue());	
+								window.ob_nonid.setValue(0);
+							else
+								setValue(window.skillbonus.getValue());	
+								window.ob_nonid.setValue(window.weaponbonus.getValue());
+							end
+						end
+					end
+				</script>
+			</number_columnh_item>
+			<label_column name="hitsmultiplier_label">
+				<static textres="item_label_hitsmultiplier" />
+			</label_column>
+			<number_columnh_item name="hitsmultiplier" />
+
+			<line_column name="divider" />
+
+			<spacer_column_item name="attacktable_spacer" />
+			<hs name="attacktableID" source="attacktable.tableid" />
+			<combobox_column_tablename_attack_item name="attacktablename">
+				<source><name>attacktable.name</name></source>
+			</combobox_column_tablename_attack_item>
+			<number_columnh_tablemod name="max_level">
+				<invisible />
+			</number_columnh_tablemod>
+			<combobox_columnh_item name="max_rank_size">
+				<anchored>
+					<top relation="current" />
+					<left offset="258" />
+				</anchored>
+				<script>
+					function onInit()
+						super.onInit();
+						setValue(Rules_Combat.GetMaxRankSize(window.max_level.getValue()));
+						updateList();
+					end
+					function onValueChanged()
+						if super and super.onValueChanged then
+							super.onValueChanged();
+						end
+						window.max_level.setValue(Rules_Combat.GetMaxLevel(getValue()));					
+					end
+					function updateList()
+						local maxRankSizeList = Rules_Combat.MaxRankSizeList();
+						if #maxRankSizeList &gt; 0 then
+							clear();
+							addItems(maxRankSizeList);
+						end
+					end
+				</script>
+			</combobox_columnh_item>
+			<label_fieldtop_bold name="attacktablename_label">
+				<anchored to="attacktablename" />
+				<static textres="item_label_tablename" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="max_rank_size_label">
+				<anchored to="max_rank_size" />
+				<static textres="item_label_max_rank_size" />
+			</label_fieldtop_bold>
+			<label_column name="attacktable_label">
+				<anchored>
+					<top relation="relative" offset="7" />
+				</anchored>
+				<static textres="item_label_attacktable" />
+			</label_column>
+			<label_column name="criticaltable_label">
+				<static textres="item_label_criticaltable" />
+			</label_column>
+			<combobox_columnh_item name="criticaltable">
+				<script>
+					function onInit()
+						super.onInit();
+						DB.addHandler(DB.getPath(window.attacktablename.getDatabaseNode()), "onUpdate", onUpdate);
+						onUpdate();
+						updateList();
+					end
+					function onClose()
+						DB.removeHandler(DB.getPath(window.attacktablename.getDatabaseNode()), "onUpdate", onUpdate);
+						super.onClose();
+					end
+					function onUpdate()
+						local sAttackTableName = window.attacktablename.getValue();
+						if string.len(getValue()) &lt; 1 and string.len(sAttackTableName) &gt; 0 then
+							setValue("Attack Default");
+							window.largecolumnname.setValue("Normal");
+							if window.hitsmultiplier.getValue() == 0 then
+								window.hitsmultiplier.setValue(1);
+							end
+						elseif string.len(getValue()) &gt; 0 and string.len(sAttackTableName) &lt; 1 then
+							setValue("");
+							window.largecolumnname.setValue("");
+							if window.hitsmultiplier.getValue() == 1 then
+								window.hitsmultiplier.setValue(0);
+							end
+						end
+					end
+					function updateList()
+						local critList = {"", "Attack Default", "Alternate Crit #1", "Alternate Crit #2", "Alternate Crit #3" };
+						if #critList &gt; 0 then
+							clear();
+							addItems(critList);
+						end
+					end
+				</script>
+			</combobox_columnh_item>
+			<label_column name="largecolumnname_label">
+				<static textres="item_label_largecolumnname" />
+			</label_column>
+			<combobox_columnh_item name="largecolumnname">
+				<script>
+					function onInit()
+						super.onInit();
+
+						local sAttackTableName = window.attacktablename.getValue();
+						if string.len(getValue()) &lt; 1 and string.len(sAttackTableName) &gt; 0 then
+							setValue("Normal");
+						elseif string.len(getValue()) &gt; 0 and string.len(sAttackTableName) &lt; 1 then
+							setValue("");
+						end
+						updateList();
+					end
+					function updateList()
+						addItems(Rules_Tables.LargeColumnList);
+					end
+				</script>
+			</combobox_columnh_item>
+
+			<line_column name="dividerAttack" />
+
+			<spacer_column_item name="altcritable_spacer" />
+			<hs name="altcrit1tableid" source="altcrit1.tableid" />
+			<combobox_column_tablename_critical_item name="altcrit1name">
+				<source><name>altcrit1.name</name></source>
+			</combobox_column_tablename_critical_item>
+			<number_columnh_tablemod name="altcrit1mod" />
+			<label_fieldtop_bold name="altcrit1name_label">
+				<anchored to="altcrit1name" />
+				<static textres="item_label_tablename" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="altcrit1mod_label">
+				<anchored to="altcrit1mod" />
+				<static textres="item_label_ob_mod" />
+			</label_fieldtop_bold>
+			<label_column name="altcritable_label">
+				<anchored>
+					<top relation="relative" offset="7" />
+				</anchored>
+				<static textres="item_label_altcrittable" />
+			</label_column>
+			<number_columnh_tablemod name="altcrit2mod">
+				<anchored>
+					<top relation="current" offset="7" />
+				</anchored>
+			</number_columnh_tablemod>
+			<combobox_column_tablename_critical_next_item name="altcrit2name">
+				<source><name>altcrit2.name</name></source>
+			</combobox_column_tablename_critical_next_item>
+			<hs name="altcrit2tableid" source="altcrit2.tableid" />
+			<number_columnh_tablemod name="altcrit3mod">
+				<anchored>
+					<top relation="current" offset="7" />
+				</anchored>
+			</number_columnh_tablemod>
+			<combobox_column_tablename_critical_next_item name="altcrit3name">
+				<source><name>altcrit3.name</name></source>
+			</combobox_column_tablename_critical_next_item>
+			<hs name="altcrit3.tableid" />
+
+			<line_column name="dividerAltCrits" />
+
+			<spacer_column_item name="addcritable_spacer" />
+			<hs name="addcrit1tableid" source="addcrit1.tableid" />
+			<combobox_column_tablename_critical_item name="addcrit1name">
+				<source><name>addcrit1.name</name></source>
+			</combobox_column_tablename_critical_item>
+			<number_columnh_tablemod name="addcrit1leveldiff" />
+			<label_fieldtop_bold name="addcrit1name_label">
+				<anchored to="addcrit1name" />
+				<static textres="item_label_tablename" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="addcrit1leveldiff_label">
+				<anchored to="addcrit1leveldiff" />
+				<static textres="item_label_severity_level" />
+			</label_fieldtop_bold>
+			<label_column name="addcritable_label">
+				<anchored>
+					<top relation="relative" offset="6" />
+				</anchored>
+				<static textres="item_label_addcrittable" />
+			</label_column>
+			<number_columnh_tablemod name="addcrit2leveldiff" />
+			<combobox_column_tablename_critical_next_item name="addcrit2name">
+				<source><name>addcrit2.name</name></source>
+			</combobox_column_tablename_critical_next_item>
+			<hs name="addcrit2tableid" source="addcrit2.tableid" />
+
+			<line_column name="dividerAddCrits" />
+			
+			<spacer_column_item name="range_mods_spacer" />
+			<number_columnh1 name="rng1">
+				<anchored>
+					<top relation="current" />
+				</anchored>
+			</number_columnh1>
+			<number_columnh2 name="rngmod1" source="mod1" />
+			<label_fieldtop_bold name="rng1_label">
+				<anchored to="rng1" />
+				<static textres="item_label_rng" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="rngmod1_label">
+				<anchored to="rngmod1" />
+				<static textres="item_label_rngmod" />
+			</label_fieldtop_bold>
+			<label_column name="range_mods_label">
+				<anchored>
+					<top relation="relative" offset="6" />
+				</anchored>
+				<static textres="item_label_range_mods" />
+			</label_column>
+			<number_columnh2 name="rngmod2" source="mod2" />
+			<number_columnh1 name="rng2" />
+			<number_columnh2_close name="rngmod3" source="mod3" />
+			<number_columnh1_close name="rng3" />
+			<number_columnh2_close name="rngmod4" source="mod4" />
+			<number_columnh1_close name="rng4" />
+			<number_columnh2_close name="rngmod5" source="mod5" />
+			<number_columnh1_close name="rng5" />
+			<number_columnh2_close name="rngmod6" source="mod6" />
+			<number_columnh1_close name="rng6" />
+
+			<line_column name="dividerRange" />
+
+			<!-- Adjust vs AT -->
+			<spacer_column_item name="adj_vs_at_spacer" />
+			<number_columnh1 name="at1_4">
+				<anchored>
+					<top relation="current" />
+				</anchored>
+			</number_columnh1>
+			<number_columnh2 name="at5_8" />
+			<number_columnh3 name="at9_12" />
+			<number_columnh4 name="at13_16" />
+			<number_columnh5 name="at17_20" />
+			<label_fieldtop_bold name="at1_4_label">
+				<anchored to="at1_4" />
+				<static textres="item_label_at1_4" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="at5_8_label">
+				<anchored to="at5_8" />
+				<static textres="item_label_at5_8" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="at9_12_label">
+				<anchored to="at9_12" />
+				<static textres="item_label_at9_12" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="at13_16_label">
+				<anchored to="at13_16" />
+				<static textres="item_label_at13_16" />
+			</label_fieldtop_bold>
+			<label_fieldtop_bold name="at17_20_label">
+				<anchored to="at17_20" />
+				<static textres="item_label_at17_20" />
+			</label_fieldtop_bold>
+			<label_column name="adj_vs_at_label">
+				<anchored>
+					<top relation="relative" offset="10" />
+				</anchored>
+				<static textres="item_label_adj_vs_at" />
+			</label_column>
+
+			<line_column name="dividerVsAT" />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="subwindow_magicitem">
+		<script>
+			function onInit()
+				self.update();
+			end
+			function update()
+				local nodeRecord = getDatabaseNode();
+				local bReadOnly = WindowManager.getReadOnlyState(nodeRecord);
+				local bID = ItemManager.getIDState(nodeRecord);
+
+				local tFields = { "realm", "adderbonus", "multiplierbonus", "powerrating", "charges", "level", "composition", "use", };
+				WindowManager.callSafeControlsUpdate(self, tFields, bReadOnly, not bID);
+				divider.setVisible(WindowManager.getAnyControlVisible(self, tFields));
+			end
+		</script>
+		<sheetdata>
+			<anchor_column_item name="columnanchor" />
+
+			<!-- Magic Item -->
+			<label_column name="realm_label">
+				<static textres="item_label_realm" />
+			</label_column>
+			<combobox_columnh_item name="realm">
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Realm.List());
+					end
+				</script>
+			</combobox_columnh_item>
+			<label_column name="adderbonus_label">
+				<static textres="item_label_adderbonus" />
+			</label_column>
+			<number_columnh_item name="adderbonus" />
+			<label_column name="multiplierbonus_label">
+				<static textres="item_label_multiplierbonus" />
+			</label_column>
+			<number_columnh_item name="multiplierbonus" />
+			<label_column name="powerrating_label">
+				<static textres="item_label_powerrating" />
+			</label_column>
+			<combobox_columnh_item name="powerrating">
+				<script>
+					function onInit()
+						super.onInit();
+						addItems({"", "Modest", "Potent", "Most Potent", "Artifact"});
+					end
+				</script>
+			</combobox_columnh_item>
+			<label_column name="charges_label">
+				<static textres="item_label_charges" />
+			</label_column>
+			<string_columnh_item name="charges" />
+			<label_column name="level_label">
+				<static textres="item_label_level" />
+			</label_column>
+			<string_columnh_item name="level" />
+			<label_column name="composition_label">
+				<static textres="item_label_composition" />
+			</label_column>
+			<string_columnh_item name="composition" />
+			<label_column name="use_label">
+				<static textres="item_label_use" />
+			</label_column>
+			<string_columnh_item name="use" />
+
+			<line_column name="divider" />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="subwindow_herb">
+		<script>
+			function onInit()
+				self.update();
+			end
+			function update()
+				local nodeRecord = getDatabaseNode();
+				local bReadOnly = WindowManager.getReadOnlyState(nodeRecord);
+				local bID = ItemManager.getIDState(nodeRecord);
+
+				local tFields = { "aoe", "codes", "form", };
+				WindowManager.callSafeControlsUpdate(self, tFields, bReadOnly, not bID);
+				divider.setVisible(WindowManager.getAnyControlVisible(self, tFields));
+			end
+		</script>
+		<sheetdata>
+			<anchor_column_item name="columnanchor" />
+
+			<!-- Herb -->
+			<label_column name="aoe_label">
+				<static textres="item_label_aoe" />
+			</label_column>
+			<string_columnh_item name="aoe" />
+			<label_column name="codes_label">
+				<static textres="item_label_codes" />
+			</label_column>
+			<string_columnh_item name="codes" />
+			<label_column name="form_label">
+				<static textres="item_label_form" />
+			</label_column>
+			<string_columnh_item name="form" />
+
+			<line_column name="divider" />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="subwindow_transport">
+		<script>
+			function onInit()
+				self.update();
+			end
+			function update()
+				local nodeRecord = getDatabaseNode();
+				local bReadOnly = WindowManager.getReadOnlyState(nodeRecord);
+				local bID = ItemManager.getIDState(nodeRecord);
+
+				local tFields = { "ftrn", "mihr", "mnb", "htwt", "capacity", "transport_ob", };
+				WindowManager.callSafeControlsUpdate(self, tFields, bReadOnly, not bID);
+				divider.setVisible(WindowManager.getAnyControlVisible(self, tFields));
+			end
+		</script>
+		<sheetdata>
+			<anchor_column_item name="columnanchor" />
+
+			<!-- Transport -->
+			<label_column name="ftrn_label">
+				<static textres="item_label_ftrn" />
+			</label_column>
+			<string_columnh_item name="ftrn" />
+			<label_column name="mihr_label">
+				<static textres="item_label_mihr" />
+			</label_column>
+			<string_columnh_item name="mihr" />
+			<label_column name="mnb_label">
+				<static textres="item_label_mnb" />
+			</label_column>
+			<string_columnh_item name="mnb" />
+			<label_column name="htwt_label">
+				<static textres="item_label_htwt" />
+			</label_column>
+			<string_columnh_item name="htwt" />
+			<label_column name="capacity_label">
+				<static textres="item_label_capacity" />
+			</label_column>
+			<string_columnh_item name="capacity" />
+			<label_column name="transport_ob_label">
+				<static textres="item_label_transport_ob" />
+			</label_column>
+			<string_columnh_item name="transport_ob" />
+
+			<line_column name="divider" />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="subwindow_general">
+		<script>
+			function onInit()
+				self.update();
+			end
+			function update()
+				local nodeRecord = getDatabaseNode();
+				local bReadOnly = WindowManager.getReadOnlyState(nodeRecord);
+				local bID = ItemManager.getIDState(nodeRecord);
+
+				local tFields = { "cost", "weight", "length", "strength", "breakfactor", "broken", "prod", "size", "stanvalx", "totalvalue", "value", };
+				WindowManager.callSafeControlsUpdate(self, tFields, bReadOnly, not bID);
+				divider.setVisible(WindowManager.getAnyControlVisible(self, tFields));
+			end
+		</script>
+		<sheetdata>
+			<anchor_column_item name="columnanchor" />
+
+			<!-- General Stats -->
+			<label_column name="cost_label">
+				<static textres="item_label_cost" />
+			</label_column>
+			<string_columnh_item name="cost">
+				<script>
+					function onInit()
+						node = window.getDatabaseNode();
+						if node then
+							if string.len(getValue()) == 0 then
+								DB.setValue(node, "cost", "string", DB.getValue(node,"rural",""));
+							end
+							DB.deleteChild(node, "rural");
+						end
+					end
+				</script>
+			</string_columnh_item>
+			<label_column name="weight_label">
+				<static textres="item_label_weight" />
+			</label_column>
+			<number_columnh_item name="weight" />
+			<label_column name="length_label">
+				<static textres="item_label_length" />
+			</label_column>
+			<string_columnh_item name="length" />
+			<label_column name="strength_label">
+				<static textres="item_label_strength" />
+			</label_column>
+			<string_columnh_item name="strength" />
+			<label_column name="breakfactor_label">
+				<static textres="item_label_breakfactor" />
+			</label_column>
+			<string_columnh_item name="breakfactor" />
+			<label_column name="broken_label">
+				<static textres="item_label_broken" />
+			</label_column>
+			<number_columnh_item name="broken" />
+			<label_column name="prod_label">
+				<static textres="item_label_prod" />
+			</label_column>
+			<string_columnh_item name="prod" />
+			<label_column name="size_label">
+				<static textres="item_label_size" />
+			</label_column>
+			<string_columnh_item name="size" />
+			<label_column name="stanvalx_label">
+				<static textres="item_label_stanvalx" />
+			</label_column>
+			<number_columnh_item name="stanvalx" />
+			<label_column name="totalvalue_label">
+				<static textres="item_label_totalvalue" />
+			</label_column>
+			<number_columnh_item name="totalvalue" />
+			<label_column name="value_label">
+				<static textres="item_label_value" />
+			</label_column>
+			<number_columnh_item name="value" />
+
+			<line_column name="divider" />
+
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="subwindow_esf">
+		<script>
+			function onInit()
+				self.update();
+			end
+			function update()
+				local nodeRecord = getDatabaseNode();
+				local bReadOnly = WindowManager.getReadOnlyState(nodeRecord);
+				local bID = ItemManager.getIDState(nodeRecord);
+
+				local tFields = {
+					"esf_armor_essence", "esf_armor_channeling",
+					"esf_helmet_essence", "esf_helmet_channeling", "esf_helmet_mentalism",
+					"esf_weight_organic_living", "esf_weight_organic_dead", "esf_weight_inorganic",
+					};
+				WindowManager.callSafeControlsUpdate(self, tFields, bReadOnly, not bID);
+				divider.setVisible(WindowManager.getAnyControlVisible(self, tFields));
+			end
+		</script>
+		<sheetdata>
+			<anchor_column_item name="columnanchor" />
+
+			<!-- ESF - Extraordinary Spell Failure -->
+
+			<!-- ESF Weights -->
+			<label_column name="esf_weight_organic_living_label">
+				<static textres="item_label_esf_weight_organic_living" />
+			</label_column>
+			<number_columnh_item_wide name="esf_weight_organic_living" />
+			<label_column name="esf_weight_organic_dead_label">
+				<static textres="item_label_esf_weight_organic_dead" />
+			</label_column>
+			<number_columnh_item_wide name="esf_weight_organic_dead" />
+			<label_column name="esf_weight_inorganic_label">
+				<static textres="item_label_esf_weight_inorganic" />
+			</label_column>
+			<number_columnh_item_wide name="esf_weight_inorganic" />
+
+			<!-- ESF Modifiers for Armor -->
+			<label_column name="esf_armor_essence_label">
+				<static textres="item_label_esf_armor_essence" />
+			</label_column>
+			<number_columnh_item_wide name="esf_armor_essence" />
+			<label_column name="esf_armor_channeling_label">
+				<static textres="item_label_esf_armor_channeling" />
+			</label_column>
+			<number_columnh_item_wide name="esf_armor_channeling" />
+
+			<!-- ESF Modifiers for Helmet -->
+			<label_column name="esf_helmet_essence_label">
+				<static textres="item_label_esf_helmet_essence" />
+			</label_column>
+			<number_columnh_item_wide name="esf_helmet_essence" />
+			<label_column name="esf_helmet_channeling_label">
+				<static textres="item_label_esf_helmet_channeling" />
+			</label_column>
+			<number_columnh_item_wide name="esf_helmet_channeling" />
+			<label_column name="esf_helmet_mentalism_label">
+				<static textres="item_label_esf_helmet_mentalism" />
+			</label_column>
+			<number_columnh_item_wide name="esf_helmet_mentalism" />
+
+			<line_column name="divider" />
+		</sheetdata>
+	</windowclass>
+</root>

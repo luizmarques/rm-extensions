@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="reference_accessories_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Table 08-13: Accessories",
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=150 },
+						{ sName = "weight_s", sType = "string", sHeading = "Weight", nWidth=70, bCentered=true },
+						{ sName = "rural", sType = "string", sHeading = "Rural", bCentered=true },
+						{ sName = "town", sType = "string", sHeading = "Town", bCentered=true },
+						{ sName = "city", sType = "string", sHeading = "City", bCentered=true },
+						{ sName = "prod", sType = "string", sHeading = "Prod. Time", nWidth=80, bCentered=true },
+						{ sName = "notes", sType = "formattedtext", sHeading = "Description", nWidth=240, bWrapped=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					aGroupValueOrder = { "Clothing", "Accessory", },
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_armor_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = DB.getValue(node, "title", ""),
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=200 },
+						{ sName = "armortype", sType = "number", sHeading = "AT", nWidth=30, bCentered=true },
+						{ sName = "weight_s", sType = "string", sHeading = "Weight", nWidth=70, bCentered=true },
+						{ sName = "rural", sType = "string", sHeading = "Rural", bCentered=true },
+						{ sName = "strength", sType = "string", sHeading = "Str", nWidth=30, bCentered=true },
+						{ sName = "breakfactor", sType = "string", sHeading = "BF", nWidth=30, bCentered=true },
+						{ sName = "prod", sType = "string", sHeading = "Prod. Time", nWidth=80, bCentered=true },
+						{ sName = "notes", sType = "formattedtext", sHeading = "Description", nWidth=380, bWrapped=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					aGroupValueOrder = { "Armor", "Shield", "Helmet", "Barding", },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_basespellitem_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Table 08-15: Base Spell Items*",
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=150 },
+						{ sName = "rural", sType = "string", sHeading = "Rural", bCentered=true },
+						{ sName = "size", sType = "string", sHeading = "Size", bCentered=true },
+						{ sName = "charges", sType = "string", sHeading = "Max Charges", nWidth=80, bCentered=true },
+						{ sName = "level", sType = "string", sHeading = "Max Lvl", bCentered=true },
+						{ sName = "composition", sType = "string", sHeading = "Composition", nWidth=80 },
+						{ sName = "use", sType = "string", sHeading = "Use", nWidth=150 },
+					},
+					aGroups = { { sDBField = "type" } },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_foodlodgingservices_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Table 08-16: Food, Lodging and Services",
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=150 },
+						{ sName = "rural", sType = "string", sHeading = "Rural", bCentered=true },
+						{ sName = "town", sType = "string", sHeading = "Town", bCentered=true },
+						{ sName = "city", sType = "string", sHeading = "City", bCentered=true },
+						{ sName = "description", sType = "formattedtext", sHeading = "Description", nWidth=240, bWrapped=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					aGroupValueOrder = { "Food", "Service", },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_transport_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Table 08-17: Transport",
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=150 },
+						{ sName = "rural", sType = "string", sHeading = "Rural", nWidth=80, bCentered=true },
+						{ sName = "town", sType = "string", sHeading = "Town", nWidth=80, bCentered=true },
+						{ sName = "city", sType = "string", sHeading = "City", nWidth=80, bCentered=true },
+						{ sName = "ftrn", sType = "string", sHeading = "Ft/Rnd", nWidth=80, bCentered=true },
+						{ sName = "mihr", sType = "string", sHeading = "Mi/Hr", bCentered=true },
+						{ sName = "mnb", sType = "string", sHeading = "Mn Bonus", bCentered=true },
+						{ sName = "htwt", sType = "string", sHeading = "Ht/Wt", nWidth=80, bCentered=true },
+						{ sName = "capacity", sType = "string", sHeading = "Capacity", nWidth=80, bCentered=true },
+						{ sName = "transport_ob", sType = "string", sHeading = "OB", bCentered=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					aGroupValueOrder = { "Clothing", "Accessory", },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_weapons_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Table 08-18: Weapons",
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=200 },
+						{ sName = "rural", sType = "string", sHeading = "Rural", bCentered=true },
+						{ sName = "prod", sType = "string", sHeading = "Prod. Time", nWidth=80, bCentered=true },
+						{ sName = "weight_s", sType = "string", sHeading = "Weight", nWidth=70, bCentered=true },
+						{ sName = "strength", sType = "string", sHeading = "Str", nWidth=30, bCentered=true },
+						{ sName = "breakfactor", sType = "string", sHeading = "BF", nWidth=30, bCentered=true },
+						{ sName = "fumble", sType = "number", sHeading = "Fumble", bCentered=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					aGroupValueOrder = { "One-Handed Concussion", "One-Handed Slashing", "Two-Handed Weapon", "Pole Arm", "Missile Weapon", "Thrown Weapon" },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_herbs_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Table 08-19: Enchanted Herbs",
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=200 },
+						{ sName = "codes", sType = "string", sHeading = "Codes", bCentered=true },
+						{ sName = "form", sType = "string", sHeading = "Form/Prep", nWidth=80, bCentered=true },
+						{ sName = "rural", sType = "string", sHeading = "Cost", bCentered=true },
+						{ sName = "notes", sType = "formattedtext", sHeading = "Effect", nWidth=380, bWrapped=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_enchantedbreads_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Table: Enchanted Breads",
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=200 },
+						{ sName = "codes", sType = "string", sHeading = "Codes", bCentered=true },
+						{ sName = "form", sType = "string", sHeading = "Form/Prep", nWidth=80, bCentered=true },
+						{ sName = "rural", sType = "string", sHeading = "Cost", bCentered=true },
+						{ sName = "notes", sType = "formattedtext", sHeading = "Effect", nWidth=380, bWrapped=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_intoxicants_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Table: Intoxicants (Mind Alterants)",
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=200 },
+						{ sName = "codes", sType = "string", sHeading = "Codes", bCentered=true },
+						{ sName = "form", sType = "string", sHeading = "Form/Prep", nWidth=80, bCentered=true },
+						{ sName = "rural", sType = "string", sHeading = "Cost", bCentered=true },
+						{ sName = "notes", sType = "formattedtext", sHeading = "Effect", nWidth=380, bWrapped=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="reference_poisons_list">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "item",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Table: Poisons",
+					aColumns = {
+						{ sName = "inum", sType = "string", sHeading = "ID", nWidth=30, nSortOrder = 1 },
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=200 },
+						{ sName = "codes", sType = "string", sHeading = "Codes", bCentered=true },
+						{ sName = "form", sType = "string", sHeading = "Form/Prep", nWidth=80, bCentered=true },
+						{ sName = "rural", sType = "string", sHeading = "Cost", bCentered=true },
+						{ sName = "notes", sType = "formattedtext", sHeading = "Effect", nWidth=380, bWrapped=true },
+					},
+					aGroups = { { sDBField = "type" } },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+
+	<windowclass name="referenceskills">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "skill",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Skill Development Cost (Per Profession)",
+					aColumns = {
+						{ sName = "fullname", sType = "string", sHeading = "Name", nWidth=250, nSortOrder=1 },
+						{ sName = "type", sType = "custom", sCustomKey = "skill_view_typelabel", sHeading = "Type", nWidth=40, bCentered=true },
+						{ sName = "stats", sType = "string", sHeading = "Stats", bCentered=true },
+						{ sName = "costs.fighter", sType = "string", sHeading = "Fi", sTooltip = "Fighter", nWidth=30, bCentered=true },
+						{ sName = "costs.thief", sType = "string", sHeading = "Th", sTooltip = "Thief", nWidth=30, bCentered=true },
+						{ sName = "costs.rogue", sType = "string", sHeading = "Ro", sTooltip = "Rogue", nWidth=30, bCentered=true },
+						{ sName = "costs.warriormonk", sType = "string", sHeading = "Wm", sTooltip = "Warrior Monk", nWidth=30, bCentered=true },
+						{ sName = "costs.magician", sType = "string", sHeading = "Ma", sTooltip = "Magician", nWidth=30, bCentered=true },
+						{ sName = "costs.illusionist", sType = "string", sHeading = "Il", sTooltip = "Illusionist", nWidth=30, bCentered=true },
+						{ sName = "costs.alchemist", sType = "string", sHeading = "Al", sTooltip = "Alchemist", nWidth=30, bCentered=true },
+						{ sName = "costs.cleric", sType = "string", sHeading = "Cl", sTooltip = "Cleric", nWidth=30, bCentered=true },
+						{ sName = "costs.animist", sType = "string", sHeading = "An", sTooltip = "Animist", nWidth=30, bCentered=true },
+						{ sName = "costs.healer", sType = "string", sHeading = "He", sTooltip = "Healer", nWidth=30, bCentered=true },
+						{ sName = "costs.mentalist", sType = "string", sHeading = "Me", sTooltip = "Mentalist", nWidth=30, bCentered=true },
+						{ sName = "costs.layhealer", sType = "string", sHeading = "Lh", sTooltip = "Lay Healer", nWidth=30, bCentered=true },
+						{ sName = "costs.seer", sType = "string", sHeading = "Se", sTooltip = "Seer", nWidth=30, bCentered=true },
+						{ sName = "costs.sorcerer", sType = "string", sHeading = "So", sTooltip = "Sorcerer", nWidth=30, bCentered=true },
+						{ sName = "costs.mystic", sType = "string", sHeading = "My", sTooltip = "Mystic", nWidth=30, bCentered=true },
+						{ sName = "costs.astrologer", sType = "string", sHeading = "As", sTooltip = "Astrologer", nWidth=30, bCentered=true },
+						{ sName = "costs.monk", sType = "string", sHeading = "Mo", sTooltip = "Monk", nWidth=30, bCentered=true },
+						{ sName = "costs.ranger", sType = "string", sHeading = "Ra", sTooltip = "Ranger", nWidth=30, bCentered=true },
+						{ sName = "costs.bard", sType = "string", sHeading = "Ba", sTooltip = "Bard", nWidth=30, bCentered=true },
+					},
+					aGroups = { { sDBField = "type", sPrefix = "Type:", sCustom="skill_type" } },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+	<windowclass name="referenceskills_secondary" copy="referenceskills" />
+	<windowclass name="referenceskills_noprofession">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "skill",
+					sSource = DB.getPath(node, "list"),
+					sTitle = "Unskilled Actions",
+					aColumns = {
+						{ sName = "fullname", sType = "string", sHeading = "Name", nWidth=250, nSortOrder=1 },
+						{ sName = "type", sType = "custom", sCustomKey = "skill_view_typelabel", sHeading = "Type", nWidth=40, bCentered=true },
+						{ sName = "stats", sType = "string", sHeading = "Stats", bCentered=true },
+					},
+					aGroups = { { sDBField = "type", sPrefix = "Type:", sCustom="skill_type" } },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+
+	<windowclass name="referencenpcs">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "npc",
+					sSource = DB.getValue(node, "source", ""),
+					sTitle = DB.getValue(node, "name", ""),
+					aColumns = {
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=210, nSortOrder=1 },
+						{ sName = "level", sType = "number", sHeading = "Lvl", nWidth=30, bCentered=true },
+						{ sName = "armor", sType = "custom", sCustomKey = "npc_view_armorlabel", sHeading = "Armor(AT/DB/Sh)", sTooltip="Armor (Type/DB/Shield)", nWidth=110 },
+						{ sName = "ob", sType = "custom", sCustomKey = "npc_view_oblabel", sHeading = "OB(Me/Mi)", sTooltip="OB (Melee/Missile)", nWidth=80, bCentered=true },
+						{ sName = "ma", sType = "custom", sCustomKey = "npc_view_malabel", sHeading = "MA(Rk/Typ/OB)", sTooltip="Martial Arts (Rank/Type/OB)", nWidth=100, bCentered=true },
+						{ sName = "ambush", sType = "custom", sCustomKey = "npc_view_ambush", sHeading = "Amb", sTooltip="Ambush", nWidth="40", bCentered=true },
+						{ sName = "hits", sType = "custom", sCustomKey = "npc_view_hitslabel", sHeading = "Hits", nWidth="40", bCentered=true },
+						{ sName = "directspell", sType = "custom", sCustomKey = "npc_view_directspelllabel", sHeading = "DirSp", sTooltip="Directed Spell", nWidth="40", bCentered=true },
+						{ sName = "maneuver", sType = "custom", sCustomKey = "npc_view_manueverlabel", sHeading = "Mn(Cl/Rd/DT/SH)", sTooltip="Maneuvers\rClimb\rRide or Swim\rDisarm Trap or Pick Lock\rStalk or Hide", nWidth=110, bCentered=true },
+						{ sName = "perception", sType = "custom", sCustomKey = "npc_view_perception", sHeading = "Perc", sTooltip="Perception", nWidth="40", bCentered=true },
+						{ sName = "adrenalmove", sType = "custom", sCustomKey = "npc_view_amlabel", sHeading = "AM", sTooltip="Adrenal Moves (Number / Bonus)", bCentered=true },
+						{ sName = "languages", sType = "custom", sCustomKey = "npc_view_languages", sHeading = "Lang", sTooltip="Languages to Level 5", bCentered=true },
+						{ sName = "spells", sType = "custom", sCustomKey = "npc_view_spellslabel", sHeading = "Spell(Ru/Ch - 5/10/20)", sTooltip="Spells\rRunes\rChanneling\rSpell Lists to Level 5/10/20", nWidth=150, bCentered=true },
+					},
+					aGroups = { { sDBField = "group" } },
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+
+	<windowclass name="referenceraces">
+		<script>
+			function onInit()
+				local node = getDatabaseNode();
+
+				local tList = {
+					sRecordType = "race",
+					sSource = DB.getPath(node, "list"),
+					sTitle = DB.getValue(node, "title", ""),
+					aColumns = {
+						{ sName = "name", sType = "string", sHeading = "Name", nWidth=210, nSortOrder=1 },
+						{ sName = "stat1", sType = "custom", sCustomKey = "race_view_stat_1", sHeading = "ST/QU/PR/IN/EM", sTooltip="Stat Bonus Modifications", nWidth=120 },
+						{ sName = "stat2", sType = "custom", sCustomKey = "race_view_stat_2", sHeading = "CO/AG/SD/ME/RE", sTooltip="Stat Bonus Modifications", nWidth=120 },
+						{ sName = "rr", sType = "custom", sCustomKey = "race_view_rr", sHeading = "Ess/Chan/Ment/Poi/Dis", sTooltip="Resistance Roll Modifications", nWidth=150 },
+						{ sName = "languages", sType = "number", sHeading = "#Lang", nWidth=40, bCentered=true },
+						{ sName = "hitdie", sType = "string", sHeading = "HD", sTooltip = "Hit Dice Type", nWidth=40, bCentered=true },
+						{ sName = "maxhits", sType = "number", sHeading = "MxHt", sTooltip = "Max. Hits", nWidth=40, bCentered=true },
+					},
+					sDBNotesField = "footnote",
+				};
+
+				local w = Interface.openWindow("reference_groupedlist", getDatabasePath());
+				ListManager.initViewFromRecord(w, tList);
+
+				close();
+			end
+		</script>
+		<sheetdata />
+	</windowclass>
+</root>

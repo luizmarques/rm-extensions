@@ -1,0 +1,746 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="reference_profession" copy="record_window_tabbed">
+		<tab>
+			<name>main</name>
+			<resource>tab_main</resource>
+			<class>ref_profession_main</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>primary_skills</name>
+			<resource>tab_primary</resource>
+			<class>ref_profession_primary_skills</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>secondary_skills</name>
+			<resource>tab_secondary</resource>
+			<class>ref_profession_secondary_skills</class>
+			<embed />
+		</tab>
+		<tab merge="add">
+			<name>level_bonuses</name>
+			<resource>tab_levelbonus</resource>
+			<class>ref_profession_level_bonuses</class>
+			<embed />
+		</tab>
+	</windowclass>
+
+	<windowclass name="ref_profession_main">
+		<margins control="0,0,0,2" />
+		<script>
+			function update()
+				local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+				
+				WindowManager.callSafeControlUpdate(self, "realm", bReadOnly);
+				self["realm"].setComboBoxReadOnly(bReadOnly);
+				WindowManager.callSafeControlUpdate(self, "category", bReadOnly);
+				self["category"].setComboBoxReadOnly(bReadOnly);
+				WindowManager.callSafeControlUpdate(self, "primerequisite1", bReadOnly);
+				self["primerequisite1"].setComboBoxReadOnly(bReadOnly);
+				WindowManager.callSafeControlUpdate(self, "primerequisite2", bReadOnly);
+				self["primerequisite2"].setComboBoxReadOnly(bReadOnly);
+				WindowManager.callSafeControlUpdate(self, "primerequisite3", bReadOnly);
+				self["primerequisite3"].setComboBoxReadOnly(bReadOnly);
+					
+				base_spelllists.update(bReadOnly);
+
+				description.setReadOnly(bReadOnly);
+			end
+			
+			function updateDropDown(sControl, sDropDown)
+				if self[sControl].isReadOnly() then
+					self[sDropDown].setVisible(false);
+				else
+					self[sDropDown].setVisible(true);
+				end	
+			end
+		</script>
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<label_column name="realm_label">
+				<static textres="profession_label_realm" />
+			</label_column>
+			<combobox_columnh_campaign name="realm">
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Realm.List());
+						add("Pick One");
+					end
+				</script>
+			</combobox_columnh_campaign>
+			
+			<label_column name="category_label">
+				<static textres="profession_label_category" />
+			</label_column>
+			<combobox_columnh_campaign name="category">
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Professions.CategoryList());
+					end
+				</script>
+			</combobox_columnh_campaign>
+	
+			<label_column name="primerequisite1_label">
+				<static textres="profession_label_primerequisites" />
+			</label_column>
+			<combobox_columnh_prof_prereq name="primerequisite3">
+				<anchored>
+					<top relation="current" />
+					<left offset="190" />
+				</anchored>
+				<source><name>primerequisites.id-00003.stat</name></source>
+			</combobox_columnh_prof_prereq>
+			<combobox_columnh_prof_prereq name="primerequisite2">
+				<anchored>
+					<top relation="current" />
+					<left offset="150" />
+				</anchored>
+				<source><name>primerequisites.id-00002.stat</name></source>
+			</combobox_columnh_prof_prereq>
+			<combobox_columnh_prof_prereq name="primerequisite1">
+				<source><name>primerequisites.id-00001.stat</name></source>
+			</combobox_columnh_prof_prereq>
+
+			<header_column name="base_spell_lists_header">
+				<static textres="profession_header_base_spell_lists"/>
+				<center />
+				<script>
+					function onInit()
+						if Session.IsHost then
+							setTooltipText(Interface.getString("profession_tooltip_base_spell_lists"));
+						end
+					end
+					
+					function onDrop(x, y, draginfo)
+						window.base_spelllists.onDrop(x, y, draginfo);
+					end
+				</script>
+			</header_column>
+			<button_iedit name="base_spelllists_iedit">
+				<anchored to="base_spell_lists_header" position="righthigh" offset="-20,0" />
+				<target>base_spelllists</target>
+			</button_iedit>
+			<list_column name="base_spelllists">
+				<anchored>
+					<top parent="columnanchor" anchor="bottom" relation="relative" offset="5" />
+				</anchored>
+				<class>prof_base_spell_lists_item</class>
+				<datasource>.base_spell_lists</datasource>
+				<script>
+					function onListChanged()
+						super.onListChanged();
+						
+						local bLocked = WindowManager.getLockedState(DB.getParent(getDatabaseNode()));
+						if bLocked then
+							window.base_spelllists_iedit.setVisible(false);
+						else
+							if getWindowCount() &gt; 0 then
+								window.base_spelllists_iedit.setVisible(true);
+							else
+								window.base_spelllists_iedit.setVisible(false);
+							end		
+						end
+					end
+					
+					function onDrop(x, y, draginfo)
+						local bLocked = WindowManager.getLockedState(DB.getParent(getDatabaseNode()));
+						if not bLocked then
+							if draginfo.isType("spelllist") then
+								local win = draginfo.getCustomData();
+								local source = win.getDatabaseNode();
+								addSpellList(source);
+								return true;
+							elseif draginfo.isType("shortcut") then
+								local class = draginfo.getShortcutData();
+								local source = draginfo.getDatabaseNode();
+								if source and class == "spelllist" then
+									addSpellList(source);
+									return true;
+								end
+							end
+						end
+						return false;
+					end
+
+					function addSpellList(source)
+						local newentry;
+						local newnode;
+
+						local newname = DB.getValue(source, "name", "");
+						if newname ~= "" then
+							for i,win in ipairs(getWindows()) do
+								if win.name.getValue() == newname then
+									--[[ duplicate, warn the user and fail ]]
+									Comm.deliverChatMessage({font="systemfont",text="Spell list '" .. newname .. "' is already a known base list"});
+									return nil;
+								end
+							end
+						end
+
+						newentry = createWindow();
+						newnode = newentry.getDatabaseNode();
+
+						--[[ Descriptive fields ]]
+						local sSpellListName = DB.getValue(source, "name", "");
+						newentry.name.setValue(sSpellListName);
+
+						--[[ Shortcut ]]
+						newentry.open.setTarget(DB.getPath(source));
+
+						return newentry;
+					end
+				</script>
+			</list_column>  
+
+			<header_column name="header_description">
+				<static textres="profession_label_description" />
+				<center />
+			</header_column>
+			<ft_columnh name="description" source="text" />
+
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="ref_profession_primary_skills">
+		<margins control="0,0,0,2" />
+		<script>
+			function update()
+				local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+				
+				primary_skill_costs.setReadOnly(bReadOnly);
+				for i, win in ipairs(primary_skill_costs.getWindows()) do
+					win.cost.setReadOnly(bReadOnly);
+				end
+			end			
+		</script>
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<header_column name="primary_skill_costs_header">
+				<static textres="profession_header_primary_skill_costs"/>
+				<center />
+				<tooltip textres="profession_tooltip_skill_costs" />
+			</header_column>
+			<list_column_prof_skillcost name="primary_skill_costs">
+				<datasource>.skillcosts.primary</datasource>
+				<script>
+					function onInit()
+						super.onInit();
+
+						if Session.IsHost then
+							Module.onModuleLoad = updateSkillList;
+						end
+						
+						updateSkillList();
+					end
+					
+					function updateSkillList()			
+						local sProfessionName = DB.getValue(window.getDatabaseNode(), "name", "");
+						local listSkillCost = Rules_Professions.SkillCostList("Primary", sProfessionName);
+
+						for k, vSkillCost in pairs(listSkillCost) do
+							bFound = false;
+							for i, winSkillCost in ipairs(getWindows()) do
+								if vSkillCost.SkillName == winSkillCost.name.getValue() then
+									bFound = true;
+								end
+								local _, sRecordName = winSkillCost.open.getValue();
+								local nodeSkill = DB.findNode(sRecordName);
+								if nodeSkill then
+									if string.lower(DB.getValue(nodeSkill, "class", "")) == "secondary" then
+										WindowManager.safeDelete(winSkillCost);
+									end
+								end
+							end
+							
+							if not bFound then
+								local newentry = createWindow();
+
+								--[[ Descriptive fields ]]
+								if vSkillCost.SkillName then
+									newentry.name.setValue(vSkillCost.SkillName);
+								end
+								if vSkillCost.SkillCost then
+									newentry.cost.setValue(vSkillCost.SkillCost);
+								end
+
+								--[[ Shortcut ]]
+								newentry.open.setValue("skill",vSkillCost.NodeName);
+								newentry.open.setVisible(true);
+
+								--[[ re-initialise 
+								newentry.onInit(); ]]
+							end
+							
+						end
+					end
+				</script>
+			</list_column_prof_skillcost>  
+			<RMC_label_fieldtop name="primary_skill_costs_skill_label">
+				<anchored>
+					<to>primary_skill_costs</to>
+					<position>aboveleft</position>
+					<offset>20,0</offset>
+				</anchored>
+				<static>Skill</static>
+			</RMC_label_fieldtop>
+			<RMC_label_fieldtop name="primary_skill_costs_cost_label">
+				<anchored>
+					<to>primary_skill_costs</to>
+					<position>aboveleft</position>
+					<offset>225,0</offset>
+				</anchored>
+				<static>Cost</static>
+			</RMC_label_fieldtop>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="ref_profession_secondary_skills">
+		<margins control="0,0,0,2" />
+		<script>
+			function update()
+				local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+				
+				secondary_skill_costs.setReadOnly(bReadOnly);
+				for i, win in ipairs(secondary_skill_costs.getWindows()) do
+					win.cost.setReadOnly(bReadOnly);
+				end
+			end			
+		</script>
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<header_column name="secondary_skill_costs_header">
+				<static textres="profession_header_secondary_skill_costs"/>
+				<center />
+				<tooltip textres="profession_tooltip_skill_costs" />
+			</header_column>
+			<list_column_prof_skillcost name="secondary_skill_costs">
+				<datasource>.skillcosts.secondary</datasource>
+				<script>
+					function onInit()
+						super.onInit();
+
+						if Session.IsHost then
+							Module.onModuleLoad = updateSkillList;
+						end
+						
+						updateSkillList();
+					end
+					
+					function updateSkillList()						
+						local sProfessionName = DB.getValue(window.getDatabaseNode(), "name", "");
+						local listSkillCost = Rules_Professions.SkillCostList("Secondary", sProfessionName);
+
+						for k, vSkillCost in pairs(listSkillCost) do
+							bFound = false;
+							for i, winSkillCost in ipairs(getWindows()) do
+								if vSkillCost.SkillName == winSkillCost.name.getValue() then
+									bFound = true;
+								end
+								local _, sRecordName = winSkillCost.open.getValue();
+								local nodeSkill = DB.findNode(sRecordName);
+								if nodeSkill then
+									if string.lower(DB.getValue(nodeSkill, "class", "")) == "primary" then
+										WindowManager.safeDelete(winSkillCost);
+									end
+								end
+							end
+
+							if not bFound then
+								local newentry = createWindow();
+
+								--[[ Descriptive fields ]]
+								if vSkillCost.SkillName then
+									newentry.name.setValue(vSkillCost.SkillName);
+								end
+								if vSkillCost.SkillCost then
+									newentry.cost.setValue(vSkillCost.SkillCost);
+								end
+
+								--[[ Shortcut ]]
+								newentry.open.setValue("skill",vSkillCost.NodeName);
+								newentry.open.setVisible(true);
+
+								--[[ re-initialise 
+								newentry.onInit(); ]]
+							end
+						end
+					end
+				</script>
+			</list_column_prof_skillcost>  
+			<RMC_label_fieldtop name="secondary_skill_costs_skill_label">
+				<anchored>
+					<to>secondary_skill_costs</to>
+					<position>aboveleft</position>
+					<offset>20,0</offset>
+				</anchored>
+				<static>Skill</static>
+			</RMC_label_fieldtop>
+			<RMC_label_fieldtop name="secondary_skill_costs_cost_label">
+				<anchored>
+					<to>secondary_skill_costs</to>
+					<position>aboveleft</position>
+					<offset>225,0</offset>
+				</anchored>
+				<static>Cost</static>
+			</RMC_label_fieldtop>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="prof_skillcost_item">
+		<margins control="0,0,0,2"/>
+		<script>
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				local node = getDatabaseNode();    
+				if not open.getValue() then
+					open.setValue("skill", DB.getPath(node));
+				end
+				open.setVisible(true);
+			end
+		</script>
+		<sheetdata>
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<button_listitem_idelete_left name="idelete" />
+			<link_listitem_left name="open" />
+
+			<string_labeled name="cost">
+				<anchored to="rightanchor" width="30" height="20">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<center />
+			</string_labeled>
+
+			<string_listitem_center_noframe_static name="name" />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="ref_profession_level_bonuses">
+		<margins control="0,0,0,2" />
+		<script>
+			function update()
+				local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+				
+				level_bonuses_core.setReadOnly(bReadOnly);
+				for i, win in ipairs(level_bonuses_core.getWindows()) do
+					win.bonus.setReadOnly(bReadOnly);
+				end
+				level_bonuses_rm2.setReadOnly(bReadOnly);
+				for i, win in ipairs(level_bonuses_rm2.getWindows()) do
+					win.bonus.setReadOnly(bReadOnly);
+				end
+				level_bonuses_rmfrp.setReadOnly(bReadOnly);
+				for i, win in ipairs(level_bonuses_rmfrp.getWindows()) do
+					win.bonus.setReadOnly(bReadOnly);
+				end
+				level_bonuses_rmcompanion2.setReadOnly(bReadOnly);
+				for i, win in ipairs(level_bonuses_rmcompanion2.getWindows()) do
+					win.bonus.setReadOnly(bReadOnly);
+				end
+			end			
+		</script>
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<header_column name="level_bonuses_core_header">
+				<static textres="profession_header_level_bonuses_core"/>
+				<center />
+				<tooltip textres="profession_tooltip_level_bonuses_core" />
+			</header_column>
+			<list_column_level_bonuses name="level_bonuses_core">
+				<datasource>.levelbonus.core</datasource>
+				<script>
+					function onInit()
+						super.onInit();
+						
+						updateLevelBonusesCore();
+					end
+					
+					function updateLevelBonusesCore()			
+						local sProfessionName = DB.getValue(window.getDatabaseNode(), "name", "");
+						local listLevelBonusesCore = Rules_Skills.CoreLevelBonusGroupList();
+
+						for k, vLevelBonus in pairs(listLevelBonusesCore) do
+							bFound = false;
+							for i, winLevelBonus in ipairs(getWindows()) do
+								if vLevelBonus == winLevelBonus.name.getValue() then
+									bFound = true;
+								end
+							end
+							
+							if not bFound then
+								local newentry = createWindow();
+
+								--[[ Descriptive fields ]]
+								if vLevelBonus then
+									newentry.name.setValue(vLevelBonus);
+								end
+
+								--[[ re-initialise 
+								newentry.onInit(); ]]
+							end
+						end
+					end
+				</script>
+			</list_column_level_bonuses>  
+			<RMC_label_fieldtop name="level_bonuses_core_label">
+				<anchored>
+					<to>level_bonuses_core</to>
+					<position>aboveleft</position>
+					<offset>20,0</offset>
+				</anchored>
+				<static>Level Bonus Group</static>
+			</RMC_label_fieldtop>
+			<RMC_label_fieldtop name="level_bonuses_core_cost_label">
+				<anchored>
+					<to>level_bonuses_core</to>
+					<position>aboveleft</position>
+					<offset>225,0</offset>
+				</anchored>
+				<static>Bonus</static>
+			</RMC_label_fieldtop>
+
+			<header_column name="level_bonuses_rm2_header">
+				<static textres="profession_header_level_bonuses_rm2"/>
+				<center />
+				<tooltip textres="profession_tooltip_level_bonuses_rm2" />
+			</header_column>
+			<list_column_level_bonuses name="level_bonuses_rm2">
+				<datasource>.levelbonus.rm2</datasource>
+				<script>
+					function onInit()
+						super.onInit();
+						
+						updateLevelBonusesRM2();
+					end
+					
+					function updateLevelBonusesRM2()			
+						local sProfessionName = DB.getValue(window.getDatabaseNode(), "name", "");
+						local listLevelBonusesRM2 = Rules_Skills.RM2LevelBonusGroupList();
+
+						for k, vLevelBonus in pairs(listLevelBonusesRM2) do
+							bFound = false;
+							for i, winLevelBonus in ipairs(getWindows()) do
+								if vLevelBonus == winLevelBonus.name.getValue() then
+									bFound = true;
+								end
+							end
+							
+							if not bFound then
+								local newentry = createWindow();
+
+								--[[ Descriptive fields ]]
+								if vLevelBonus then
+									newentry.name.setValue(vLevelBonus);
+								end
+
+								--[[ re-initialise 
+								newentry.onInit(); ]]
+							end
+						end
+					end
+				</script>
+			</list_column_level_bonuses>  
+			<RMC_label_fieldtop name="level_bonuses_rm2_label">
+				<anchored>
+					<to>level_bonuses_rm2</to>
+					<position>aboveleft</position>
+					<offset>20,0</offset>
+				</anchored>
+				<static>Level Bonus Group</static>
+			</RMC_label_fieldtop>
+			<RMC_label_fieldtop name="level_bonuses_rm2_cost_label">
+				<anchored>
+					<to>level_bonuses_rm2</to>
+					<position>aboveleft</position>
+					<offset>225,0</offset>
+				</anchored>
+				<static>Bonus</static>
+			</RMC_label_fieldtop>
+
+			<header_column name="level_bonuses_rmfrp_header">
+				<static textres="profession_header_level_bonuses_rmfrp"/>
+				<center />
+				<tooltip textres="profession_tooltip_level_bonuses_rmfrp" />
+			</header_column>
+			<list_column_level_bonuses name="level_bonuses_rmfrp">
+				<datasource>.levelbonus.rmfrp</datasource>
+				<script>
+					function onInit()
+						super.onInit();
+						
+						updateLevelBonusesRMFRP();
+					end
+					
+					function updateLevelBonusesRMFRP()			
+						local sProfessionName = DB.getValue(window.getDatabaseNode(), "name", "");
+						local listLevelBonusesRMFRP = Rules_Skills.RMFRPLevelBonusGroupList();
+
+						for k, vLevelBonus in pairs(listLevelBonusesRMFRP) do
+							bFound = false;
+							for i, winLevelBonus in ipairs(getWindows()) do
+								if vLevelBonus == winLevelBonus.name.getValue() then
+									bFound = true;
+								end
+							end
+							
+							if not bFound then
+								local newentry = createWindow();
+
+								--[[ Descriptive fields ]]
+								if vLevelBonus then
+									newentry.name.setValue(vLevelBonus);
+								end
+
+								--[[ re-initialise 
+								newentry.onInit(); ]]
+							end
+						end
+					end
+				</script>
+			</list_column_level_bonuses>  
+			<RMC_label_fieldtop name="level_bonuses_rmfrp_label">
+				<anchored>
+					<to>level_bonuses_rmfrp</to>
+					<position>aboveleft</position>
+					<offset>20,0</offset>
+				</anchored>
+				<static>Level Bonus Group</static>
+			</RMC_label_fieldtop>
+			<RMC_label_fieldtop name="level_bonuses_rmfrp_cost_label">
+				<anchored>
+					<to>level_bonuses_rmfrp</to>
+					<position>aboveleft</position>
+					<offset>225,0</offset>
+				</anchored>
+				<static>Bonus</static>
+			</RMC_label_fieldtop>
+
+			<header_column name="level_bonuses_rmcompanion2_header">
+				<static textres="profession_header_level_bonuses_rmcompanion2"/>
+				<center />
+				<tooltip textres="profession_tooltip_level_bonuses_rmcompanion2" />
+			</header_column>
+			<list_column_level_bonuses name="level_bonuses_rmcompanion2">
+				<datasource>.levelbonus.rmcompanion2</datasource>
+				<script>
+					function onInit()
+						super.onInit();
+						
+						updateLevelBonusesRMCompanion2();
+					end
+					
+					function updateLevelBonusesRMCompanion2()			
+						local sProfessionName = DB.getValue(window.getDatabaseNode(), "name", "");
+						local listLevelBonusesRMCompanion2 = Rules_Skills.RMCompanion2LevelBonusGroupList();
+
+						for k, vLevelBonus in pairs(listLevelBonusesRMCompanion2) do
+							bFound = false;
+							for i, winLevelBonus in ipairs(getWindows()) do
+								if vLevelBonus == winLevelBonus.name.getValue() then
+									bFound = true;
+								end
+							end
+							
+							if not bFound then
+								local newentry = createWindow();
+
+								--[[ Descriptive fields ]]
+								if vLevelBonus then
+									newentry.name.setValue(vLevelBonus);
+								end
+
+								--[[ re-initialise 
+								newentry.onInit(); ]]
+							end
+						end
+					end
+				</script>
+			</list_column_level_bonuses>  
+			<RMC_label_fieldtop name="level_bonuses_rmcompanion2_label">
+				<anchored>
+					<to>level_bonuses_rmcompanion2</to>
+					<position>aboveleft</position>
+					<offset>20,0</offset>
+				</anchored>
+				<static>Level Bonus Group</static>
+			</RMC_label_fieldtop>
+			<RMC_label_fieldtop name="level_bonuses_rmcompanion2_cost_label">
+				<anchored>
+					<to>level_bonuses_rmcompanion2</to>
+					<position>aboveleft</position>
+					<offset>225,0</offset>
+				</anchored>
+				<static>Bonus</static>
+			</RMC_label_fieldtop>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="prof_level_bonus_item">
+		<margins control="0,0,0,2"/>
+		<sheetdata>
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<button_listitem_idelete_left name="idelete" />
+
+			<number_labeled name="bonus">
+				<anchored to="rightanchor" width="30" height="20">
+					<top />
+					<right relation="relative" offset="-5" postoffset="-5" />
+				</anchored>
+				<displaysign />
+			</number_labeled>
+
+			<string_listitem_center_noframe_static name="name" />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="prof_base_spell_lists_item">
+		<margins control="0,0,0,2"/>
+		<script>
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				local node = getDatabaseNode();    
+				if not open.getValue() then
+					open.setValue("spelllist", DB.getPath(node));
+				end
+				open.setVisible(true);
+			end
+		</script>
+		<sheetdata>
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<button_listitem_idelete_left name="idelete" />
+			<link_listitem_left name="open">
+				<script>
+					function setTarget(path)
+						setValue("spelllist", path);
+					end
+				</script>
+			</link_listitem_left>
+
+			<string_listitem_center_noframe_static name="name" />
+		</sheetdata>
+	</windowclass>
+</root>

@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="spelllist" copy="record_window">
+		<sizelimits>
+			<minimum width="620" height="400" />
+		</sizelimits>
+	</windowclass>
+	<windowclass name="spelllist_main">
+		<script>
+			function update()
+				local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+
+				realm.update(bReadOnly);
+				class.update(bReadOnly);
+				self["class_dropdown"].setVisible(not bReadOnly);
+				text.update(bReadOnly);
+	
+				spells_iedit.setVisible(not bReadOnly);
+				spells_iadd.setVisible(not bReadOnly);
+
+				spells.setReadOnly(bReadOnly);
+				for _,w in pairs(spells.getWindows()) do
+					w.level.setReadOnly(bReadOnly);
+					w.name.setReadOnly(bReadOnly);
+					w.area.setReadOnly(bReadOnly);
+					w.duration.setReadOnly(bReadOnly);
+					w.range.setReadOnly(bReadOnly);
+					w.type.setReadOnly(bReadOnly);
+				end
+			end
+			local _bUpdatingDetail = false;
+			function toggleListDetail()
+				_bUpdatingDetail = true;
+				local nValue = spells_detail.getValue();
+				for _,w in pairs(spells.getWindows()) do
+					w.activatedetail.setValue(nValue);
+				end
+				_bUpdatingDetail = false;
+
+				self.onUpdateDetailToggle();
+			end
+			function onUpdateDetailToggle()
+				if _bUpdatingDetail then
+					return;
+				end
+
+				local nValue = 0;
+				for _,w in pairs(spells.getWindows()) do
+					if w.activatedetail.getValue() == 1 then
+						nValue = 1;
+					end
+				end
+				spells_detail.setValue(nValue);
+			end
+		</script>
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<label_column name="realm_label">
+				<static textres="spelllist_label_realm" />
+			</label_column>
+			<combobox_columnh name="realm">
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Realm.List());
+					end
+				</script>
+			</combobox_columnh>
+			<label_column name="class_label">
+				<static textres="spelllist_label_class" />
+			</label_column>
+			<string_columnh name="class" />
+			<DropDown name="class_dropdown">
+				<target>class</target>
+				<position>0,5</position>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Spells.SpellClassList());
+					end
+				</script>
+			</DropDown>
+
+			<header_column name="text_header">
+				<static textres="spelllist_label_notes" />
+			</header_column>
+			<ft_columnh name="text" />
+
+			<header_column name="spells_header">
+				<static textres="spelllist_label_spells" />
+			</header_column>
+			<spacer_column name="spells_area_label">
+				<anchored height="20" />
+			</spacer_column>
+			<list_column name="spells">
+				<datasource>.spells</datasource>
+				<class>spelllist_spell_item</class>
+				<sortby><control>level</control></sortby>
+			</list_column>
+			<button_toggledetail name="spells_detail">
+				<anchored to="spells_header" position="righthigh" offset="-15,0" />
+				<script>
+					function onButtonPress()
+						window.toggleListDetail();
+					end
+					function onValueChanged()
+					end
+				</script>
+			</button_toggledetail>
+			<button_iedit name="spells_iedit">
+				<anchored to="spells_detail" position="lefthigh" offset="2,0" />
+				<edittarget>spells</edittarget>
+				<edittarget merge="add">idelete_header</edittarget>
+			</button_iedit>
+			<button_iadd name="spells_iadd">
+				<anchored to="spells_iedit" position="lefthigh" offset="5,0" />
+				<target>spells</target>
+			</button_iadd>
+
+			<anchor_list_content_label_left>
+				<anchored to="spells" />
+			</anchor_list_content_label_left>
+			<spacer_list_content_link_label_left name="label_link" />
+			<label_list_content_number_left name="label_level">
+				<anchored width="30" />
+				<static textres="spelllist_label_item_level" />
+			</label_list_content_number_left>
+			<anchor_list_content_label_right>
+				<anchored to="spells" />
+			</anchor_list_content_label_right>
+			<spacer_list_content_idelete_label_right name="idelete_header">
+				<editmode>spells_iedit</editmode>
+			</spacer_list_content_idelete_label_right>
+			<spacer_list_content_label_right name="label_details">
+				<anchored width="20" />
+			</spacer_list_content_label_right>
+			<label_list_content_string_right name="label_type">
+				<anchored width="30" />
+				<static textres="spelllist_label_item_type" />
+			</label_list_content_string_right>
+			<label_list_content_string_right name="label_range">
+				<anchored width="50" />
+				<static textres="spelllist_label_item_range" />
+			</label_list_content_string_right>
+			<label_list_content_string_right name="label_duration">
+				<anchored width="100" />
+				<static textres="spelllist_label_item_duration" />
+			</label_list_content_string_right>
+			<label_list_content_string_right name="label_area">
+				<anchored width="80" />
+				<static textres="spelllist_label_item_area" />
+			</label_list_content_string_right>
+			<label_list_content_noframe name="label_name">
+				<static textres="spelllist_label_item_name" />
+			</label_list_content_noframe>
+		</sheetdata>
+	</windowclass>
+	<windowclass name="spelllist_spell_item">
+		<margins control="0,0,0,2"/>
+		<script>
+			function toggleDetail()
+				if activatedetail.getValue() == 1 then
+					text.setVisible(true);
+				else
+					text.setVisible(false);
+				end
+				windowlist.window.onUpdateDetailToggle();
+			end
+		</script>
+		<sheetdata>
+			<anchor_listitem_left_sm />
+			<anchor_listitem_right_sm />
+
+			<button_listitem_idelete_left name="idelete">
+				<editmode>spells_iedit</editmode>
+			</button_listitem_idelete_left>
+			<link_listitem_left name="link">
+				<class>spell</class>
+			</link_listitem_left>
+			<number_listitem_left name="level">
+				<anchored width="30" />
+			</number_listitem_left>
+
+			<button_listitem_toggledetail_right name="activatedetail" />
+			<string_listitem_right name="type">
+				<anchored width="30" />
+				<tabtarget next="" prev="range" />
+			</string_listitem_right>
+			<string_listitem_right name="range">
+				<anchored width="50" />
+				<tabtarget next="type" prev="duration" />
+			</string_listitem_right>
+			<string_listitem_right name="duration">
+				<anchored width="100" />
+				<tabtarget next="range" prev="area" />
+			</string_listitem_right>
+			<string_listitem_right name="area">
+				<anchored width="80" />
+				<tabtarget next="duration" prev="name" />
+			</string_listitem_right>
+
+			<string_listitem_center_underline name="name">
+				<tabtarget next="area" prev="level" />
+				<cursor hover="hand" />
+				<script>
+					function action(draginfo)
+						local nodeSpell = window.getDatabaseNode();
+						local nodeSpellList = DB.getParent(DB.getParent(nodeSpell));
+						local nodeChar = nil;
+						local sPath = DB.getPath(nodeSpellList);
+						if string.find(sPath, "characters") then
+							nodeChar = DB.getParent(DB.getParent(nodeSpellList));
+						end
+						local rActor = nodeChar and ActorManager.resolveActor(nodeChar) or ActorManager.getActiveActor();
+
+					-- actor can be nil; the roll still works with a non-player context
+					if not rActor then
+						local rActorTemp = ActorManager.getActiveActor();
+						if rActorTemp then
+							local nodeCharTemp = ActorManager.getCreatureNode(rActorTemp);
+							if nodeCharTemp then
+								for _, nodeSL in pairs(DB.getChildren(nodeCharTemp, "spells")) do
+									if DB.getValue(nodeSL, "name", "") == sSpellListName then
+										rActor = rActorTemp;
+										break;
+									end
+								end
+							end
+						end
+					end
+					if not rActor then
+						rActor = nil
+						end
+
+						local sSpellListName = DB.getValue(nodeSpellList, "name", "");
+						local sSpellListNodeName = DB.getPath(nodeSpellList);
+						local sRealm = DB.getValue(nodeSpellList, "realm", "");
+						local nESFTotal = 0;
+						local esf_value = DB.getValue(nodeSpellList, "esf", "0");
+						if esf_value then
+							nESFTotal = tonumber(esf_value) or 0;
+						end
+						if nESFTotal == 0 then
+							local rActorTemp = ActorManager.getActiveActor();
+							if rActorTemp then
+								local nodeCharTemp = ActorManager.getCreatureNode(rActorTemp);
+								if nodeCharTemp then
+									for _, nodeSL in pairs(DB.getChildren(nodeCharTemp, "spells")) do
+										if DB.getValue(nodeSL, "name", "") == sSpellListName then
+											local esf_temp = DB.getValue(nodeSL, "esf", "0");
+											if esf_temp then
+												nESFTotal = tonumber(esf_temp) or 0;
+											end
+											break;
+										end
+									end
+								end
+							end
+						end
+						local sSpellName = DB.getValue(nodeSpell, "name", "");
+						local sSpellNodeName = DB.getPath(nodeSpell);
+
+						if nESFTotal &lt; 0 then nESFTotal = 0; end
+
+							local nSpellLevel = DB.getValue(nodeSpell, "level", 0);
+							ActionBaseCasting.performRoll(draginfo, rActor, sSpellListName, sSpellListNodeName, sRealm, Rules_Spells.GetSpellFailure(nESFTotal), { sSpellName = sSpellName, sSpellNodeName = sSpellNodeName, nSpellLevel = nSpellLevel });
+						return true;
+					end
+
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</string_listitem_center_underline>
+			<dice_ghost name="diceholder">
+				<anchored to="name" position="right" offset="-125" width="90" />
+			</dice_ghost>
+			<basicft name="text">
+				<anchored>
+					<top parent="name" anchor="bottom" offset="5" />
+					<left offset="5" />
+					<right offset="-5" />
+				</anchored>
+				<invisible />
+			</basicft>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="spell" copy="record_window" />
+	<windowclass name="spell_main">
+		<margins control="0,0,0,2" />
+		<script>
+			function update()
+				local bReadOnly = WindowManager.getReadOnlyState(getDatabaseNode());
+				
+				list.setReadOnly(bReadOnly);
+				level.setReadOnly(bReadOnly);
+				area.setReadOnly(bReadOnly);
+				duration.setReadOnly(bReadOnly);
+				range.setReadOnly(bReadOnly);
+				type.setReadOnly(bReadOnly);
+
+				text.setReadOnly(bReadOnly);
+			end
+		</script>
+		<sheetdata>
+			<anchor_column name="columnanchor" />
+
+			<label_column name="label_list">
+				<static textres="spell_label_list" />
+			</label_column>
+			<stringc_column name="list">
+				<disabled />
+				<script>
+					local nodeSpellList = nil;
+
+					function onInit()
+						nodeSpellList = DB.getChild(window.getDatabaseNode(), "...");
+						setValue(DB.getValue(nodeSpellList, "name", ""));
+						if nodeSpellList then
+							window.spelllistlink.setValue("spelllist", DB.getPath(nodeSpellList));
+							window.spelllistlink.setVisible(true);
+						end
+					end
+				</script>
+			</stringc_column>
+			<linkcontrol name="spelllistlink">
+				<anchored to="list" position="left" offset="5" width="20" />
+				<closetoggle />
+				<invisible />
+			</linkcontrol>
+
+			<label_column name="label_level">
+				<static textres="spell_label_level" />
+			</label_column>
+			<number_columnh name="level">
+				<frame mergerule="replace" name="fielddark" offset="7,5,7,5" hidereadonly="true" />
+			</number_columnh>
+
+			<label_column name="label_area">
+				<static textres="spell_label_area" />
+			</label_column>
+			<string_columnh name="area" />
+			<label_column name="label_duration">
+				<static textres="spell_label_duration" />
+			</label_column>
+			<string_columnh name="duration" />
+			<label_column name="label_range">
+				<static textres="spell_label_range" />
+			</label_column>
+			<string_columnh name="range" />
+			<label_column name="label_type">
+				<static textres="spell_label_type" />
+			</label_column>
+			<string_columnh name="type" />
+
+			<header_column name="header_description">
+				<static textres="spell_label_description"/>
+				<center />
+			</header_column>
+			<ft_columnh name="text" />
+
+		</sheetdata>
+	</windowclass>
+</root>

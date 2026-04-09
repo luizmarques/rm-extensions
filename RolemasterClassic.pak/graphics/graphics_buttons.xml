@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<!-- Common -->
+	<icon name="button_arrowleft" file="graphics/buttons/button_arrowleft.png" />
+	<icon name="button_arrowleft_down" file="graphics/buttons/button_arrowleft_down.png" />
+	<icon name="button_arrowright" file="graphics/buttons/button_arrowright.png" />
+	<icon name="button_arrowright_down" file="graphics/buttons/button_arrowright_down.png" />
+	<icon name="button_link" file="graphics/buttons/button_link.png" />
+	<icon name="button_link_down" file="graphics/buttons/button_link_down.png" />
+	<icon name="button_link_empty" file="graphics/buttons/button_link_empty.png" />
+	<icon name="button_toolbar_link" file="graphics/buttons/button_toolbar_link.png" />
+	<icon name="button_dragtarget" file="graphics/buttons/button_dragtarget.png" />
+
+	<!-- Character Sheet Buttons -->
+	<icon name="button_attacks_martial_arts" file="graphics/buttons/button_attacks_martial_arts.png" />
+	<icon name="button_attacks_martial_arts_down" file="graphics/buttons/button_attacks_martial_arts_down.png" />
+	<icon name="button_attacks_spells" file="graphics/buttons/button_attacks_spells.png" />
+	<icon name="button_attacks_spells_down" file="graphics/buttons/button_attacks_spells_down.png" />
+	<icon name="button_statgen_openwindow" file="graphics/buttons/button_statgen_openwindow.png" />
+	<icon name="button_statgen_openwindow_down" file="graphics/buttons/button_statgen_openwindow_down.png" />
+	<icon name="button_statgain_openwindow" file="graphics/buttons/button_statgain_openwindow.png" />
+	<icon name="button_statgain_openwindow_down" file="graphics/buttons/button_statgain_openwindow_down.png" />
+	<icon name="button_skilldev_openwindow" file="graphics/buttons/button_skilldev_openwindow.png" />
+	<icon name="button_skilldev_openwindow_down" file="graphics/buttons/button_skilldev_openwindow_down.png" />
+	<icon name="button_viewrealmlists" file="graphics/buttons/button_viewrealmlists.png" />
+	<icon name="button_viewrealmlists_down" file="graphics/buttons/button_viewrealmlists_down.png" />
+	<icon name="button_addcategorylists" file="graphics/buttons/button_addcategorylists.png" />
+	<icon name="button_addcategorylists_down" file="graphics/buttons/button_addcategorylists_down.png" />
+	<icon name="button_addspelllists" file="graphics/buttons/button_addspelllists.png" />
+	<icon name="button_addspelllists_down" file="graphics/buttons/button_addspelllists_down.png" />
+	<icon name="button_apply" file="graphics/buttons/button_apply.png" />
+	<icon name="button_apply_down" file="graphics/buttons/button_apply_down.png" />
+	<icon name="button_rollall" file="graphics/buttons/button_rollall.png" />
+	<icon name="button_rollall_down" file="graphics/buttons/button_rollall_down.png" />
+	<icon name="button_statgen_viewpottable" file="graphics/buttons/button_statgen_viewpottable.png" />
+	<icon name="button_statgen_viewpottable_down" file="graphics/buttons/button_statgen_viewpottable_down.png" />
+	<icon name="button_statgain_viewtable" file="graphics/buttons/button_statgain_viewtable.png" />
+	<icon name="button_statgain_viewtable_down" file="graphics/buttons/button_statgain_viewtable_down.png" />
+	<icon name="button_skilldev_addnew" file="graphics/buttons/button_skilldev_addnew.png" />
+	<icon name="button_skilldev_addnew_down" file="graphics/buttons/button_skilldev_addnew_down.png" />
+	<icon name="button_skilldev_removenew" file="graphics/buttons/button_skilldev_removenew.png" />
+	<icon name="button_skilldev_removenew_down" file="graphics/buttons/button_skilldev_removenew_down.png" />
+	<icon name="button_skilldev_clearnew" file="graphics/buttons/button_skilldev_clearnew.png" />
+	<icon name="button_skilldev_clearnew_down" file="graphics/buttons/button_skilldev_clearnew_down.png" />
+	<icon name="button_skilldev_viewprimary" file="graphics/buttons/button_skilldev_viewprimary.png" />
+	<icon name="button_skilldev_viewprimary_down" file="graphics/buttons/button_skilldev_viewprimary_down.png" />
+	<icon name="button_skilldev_viewsecondary" file="graphics/buttons/button_skilldev_viewsecondary.png" />
+	<icon name="button_skilldev_viewsecondary_down" file="graphics/buttons/button_skilldev_viewsecondary_down.png" />
+	<icon name="button_skilldev_addprimary" file="graphics/buttons/button_skilldev_addprimary.png" />
+	<icon name="button_skilldev_addprimary_down" file="graphics/buttons/button_skilldev_addprimary_down.png" />
+	<icon name="button_skilldev_addsecondary" file="graphics/buttons/button_skilldev_addsecondary.png" />
+	<icon name="button_skilldev_addsecondary_down" file="graphics/buttons/button_skilldev_addsecondary_down.png" />
+	<icon name="button_skilldev_removeuntrainedprimary" file="graphics/buttons/button_skilldev_removeuntrainedprimary.png" />
+	<icon name="button_skilldev_removeuntrainedprimary_down" file="graphics/buttons/button_skilldev_removeuntrainedprimary_down.png" />
+	<icon name="button_skilldev_removeuntrainedsecondary" file="graphics/buttons/button_skilldev_removeuntrainedsecondary.png" />
+	<icon name="button_skilldev_removeuntrainedsecondary_down" file="graphics/buttons/button_skilldev_removeuntrainedsecondary_down.png" />
+	<icon name="button_copytonpc" file="graphics/buttons/button_copytonpc.png" />
+	<icon name="button_copytonpc_down" file="graphics/buttons/button_copytonpc_down.png" />
+
+	<!-- Encounters -->
+	<icon name="button_addnpcs" file="graphics/buttons/button_addnpcs.png" />
+	<icon name="button_addnpcs_down" file="graphics/buttons/button_addnpcs_down.png" />
+
+	<!-- Combat Tracker -->
+	<icon name="button_ctnextphase" file="graphics/buttons/button_ctnextphase.png" />
+	<icon name="button_ctnextphase_down" file="graphics/buttons/button_ctnextphase_down.png" />
+	<icon name="button_menu" file="graphics/buttons/button_menu.png" />
+	<icon name="button_menu_down" file="graphics/buttons/button_menu_down.png" />
+	<icon name="button_move" file="graphics/buttons/button_move.png" />
+	<icon name="button_move_down" file="graphics/buttons/button_move_down.png" />
+	<icon name="button_sword" file="graphics/buttons/button_sword.png" />
+	<icon name="button_sworddown" file="graphics/buttons/button_sword_down.png" />
+	<icon name="button_shield" file="graphics/buttons/button_shield.png" />
+	<icon name="button_shielddown" file="graphics/buttons/button_shield_down.png" />
+
+	<!-- Table Resolver -->
+	<icon name="button_resolve" file="graphics/buttons/button_resolve.png" />
+	<icon name="button_resolve_down" file="graphics/buttons/button_resolve_down.png" />
+</root>

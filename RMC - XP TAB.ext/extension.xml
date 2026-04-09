@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<root>
+	<announcement text="Feature: RMC - XP TAB" font="emotefont" icon="RMC-Logo" />
+
+	<properties>
+    	<name>Feature: RMC - XP TAB</name>
+    	<ruleset>
+     		<name>RolemasterClassic</name>
+   		</ruleset>
+			<loadorder>50</loadorder>
+	</properties>
+
+	<base>
+	
+	<!-- Character SHEET -->
+	<includefile source="campaign/record_char.xml" />
+	<includefile source="campaign/record_char_skills.xml" />
+	<includefile source="campaign/record_char_xp.xml" />
+
+	<!-- Graphics -->
+	<includefile source="graphics/graphics_icons.xml" />
+	<includefile source="graphics/graphics_buttons.xml" />
+	
+	<!-- Icons -->
+	<icon name="RMC-Logo" file="graphics/icons/RMC-Logo.png" />	
+	<icon name="tab_xp" file="tab_xp.png" />
+
+	<!--High Level Script -->
+	<script name="CombatManager2" file="scripts/manager_combat2.lua" />
+	<script name="XPAutoManager" file="scripts/manager_xp_auto.lua" />
+	
+	</base>	
+</root>

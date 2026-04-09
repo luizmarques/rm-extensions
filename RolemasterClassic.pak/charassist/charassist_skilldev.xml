@@ -1,0 +1,850 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- 
+  Please see the license.html file included with this distribution for 
+  attribution and copyright information.
+-->
+
+<root>
+	<windowclass name="charassist_skilldev" copy="charsheethelper_base">
+		<sizelimits>
+			<minimum width="630" height="400" />
+		</sizelimits>
+		<helplinkres>help_charassist_skilldev</helplinkres>
+		<script>
+			function onInit()
+				DB.addHandler(DB.getPath(getDatabaseNode(), "abilities"), "onChildUpdate", self.refresh);
+				self.refresh();
+			end
+			function refresh()
+				dpprimaryavail.refresh();
+				dpsecondaryavail.refresh();
+				dptotalcost.refresh();
+				dpprimarycost.refresh();
+				dpsecondarycost.refresh();
+			end
+			function addSkill(skl)
+				local inList = false;
+				local skillName = DB.getValue(skl, "name", "");
+				if skillName ~= "" then
+					for i, skillWindow in ipairs(skills.getWindows()) do
+						if skillName == skillWindow.name.getValue() then
+							inList = true;
+						end
+					end
+				end
+				if inList == false then	
+					local win = skills.createWindow();
+					if win then
+						win.name.setValue(DB.getValue(skl, "name", "string", ""));
+						win.fullname.setValue(DB.getValue(skl, "fullname", "string", ""));
+						win.group.setValue(DB.getValue(skl, "group", "string", ""));
+						win.stats.setValue(DB.getValue(skl, "stats", "string", ""));
+						win.armorfactor.setValue(DB.getValue(skl, "armorfactor", "number", 0));
+						win.type.setValue(DB.getValue(skl, "type", "number", 0));
+						win.calc.setState(DB.getValue(skl, "calc", "number", 1));
+						
+						local skillNode = win.getDatabaseNode();
+						DB.setValue(skillNode, "description", "formattedtext", DB.getValue(skl, "description", ""));
+						DB.setValue(skillNode, "notes", "string", DB.getValue(skl, "notes", ""));
+						DB.setValue(skillNode, "skilltype", "string", DB.getValue(skl, "skilltype", ""));
+						DB.setValue(skillNode, "class", "string", DB.getValue(skl, "class", ""));
+						DB.setValue(skillNode, "progression", "string", DB.getValue(skl, "progression", ""));
+						DB.setValue(skillNode, "levelbonus.core", "string", DB.getValue(skl, "levelbonus.core", ""));
+						DB.setValue(skillNode, "levelbonus.rm2", "string", DB.getValue(skl, "levelbonus.rm2", ""));
+						DB.setValue(skillNode, "levelbonus.rmfrp", "string", DB.getValue(skl, "levelbonus.rmfrp", ""));
+						DB.setValue(skillNode, "levelbonus.rmcompanion2", "string", DB.getValue(skl, "levelbonus.rmcompanion2", ""));
+					end
+				end
+			end
+		</script>
+		<sheetdata>
+			<!-- Hidden fields -->
+			<numberfieldX name="max_pp">
+				<bounds>0,0,0,0</bounds>
+				<invisible/>
+			</numberfieldX>
+
+			<windowtitlebar_charsheethelper name="title">
+				<prefix>charlevel_heading_skilldevelopment</prefix>
+			</windowtitlebar_charsheethelper>
+
+			<!-- HEADER -->
+			<area_content_framed_groupbox_top name="charinfoframe">
+				<anchored height="25" />
+			</area_content_framed_groupbox_top>
+			<string_labeled name="name">
+				<anchored to="charinfoframe" position="insidetopleft" offset="0,0" height="20">
+					<right offset="-340" />
+				</anchored>
+				<label>name</label>
+			</string_labeled>
+			<combobox_labeled_RMC name="profession">
+				<anchored to="name" position="righthigh" offset="10,0" width="125" height="20" />
+				<labelres>char_label_profession</labelres>
+				<readonly />
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Professions.List());
+					end
+					
+					function onValueChanged()
+						local professionRealm = Rules_Professions.Realm(getValue());
+						if professionRealm ~= "Pick One" then
+							window.realm.setValue(professionRealm);				
+						end
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<combobox_labeled_RMC name="realm">
+				<anchored to="profession" position="righthigh" offset="10,0" width="125" height="20" />
+				<labelres>char_label_realm</labelres>
+				<readonly />
+				<listmaxsize>9</listmaxsize>
+				<script>
+					function onInit()
+						super.onInit();
+						addItems(Rules_Realm.List());
+					end
+				</script>
+			</combobox_labeled_RMC>
+			<number_labeled name="level">
+				<anchored to="realm" position="righthigh" offset="10,0" width="60" height="20" />
+				<labelres>char_label_level</labelres>
+				<script>
+					function onValueChanged()
+						if string.lower(OptionsManager.getOption("CCPP")) == string.lower(Interface.getString("option_val_on")) then
+							window.max_pp.setValue(Rules_PC.PowerPoints(window.getDatabaseNode()));
+						end
+					end
+				</script>
+			</number_labeled>
+
+			<!-- FOOTER -->
+			<area_content_framed_groupbox_bottom name="dpframe">
+				<anchored height="60" />
+			</area_content_framed_groupbox_bottom>
+
+			<!-- Primary Skill DPs -->
+			<label name="primarydplabel">
+				<anchored to="dpframe" position="insidetopleft" offset="0,10" />
+				<static text="Primary DPs" />
+			</label>
+			<numberc_static name="dpprimaryavail">
+				<anchored to="primarydplabel" position="righthigh" offset="10,0" width="30" height="20" />
+				<script>
+					function onInit()
+						OptionsManager.registerCallback("RC44D", refresh);
+						self.refresh();
+					end
+					function onClose()
+						OptionsManager.unregisterCallback("RC44D", refresh);
+					end
+					function refresh()
+						local charNode = window.getDatabaseNode();
+						setValue(math.floor(Rules_PC.TotalDP(charNode)+0.5));
+						window.dpprimaryremain.refresh();
+						window.dptotalavail.refresh();
+					end
+				</script>
+			</numberc_static>
+			<label_fieldtop name="primarydpavaillabel">
+				<anchored to="dpprimaryavail" />
+				<static text="Avail" />
+			</label_fieldtop>
+			<numberc_static name="dpprimarycost">
+				<anchored to="dpprimaryavail" position="righthigh" offset="5,0" width="30" height="20" />
+				<script>
+					function onInit()
+						self.refresh();
+					end
+					function refresh()
+						local total = 0;
+						for k,skl in ipairs(window.skills.getWindows()) do
+							if skl.skillclass and skl.skillclass.getState() == 1 then
+								total = total + skl.devpoints.getValue();	
+							end
+						end
+						setValue(total);
+						window.dpprimaryremain.refresh();
+						window.dptotalcost.refresh();
+					end
+				</script>
+			</numberc_static>
+			<label_fieldtop name="primarydpspentlabel">
+				<anchored to="dpprimarycost" />
+				<static text="Spent" />
+			</label_fieldtop>
+			<numberc_static name="dpprimaryremain">
+				<anchored to="dpprimarycost" position="righthigh" offset="5,0" width="30" height="20" />
+				<script>
+					function onInit()
+						self.refresh();
+					end
+					function refresh()
+						setValue(window.dpprimaryavail.getValue() - window.dpprimarycost.getValue());
+					end
+				</script>
+			</numberc_static>
+			<label_fieldtop name="primarydpremlabel">
+				<anchored to="dpprimaryremain" />
+				<static text="Rem" />
+			</label_fieldtop>
+
+			<!-- Secondary Skill DPs -->
+			<label name="secondarydplabel">
+				<anchored to="dpprimaryremain" position="righthigh" offset="15,0" />
+				<static text="Secondary DPs" />
+			</label>
+			<numberc_static name="dpsecondaryavail">
+				<anchored to="secondarydplabel" position="righthigh" offset="10,0" width="30" height="20" />
+				<script>
+					function onInit()
+						OptionsManager.registerCallback("RC44D", self.refresh);
+						OptionsManager.registerCallback("RC48D", self.refresh);
+						OptionsManager.registerCallback("CL113", self.refresh);
+						self.refresh();
+					end
+					function onClose()
+						OptionsManager.unregisterCallback("RC44D", self.refresh);
+						OptionsManager.unregisterCallback("RC48D", self.refresh);
+						OptionsManager.unregisterCallback("CL113", self.refresh);
+					end
+					function refresh()
+						local charNode = window.getDatabaseNode();
+						local nSecondaryPercent = tonumber(OptionsManager.getOption("CL113")) / 100;
+
+						setValue(math.floor(Rules_PC.TotalDP(charNode) * nSecondaryPercent));
+						window.dpsecondaryremain.refresh();
+						window.dptotalavail.refresh();
+					end
+				</script>
+			</numberc_static>
+			<label_fieldtop name="secondarydpavaillabel">
+				<anchored to="dpsecondaryavail" />
+				<static text="Avail" />
+			</label_fieldtop>
+			<numberc_static name="dpsecondarycost">
+				<anchored to="dpsecondaryavail" position="righthigh" offset="5,0" width="30" height="20" />
+				<script>
+					function onInit()
+						self.refresh();
+					end
+					function refresh()
+						local total = 0;
+						for k,skl in ipairs(window.skills.getWindows()) do
+							if skl.skillclass and skl.skillclass.getState() == 2 then
+								total = total + skl.devpoints.getValue();	
+							end
+						end
+						setValue(total);
+						window.dpsecondaryremain.refresh();
+						window.dptotalcost.refresh();
+					end
+				</script>
+			</numberc_static>
+			<label_fieldtop name="secondarydpspentlabel">
+				<anchored to="dpsecondarycost" />
+				<static text="Spent" />
+			</label_fieldtop>
+			<numberc_static name="dpsecondaryremain">
+				<anchored to="dpsecondarycost" position="righthigh" offset="5,0" width="30" height="20" />
+				<script>
+					function onInit()
+						self.refresh();
+					end
+					function refresh()
+						setValue(window.dpsecondaryavail.getValue() - window.dpsecondarycost.getValue());
+					end
+				</script>
+			</numberc_static>
+			<label_fieldtop name="secondarydpremlabel">
+				<anchored to="dpsecondaryremain" />
+				<static text="Rem" />
+			</label_fieldtop>
+
+			<!-- Total Skill DPs -->
+			<label name="totaldplabel">
+				<anchored to="dpsecondaryremain" position="righthigh" offset="15,0" />
+				<static text="Total DPs" />
+			</label>
+			<numberc_static name="dptotalavail">
+				<anchored to="totaldplabel" position="righthigh" offset="10,0" width="30" height="20" />
+				<script>
+					function onInit()
+						self.refresh();
+					end
+					function refresh()
+						setValue(window.dpprimaryavail.getValue() + window.dpsecondaryavail.getValue());
+						window.dptotalremain.refresh();
+					end
+				</script>
+			</numberc_static>
+			<label_fieldtop name="totaldpavaillabel">
+				<anchored to="dptotalavail" />
+				<static text="Avail" />
+			</label_fieldtop>
+			<numberc_static name="dptotalcost">
+				<anchored to="dptotalavail" position="righthigh" offset="5,0" width="30" height="20" />
+				<script>
+					function onInit()
+						self.refresh();
+					end
+					function refresh()
+						setValue(window.dpprimarycost.getValue() + window.dpsecondarycost.getValue());
+						window.dptotalremain.refresh();
+					end
+				</script>
+			</numberc_static>
+			<label_fieldtop name="totaldpspentlabel">
+				<anchored to="dptotalcost" />
+				<static text="Spent" />
+			</label_fieldtop>
+			<numberc_static name="dptotalremain">
+				<anchored to="dptotalcost" position="righthigh" offset="5,0" width="30" height="20" />
+				<script>
+					function onInit()
+						self.refresh();
+					end
+					function refresh()
+						setValue(window.dptotalavail.getValue() - window.dptotalcost.getValue());
+					end
+				</script>
+			</numberc_static>
+			<label_fieldtop name="totaldpremlabel">
+				<anchored to="dptotalremain" />
+				<static text="Rem" />
+			</label_fieldtop>
+
+			<button_text name="button_skilldev_viewprimary">
+				<anchored to="dpprimaryremain" position="belowleft" offset="-130,5" width="50" height="20" />
+				<state textres="char_label_skill_dev_primary_view" />
+				<tooltip textres="char_tooltip_skill_dev_primary_view" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("referenceskills", "reference.skilllist.primaryskills@Character Law");
+					end
+				</script>
+			</button_text>
+			<button_text name="button_addprimary">
+				<anchored to="button_skilldev_viewprimary" position="righthigh" offset="5,0" width="50" />
+				<state textres="char_label_skill_dev_primary_add" />
+				<tooltip textres="char_tooltip_skill_dev_primary_add" />
+				<script>
+					function onButtonPress()
+						for k,mod in pairs(Module.getModules()) do
+							local node;
+							node = DB.findNode("reference.skilllist.primaryskills.list@"..mod);
+							if node then
+								for k,skl in pairs(DB.getChildren(node)) do
+									window.addSkill(skl);
+								end
+							end
+						end
+					end
+				</script>
+			</button_text>
+			<button_text name="button_removeuntrainedprimary">
+				<anchored to="button_addprimary" position="righthigh" offset="5,0" width="50" />
+				<state textres="char_label_skill_dev_primary_remove" />
+				<tooltip textres="char_tooltip_skill_dev_primary_remove" />
+				<script>
+					function onButtonPress()
+						local charNode = window.getDatabaseNode();
+						for i, skillNode in pairs(DB.getChildren(charNode, "skills")) do
+							if DB.getValue(skillNode, "skillclass", 0) == 1 then
+								if DB.getValue(skillNode, "rank", -1) &lt; 1 then
+									DB.deleteNode(skillNode);
+								end
+							end
+						end
+						Comm.deliverChatMessage({font="systemfont",text=DB.getValue(charNode, "name", "") .. " removed untrained primary skills."});
+					end
+				</script>
+			</button_text>
+
+			<button_text name="button_skilldev_viewsecondary">
+				<anchored to="dpsecondaryremain" position="belowleft" offset="-130,5" width="50" height="20" />
+				<state textres="char_label_skill_dev_secondary_view" />
+				<tooltip textres="char_tooltip_skill_dev_secondary_view" />
+				<script>
+					function onButtonPress()
+						Interface.openWindow("referenceskills", "reference.skilllist.secondaryskills@Character Law");
+					end
+				</script>
+			</button_text>
+			<button_text name="button_addsecondary">
+				<anchored to="button_skilldev_viewsecondary" position="righthigh" offset="5,0" width="50" />
+				<state textres="char_label_skill_dev_secondary_add" />
+				<tooltip textres="char_tooltip_skill_dev_secondary_add" />
+				<script>
+					function onButtonPress()
+						node = DB.findNode("skill");
+						if node then
+							for k,skl in pairs(DB.getChildren(node)) do
+								window.addSkill(skl);
+							end
+						end
+						for k,mod in pairs(Module.getModules()) do
+							local node;
+							node = DB.findNode("skill@"..mod);
+							if node then
+								for k,skl in pairs(DB.getChildren(node)) do
+									window.addSkill(skl);
+								end
+							end
+							node = DB.findNode("reference.skilllist.secondaryskills.list@"..mod);
+							if node then
+								for k,skl in pairs(DB.getChildren(node)) do
+									window.addSkill(skl);
+								end
+							end
+						end
+					end
+				</script>
+			</button_text>
+			<button_text name="button_removeuntrainedsecondary">
+				<anchored to="button_addsecondary" position="righthigh" offset="5,0" width="50" />
+				<state textres="char_label_skill_dev_secondary_remove" />
+				<tooltip textres="char_tooltip_skill_dev_secondary_remove" />
+				<script>
+					function onButtonPress()
+						local charNode = window.getDatabaseNode();
+						for i, skillNode in pairs(DB.getChildren(charNode, "skills")) do
+							if DB.getValue(skillNode, "skillclass", 0) == 2 then
+								if DB.getValue(skillNode, "rank", -1) &lt; 1 then
+									DB.deleteNode(skillNode);
+								end
+							end
+						end
+						Comm.deliverChatMessage({font="systemfont",text=DB.getValue(charNode, "name", "") .. " removed untrained secondary skills."});
+					end
+				</script>
+			</button_text>
+
+			<button_text name="button_skilldev_clearnew">
+				<anchored to="dptotalremain" position="belowleft" offset="-130,5" width="50" height="20" />
+				<state textres="char_label_skill_dev_clear_new" />
+				<tooltip textres="char_tooltip_skill_dev_clear_new" />
+				<script>
+					function onButtonPress()
+						for i, win in ipairs(window.skills.getWindows()) do
+							if win.getClass() == "charassist_skilldev_skillwindow" then
+								win.newranks.setValue(0);
+							end
+						end
+					end
+				</script>
+			</button_text>
+			<button_text name="button_skilldev_removenew">
+				<anchored to="button_skilldev_clearnew" position="righthigh" offset="5,0" width="50" />
+				<state textres="char_label_skill_dev_remove_new" />
+				<tooltip textres="char_tooltip_skill_dev_remove_new" />
+				<script>
+					function onButtonPress()
+						statmsg = "Skill Development: " .. window.name.getValue() .. " removed the following skill ranks:\r";
+						count = 0;
+						for i, win in ipairs(window.skills.getWindows()) do
+							if win.getClass() == "charassist_skilldev_skillwindow" then
+								newranks = win.newranks.getValue();
+								if newranks &gt; 0 then
+									count = count + 1;
+									if count &gt; 1 then
+										statmsg = statmsg .. ", ";
+									end
+									currentranks = win.rank.getValue();
+									totalranks = currentranks - newranks;
+									statmsg = statmsg .. win.name.getValue() .. " (" .. currentranks .. "-" .. newranks .. "=" .. totalranks .. ")";
+									win.rank.setValue(totalranks);
+								end
+							end
+						end
+						local msg = {font = "msgfont", icon = "indicator_flagsmall", mode = "chat"};
+						msg.text = statmsg;
+						Comm.deliverChatMessage(msg);
+					end
+				</script>
+			</button_text>
+			<button_text name="button_skilldev_addnew">
+				<anchored to="button_skilldev_removenew" position="righthigh" offset="5,0" width="50" />
+				<state textres="char_label_skill_dev_add_new" />
+				<tooltip textres="char_tooltip_skill_dev_add_new" />
+				<script>
+					function onButtonPress()
+						statmsg = "Skill Development: " .. window.name.getValue() .. " added the following skill ranks:\r";
+						count = 0;
+						for i, win in ipairs(window.skills.getWindows()) do
+							if win.getClass() == "charassist_skilldev_skillwindow" then
+								newranks = win.newranks.getValue();
+								if newranks &gt; 0 then
+									count = count + 1;
+									if count &gt; 1 then
+										statmsg = statmsg .. ", ";
+									end
+									currentranks = win.rank.getValue();
+									totalranks = currentranks + newranks;
+									statmsg = statmsg .. win.name.getValue() .. " (" .. currentranks .. "+" .. newranks .. "=" .. totalranks .. ")";
+									win.rank.setValue(totalranks);
+								end
+							end
+						end
+						local msg = {font = "msgfont", icon = "indicator_flagsmall", mode = "chat"};
+						msg.text = statmsg;
+						Comm.deliverChatMessage(msg);
+					end
+				</script>
+			</button_text>
+
+			<!-- CONTENT -->
+			<area_content_framed_groupbox name="skillframe" />
+
+			<!-- Headings -->
+			<charassist_skilldev_list_label name="skillslabel">
+				<anchored to="skillframe" position="insidetopleft" offset="2,0" />
+				<static>Skills</static>
+				<tooltip text="Click to sort by Skill Name" />
+				<font>sheetlabel</font>
+				<sortby>name</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="calclabel">
+				<anchored to="skillframe" position="insidetopleft" offset="173,0" width="25" />
+				<static>Calc.</static>
+				<sortby>calc</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="costlabel">
+				<anchored to="skillframe" position="insidetopleft" offset="198,0" width="25" />
+				<static>Cost</static>
+				<sortby>cost</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="ranklabel">
+				<anchored to="skillframe" position="insidetopleft" offset="223,0" width="25" />
+				<static>Rank</static>
+				<sortby>rank</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="rankbonuslabel">
+				<anchored to="skillframe" position="insidetopleft" offset="249,0" width="27" />
+				<static>Rk Bn</static>
+				<sortby>rankbonus</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="statlabel">
+				<anchored to="skillframe" position="insidetopleft" offset="279,0" width="20" />
+				<static>Stat</static>
+				<sortby>statbonus</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="levellabel">
+				<anchored to="skillframe" position="insidetopleft" offset="306,0" width="25" />
+				<static>Level</static>
+				<sortby>level</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="itemlabel">
+				<anchored to="skillframe" position="insidetopleft" offset="336,0" width="25" />
+				<static>Item</static>
+				<sortby>item</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="speclabel">
+				<anchored to="skillframe" position="insidetopleft" offset="366,0" width="25" />
+				<static>Spec</static>
+				<sortby>special</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="misclabel">
+				<anchored to="skillframe" position="insidetopleft" offset="395,0" width="25" />
+				<static>Misc</static>
+				<sortby>misc</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="totalabel">
+				<anchored to="skillframe" position="insidetopleft" offset="421,0" width="20" />
+				<static>Tot.</static>
+				<sortby>total</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="classlabel">
+				<anchored to="skillframe" position="insidetopleft" offset="462,0" width="25" />
+				<static>Class</static>
+				<sortby>skillclass</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="newlabel">
+				<anchored to="skillframe" position="insidetopleft" offset="493,0" width="25" />
+				<static>New</static>
+				<sortby>newrank</sortby>
+			</charassist_skilldev_list_label>
+			<charassist_skilldev_list_label name="DPslabel">
+				<anchored to="skillframe" position="insidetopleft" offset="520,0" width="25" />
+				<static>DPs</static>
+				<sortby>devpoints</sortby>
+			</charassist_skilldev_list_label>
+
+			<!-- Skill list -->
+			<sortablelist name="skills">
+				<anchored to="skillframe" position="insidetop" offset="0,20">
+					<bottom />
+				</anchored>
+				<datasource>.skills</datasource>
+				<class>charassist_skilldev_skillwindow</class>
+				<defaultsort><fieldname>name</fieldname></defaultsort>
+				<sortfield><fieldname>name</fieldname></sortfield>
+				<sortfield><fieldname>calc</fieldname></sortfield>
+				<sortfield><fieldname>cost</fieldname></sortfield>
+				<sortfield><fieldname>rank</fieldname></sortfield>
+				<sortfield><fieldname>rankbonus</fieldname></sortfield>
+				<sortfield><fieldname>statbonus</fieldname></sortfield>
+				<sortfield><fieldname>level</fieldname></sortfield>
+				<sortfield><fieldname>item</fieldname></sortfield>
+				<sortfield><fieldname>special</fieldname></sortfield>
+				<sortfield><fieldname>misc</fieldname></sortfield>
+				<sortfield><fieldname>total</fieldname></sortfield>
+				<sortfield><fieldname>skillclass</fieldname></sortfield>
+				<sortfield><fieldname>newranks</fieldname></sortfield>
+				<sortfield><fieldname>devpoints</fieldname></sortfield>
+				<script file="charassist/scripts/skilldev_skilllist.lua" />
+			</sortablelist>
+			<scrollbar_content_base>
+				<anchored to="skills" />
+				<target>skills</target>
+			</scrollbar_content_base>
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="charassist_skilldev_skillwindow">
+		<sizelimits>
+			<minimum>
+				<height>18</height>
+			</minimum>
+			<maximum>
+				<height>18</height>
+			</maximum>
+		</sizelimits>
+		<script file="charassist/scripts/skilldev_skillwindow.lua" />
+		<sheetdata>
+			<!-- hidden fields -->
+			<hs name="fullname"/>
+			<hs name="name"/>
+			<hs name="class"/>
+			<hn name="type"/>
+			<hs name="skilltype"/>
+			<hs name="group"/>
+			<hs name="progression"/>
+			<hs name="stats"/>
+			<hn name="armorfactor"/>
+			<hs name="core_level_bonus_group" source="levelbonus.core"/>
+			<hs name="rm2_level_bonus_group" source="levelbonus.rm2"/>
+			<hs name="rmfrp_level_bonus_group" source="levelbonus.rmfrp"/>
+			<hs name="rmcompanion2_level_bonus_group" source="levelbonus.rmcompanion2"/>
+
+			<!-- visible fields -->
+			<linkcontrol name="open">
+				<bounds>0,2,14,14</bounds>
+				<class>skill</class>
+			</linkcontrol>
+			<dice_ghost name="diceholder">
+				<bounds>15,0,156,17</bounds>
+			</dice_ghost>
+			<stringcontrolX_underlined_text name="shortname">
+				<anchored to="diceholder" position="over" />
+				<script>
+					local sem = false;
+
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						update();
+					end
+					function onValueChanged()
+						if sem then
+							return;
+						end
+
+						sem = true;
+						window.parseShortName();
+						sem = false;
+					end
+					function update()
+						if sem then
+							return;
+						end
+
+						sem = true;
+						local nm = window.name.getValue();
+						local sts = window.stats.getValue();
+						local name = nm;
+						if sts~="" then
+							name = name .. " (" .. sts .. ")";
+						end
+						setValue(name);
+						setTooltipText(name);
+						sem = false;
+					end
+
+					function action(draginfo)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local rActor = ActorManager.resolveActor(charNode);
+						local skillNode = window.getDatabaseNode();
+						if skillNode then
+							sSkillName = DB.getValue(skillNode, "name", "");
+							nSkillMod = DB.getValue(skillNode, "total", 0);
+							nSkillType = DB.getValue(skillNode, "type", "");
+							ActionSkill.performRoll(draginfo, rActor, sSkillName, nSkillMod, nSkillType);
+							return true;
+						else
+							Comm.deliverChatMessage({text="ERROR: Can't find skill node", font="systemfont", icon = "error"});
+						end
+					end
+					function onDragStart(button, x, y, draginfo)
+						return action(draginfo);
+					end
+					function onDoubleClick(x,y)
+						return action();
+					end
+				</script>
+			</stringcontrolX_underlined_text>
+			<multitext name="calc">
+				<bounds>176,4,20,13</bounds>
+				<font>sheetlabelsmall</font>
+				<center/>
+				<statelabels>
+					<state>Std.</state>
+					<state>Base</state>
+					<state>Hits</state>
+					<state>Man.</state>
+					<state>PP</state>
+				</statelabels>
+				<script>
+					function onStateChanged()
+						window.refresh();
+					end
+				</script>
+			</multitext>
+			<stringfieldX_underlined_text name="cost">
+				<anchored to="calc" position="righthigh" offset="5,0" width="20" height="20" />
+				<center/>
+			</stringfieldX_underlined_text>
+			<numberfieldX_underlined_bold name="rank">
+				<anchored to="cost" position="righthigh" offset="5,0" width="20" height="20" />
+				<hideonvalue>0</hideonvalue>
+			</numberfieldX_underlined_bold>
+			<numberfieldX_underlined_bold name="rankbonus">
+				<anchored to="rank" position="righthigh" offset="5,0" width="20" height="20" />
+				<displaysign/>
+				<script>
+				  function onValueChanged()
+					if not isReadOnly() then
+					  window.refresh();
+					end
+				  end
+				</script>
+			</numberfieldX_underlined_bold>
+			<numberfieldX name="statbonus">
+				<anchored to="rankbonus" position="righthigh" offset="5,0" width="25" height="20" />
+				<font>sheetlabelsmall</font>
+				<displaysign/>
+				<readonly/>
+			</numberfieldX>
+			<numberfieldX_underlined_bold name="level">
+				<anchored to="statbonus" position="righthigh" offset="5,0" width="25" height="20" />
+				<displaysign/>
+				<hideonvalue>0</hideonvalue>
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+						if string.lower(OptionsManager.getOption("CL23G")) == string.lower(Interface.getString("option_val_none")) then
+							setFrame("textline",0,5,0,0);
+							setReadOnly(false);
+						else
+							setFrame(nil);
+							setReadOnly(true);
+						end
+					end
+				</script>
+			</numberfieldX_underlined_bold>
+			<numberfieldX_underlined_bold name="item">
+				<anchored to="level" position="righthigh" offset="5,0" width="25" height="20" />
+				<displaysign/>
+				<hideonvalue>0</hideonvalue>
+			</numberfieldX_underlined_bold>
+			<numberfieldX_underlined_bold name="special">
+				<anchored to="item" position="righthigh" offset="5,0" width="25" height="20" />
+				<displaysign/>
+				<hideonvalue>0</hideonvalue>
+			</numberfieldX_underlined_bold>
+			<numberfieldX_underlined_bold name="misc">
+				<anchored to="special" position="righthigh" offset="5,0" width="25" height="20" />
+				<displaysign/>
+				<hideonvalue>0</hideonvalue>
+			</numberfieldX_underlined_bold>
+			<numberfieldX_underlined_bold name="total">
+				<anchored to="misc" position="righthigh" offset="5,0" width="20" height="20" />
+				<displaysign/>
+				<readonly/>
+				<script>
+					function onValueChanged(init)
+						local charNode = DB.getChild(window.getDatabaseNode(), "...");
+						local skillName = window.name.getValue();
+						local skillFullName = window.fullname.getValue();
+						local skillTotal = getValue();
+						if window.type.getValue() == 4 then
+							Rules_PC.MMPenalty(charNode);
+						end
+						Rules_PC.SkillTotalChanged(charNode, skillName, skillFullName, skillTotal);
+					end
+				</script>
+			</numberfieldX_underlined_bold>
+			<multitext name="skillclass">
+				<anchored>
+					<to>total</to>
+					<position>right</position>
+					<offset>25</offset>
+					<size>
+						<width>25</width>
+					</size>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<center/>
+				<statelabels>
+					<state>Pri</state>
+					<state>Sec</state>
+				</statelabels>
+				<readonly />
+			</multitext>
+			<numberfieldX_underlined_bold name="newranks">
+				<anchored to="skillclass" position="righthigh" offset="5,0" width="25" height="20" />
+				<script>
+					function onInit()
+						refresh();
+					end
+					function onValueChanged()
+						refresh();
+					end
+					function refresh()
+						if Rules_Skills.ValidNewRanks(window.cost.getValue(), getValue()) then
+							setValid();
+							window.devpoints.setValid();
+						else
+							setInvalid();
+							window.devpoints.setInvalid();
+						end
+						window.devpoints.setValue(Rules_Skills.DPCost(window.cost.getValue(), getValue()));
+						local nodeChar = DB.getChild(window.getDatabaseNode(), "...");
+						local w = Interface.findWindow("charassist_skilldev", DB.getPath(nodeChar));
+						if w then
+							w.refresh();
+						end
+					end
+				</script>
+			</numberfieldX_underlined_bold>
+			<numbercontrolX name="devpoints">
+				<anchored>
+					<to>newranks</to>
+					<position>right</position>
+					<offset>5</offset>
+					<size>
+						<width>20</width>
+					</size>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<readonly/>
+			</numbercontrolX>
+		</sheetdata>
+	</windowclass>
+</root>
