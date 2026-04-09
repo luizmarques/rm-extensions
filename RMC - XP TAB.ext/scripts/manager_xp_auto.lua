@@ -6,8 +6,6 @@
 local fOriginalAddWoundEffects;
 local fOriginalApplyDamage;
 local aPendingAttackerPCByTarget = {};
-local aProcessedCombatEPKeys = {};
-local aProcessedSeverityKeys = {};
 
 function onInit()
 	if not Session.IsHost then
@@ -130,10 +128,6 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 		return;
 	end
 
-	if isSeverityProcessedRecently(nodeAttackerPC, sCritField, description, nodeTarget) then
-		return;
-	end
-
 	addXPValue(nodeAttackerPC, sCritField, 1);
 end
 
@@ -178,15 +172,15 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 		end
 	end
 
-	if nodeTargetPC and not isCombatEPProcessedRecently(nodeTargetPC, "hitstaken", nAppliedDamage, bKill) then
+	if nodeTargetPC then
 		addXPValue(nodeTargetPC, "hitstaken", nAppliedDamage);
 	end
 
-	if nodeSourcePC and not isCombatEPProcessedRecently(nodeSourcePC, "hitsgiven", nAppliedDamage, bKill) then
+	if nodeSourcePC then
 		addXPValue(nodeSourcePC, "hitsgiven", nAppliedDamage);
 	end
 
-	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
+	if nodeSourcePC and bKill then
 		addXPValue(nodeSourcePC, "foekill", 1);
 	end
 end
@@ -480,55 +474,3 @@ function getCriticalFieldName(sSeverity, sOutcome)
 	return sPrefix .. sSeverity;
 end
 
-function isCombatEPProcessedRecently(nodePC, sField, nValue, bKill)
-	if not nodePC or sField == "" then
-		return false;
-	end
-
-	local sPath = DB.getPath(nodePC) or "";
-	local sKey = table.concat({ sPath, sField, tostring(nValue or 0), bKill and "1" or "0" }, "|");
-
-	local nNow = os.time() or 0;
-	for sExistingKey, nTimestamp in pairs(aProcessedCombatEPKeys) do
-		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
-			aProcessedCombatEPKeys[sExistingKey] = nil;
-		end
-	end
-
-	local nLast = tonumber(aProcessedCombatEPKeys[sKey]) or 0;
-	if nLast > 0 and (nNow - nLast) <= 5 then
-		return true;
-	end
-
-	aProcessedCombatEPKeys[sKey] = nNow;
-	return false;
-end
-
-function isSeverityProcessedRecently(nodePC, sField, sDescription, nodeTarget)
-	if not nodePC or sField == "" then
-		return false;
-	end
-
-	local sPath = DB.getPath(nodePC) or "";
-	local sDesc = normalizeText(sDescription or "");
-	local sTargetPath = "";
-	if nodeTarget then
-		sTargetPath = DB.getPath(nodeTarget) or "";
-	end
-	local sKey = table.concat({ sPath, sField, sDesc, sTargetPath }, "|");
-
-	local nNow = os.time() or 0;
-	for sExistingKey, nTimestamp in pairs(aProcessedSeverityKeys) do
-		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
-			aProcessedSeverityKeys[sExistingKey] = nil;
-		end
-	end
-
-	local nLast = tonumber(aProcessedSeverityKeys[sKey]) or 0;
-	if nLast > 0 and (nNow - nLast) <= 5 then
-		return true;
-	end
-
-	aProcessedSeverityKeys[sKey] = nNow;
-	return false;
-end
