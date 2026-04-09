@@ -39,7 +39,9 @@ local aSpellLevelToField = {
 
 local fOriginalAddWoundEffects;
 local fOriginalApplyDamage;
+local fOriginalNotifyResolveSkill;
 local aPendingAttackerPCByTarget = {};
+local aProcessedSkillRollKeys = {};
 
 function onInit()
 	if not Session.IsHost then
@@ -59,6 +61,19 @@ function onInit()
 		fOriginalApplyDamage = ActionDamage.applyDamage;
 		ActionDamage.applyDamage = onApplyDamageWithXP;
 	end
+
+	if ActionSkill and ActionSkill.notifyResolveSkill then
+		fOriginalNotifyResolveSkill = ActionSkill.notifyResolveSkill;
+		ActionSkill.notifyResolveSkill = onNotifyResolveSkillWithXP;
+	end
+end
+
+function onNotifyResolveSkillWithXP(msgRoll)
+	if fOriginalNotifyResolveSkill then
+		fOriginalNotifyResolveSkill(msgRoll);
+	end
+
+	processSkillRollXP(nil, nil, msgRoll);
 end
 
 function onAttackPostRoll(rSource, rTarget, rRoll)
@@ -80,8 +95,11 @@ function onAttackPostRoll(rSource, rTarget, rRoll)
 end
 
 function onSkillPostRoll(rSource, rTarget, rRoll)
-	local nodePC = getPCNodeFromActor(rSource);
-	if not nodePC or not rRoll then
+	processSkillRollXP(rSource, rTarget, rRoll);
+end
+
+function processSkillRollXP(rSource, rTarget, rRoll)
+	if not rRoll then
 		return;
 	end
 
@@ -89,11 +107,25 @@ function onSkillPostRoll(rSource, rTarget, rRoll)
 		return;
 	end
 
+	local nodePC = getPCNodeFromActor(rSource);
+	if not nodePC then
+		nodePC = getPCNodeFromRoll(rRoll);
+	end
+	if not nodePC then
+		return;
+	end
+
 	local sDifficulty = getSkillDifficulty(rRoll);
 	local sField = getMMDifficultyField(sDifficulty);
-	if sField ~= "" then
-		addXPValue(nodePC, sField, 1);
+	if sField == "" then
+		return;
 	end
+
+	if isSkillRollProcessedRecently(rRoll, nodePC, sField) then
+		return;
+	end
+
+	addXPValue(nodePC, sField, 1);
 end
 
 function onBaseCastingPostRoll(rSource, rTarget, rRoll)
@@ -273,6 +305,81 @@ function getPCNodeFromTarget(rTarget, nodeTarget, sTargetType)
 	end
 
 	return nil;
+end
+
+function getPCNodeFromRoll(rRoll)
+	if not rRoll then
+		return nil;
+	end
+
+	local aNodeFields = {
+		rRoll.nodeActorName,
+		rRoll.nodeAttackerName,
+		rRoll.nodeActor,
+	};
+
+	for _, sPath in ipairs(aNodeFields) do
+		if sPath and sPath ~= "" then
+			local node = DB.findNode(sPath);
+			if node then
+				local sNodePath = DB.getPath(node) or "";
+				if sNodePath:match("^charsheet%.") then
+					return node;
+				end
+
+				local sClass, sRecord = DB.getValue(node, "link", "", "");
+				if sClass == "charsheet" and sRecord ~= "" then
+					return DB.findNode(sRecord);
+				end
+			end
+		end
+	end
+
+	return nil;
+end
+
+function buildSkillRollKey(rRoll, nodePC, sField)
+	if not rRoll then
+		return "";
+	end
+
+	local sActorPath = tostring(rRoll.nodeActorName or rRoll.nodeAttackerName or rRoll.nodeActor or "");
+	if sActorPath == "" and nodePC then
+		sActorPath = DB.getPath(nodePC) or "";
+	end
+	local sSkill = normalizeText(tostring(rRoll.skillName or ""));
+	local sDifficulty = normalizeText(getSkillDifficulty(rRoll));
+	local sFieldKey = normalizeText(tostring(sField or ""));
+	local sResults = tostring(rRoll.sResults or "");
+	local sRollTotal = tostring(ActionsManager.total(rRoll) or "");
+
+	if sActorPath == "" and sSkill == "" and sDifficulty == "" and sFieldKey == "" and sResults == "" and sRollTotal == "" then
+		return "";
+	end
+
+	return table.concat({ sActorPath, sSkill, sDifficulty, sFieldKey, sResults, sRollTotal }, "|");
+end
+
+function isSkillRollProcessedRecently(rRoll, nodePC, sField)
+	local sKey = buildSkillRollKey(rRoll, nodePC, sField);
+	if sKey == "" then
+		return false;
+	end
+
+	local nNow = os.time() or 0;
+	for sExistingKey, nTimestamp in pairs(aProcessedSkillRollKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedSkillRollKeys[sExistingKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedSkillRollKeys[sKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedSkillRollKeys[sKey] = nNow;
+	return false;
 end
 
 function getPCNodeFromActor(rActor)
