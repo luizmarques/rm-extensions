@@ -42,6 +42,13 @@ local fOriginalApplyDamage;
 local fOriginalNotifyResolveSkill;
 local aPendingAttackerPCByTarget = {};
 local aProcessedSkillRollKeys = {};
+local aSkillStateByKey = {};
+local aProcessedBaseCastingRollKeys = {};
+local aBaseCastingStateByKey = {};
+local aProcessedCombatEPKeys = {};
+local aCombatEPStateByKey = {};
+local aProcessedSeverityKeys = {};
+local aSeverityStateByKey = {};
 
 function onInit()
 	if not Session.IsHost then
@@ -103,6 +110,8 @@ function processSkillRollXP(rSource, rTarget, rRoll)
 		return;
 	end
 
+	local sStateKey = buildSkillStateKey(rSource, rRoll);
+
 	if not isSkillSuccess(rRoll) then
 		return;
 	end
@@ -111,13 +120,20 @@ function processSkillRollXP(rSource, rTarget, rRoll)
 	if not nodePC then
 		nodePC = getPCNodeFromRoll(rRoll);
 	end
-	if not nodePC then
-		return;
-	end
 
 	local sDifficulty = getSkillDifficulty(rRoll);
 	local sField = getMMDifficultyField(sDifficulty);
+
+	updateSkillState(sStateKey, nodePC, sDifficulty, sField);
+
+	if not nodePC then
+		nodePC = getPCNodeFromSkillState(sStateKey);
+	end
 	if sField == "" then
+		sField = getSkillFieldFromState(sStateKey);
+	end
+
+	if not nodePC or sField == "" then
 		return;
 	end
 
@@ -128,14 +144,452 @@ function processSkillRollXP(rSource, rTarget, rRoll)
 	addXPValue(nodePC, sField, 1);
 end
 
-function onBaseCastingPostRoll(rSource, rTarget, rRoll)
-	local nodePC = getPCNodeFromActor(rSource);
-	if not nodePC or not rRoll then
+function buildSkillStateKey(rSource, rRoll)
+	local sActorPath = "";
+	if rSource then
+		local nodeActor = ActorManager.getCreatureNode(rSource);
+		if nodeActor then
+			sActorPath = DB.getPath(nodeActor) or "";
+		end
+	end
+	if sActorPath == "" then
+		sActorPath = tostring(rRoll.nodeActorName or rRoll.nodeAttackerName or rRoll.nodeActor or "");
+	end
+
+	local sSkill = normalizeText(tostring(rRoll.skillName or ""));
+	local sResults = tostring(rRoll.sResults or "");
+	local sRollTotal = tostring(ActionsManager.total(rRoll) or "");
+
+	if sActorPath == "" and sSkill == "" and sResults == "" and sRollTotal == "" then
+		return "";
+	end
+
+	return table.concat({ sActorPath, sSkill, sResults, sRollTotal }, "|");
+end
+
+function purgeSkillState()
+	local nNow = os.time() or 0;
+	for sKey, tState in pairs(aSkillStateByKey) do
+		local nLast = tonumber(tState.nTimestamp) or 0;
+		if nLast <= 0 or (nNow - nLast) > 30 then
+			aSkillStateByKey[sKey] = nil;
+		end
+	end
+end
+
+function updateSkillState(sStateKey, nodePC, sDifficulty, sField)
+	if sStateKey == "" then
 		return;
 	end
 
+	purgeSkillState();
+
+	local tState = aSkillStateByKey[sStateKey] or {};
+	if nodePC then
+		tState.sPCPath = DB.getPath(nodePC) or "";
+	end
+	if sDifficulty and sDifficulty ~= "" then
+		tState.sDifficulty = sDifficulty;
+	end
+	if sField and sField ~= "" then
+		tState.sField = sField;
+	end
+	tState.nTimestamp = os.time() or 0;
+
+	aSkillStateByKey[sStateKey] = tState;
+end
+
+function getPCNodeFromSkillState(sStateKey)
+	if sStateKey == "" then
+		return nil;
+	end
+
+	local tState = aSkillStateByKey[sStateKey];
+	if not tState then
+		return nil;
+	end
+
+	local sPCPath = tState.sPCPath or "";
+	if sPCPath == "" then
+		return nil;
+	end
+
+	return DB.findNode(sPCPath);
+end
+
+function getSkillFieldFromState(sStateKey)
+	if sStateKey == "" then
+		return "";
+	end
+
+	local tState = aSkillStateByKey[sStateKey];
+	if not tState then
+		return "";
+	end
+
+	return tState.sField or "";
+end
+
+function buildBaseCastingStateKey(rSource, rRoll)
+	local sActorPath = "";
+	if rSource then
+		local nodeActor = ActorManager.getCreatureNode(rSource);
+		if nodeActor then
+			sActorPath = DB.getPath(nodeActor) or "";
+		end
+	end
+	if sActorPath == "" then
+		sActorPath = tostring(rRoll.nodeActorName or rRoll.nodeAttackerName or rRoll.nodeActor or "");
+	end
+
+	local sSpellList = normalizeText(tostring(rRoll.sSpellList or ""));
+	local sSpellName = normalizeText(tostring(rRoll.sSpellName or ""));
+	local sResults = tostring(rRoll.sResults or "");
+	local sRollTotal = tostring(ActionsManager.total(rRoll) or "");
+
+	if sActorPath == "" and sSpellList == "" and sSpellName == "" and sResults == "" and sRollTotal == "" then
+		return "";
+	end
+
+	return table.concat({ sActorPath, sSpellList, sSpellName, sResults, sRollTotal }, "|");
+end
+
+function purgeBaseCastingState()
+	local nNow = os.time() or 0;
+	for sKey, tState in pairs(aBaseCastingStateByKey) do
+		local nLast = tonumber(tState.nTimestamp) or 0;
+		if nLast <= 0 or (nNow - nLast) > 30 then
+			aBaseCastingStateByKey[sKey] = nil;
+		end
+	end
+end
+
+function updateBaseCastingState(sStateKey, nodePC, nSpellLevel, sField)
+	if sStateKey == "" then
+		return;
+	end
+
+	purgeBaseCastingState();
+
+	local tState = aBaseCastingStateByKey[sStateKey] or {};
+	if nodePC then
+		tState.sPCPath = DB.getPath(nodePC) or "";
+	end
+	if nSpellLevel and nSpellLevel > 0 then
+		tState.nSpellLevel = nSpellLevel;
+	end
+	if sField and sField ~= "" then
+		tState.sField = sField;
+	end
+	tState.nTimestamp = os.time() or 0;
+
+	aBaseCastingStateByKey[sStateKey] = tState;
+end
+
+function getPCNodeFromBaseCastingState(sStateKey)
+	if sStateKey == "" then
+		return nil;
+	end
+
+	local tState = aBaseCastingStateByKey[sStateKey];
+	if not tState then
+		return nil;
+	end
+
+	local sPCPath = tState.sPCPath or "";
+	if sPCPath == "" then
+		return nil;
+	end
+
+	return DB.findNode(sPCPath);
+end
+
+function getBaseCastingFieldFromState(sStateKey)
+	if sStateKey == "" then
+		return "";
+	end
+
+	local tState = aBaseCastingStateByKey[sStateKey];
+	if not tState then
+		return "";
+	end
+
+	return tState.sField or "";
+end
+
+function buildBaseCastingRollKey(rRoll, nodePC, sField)
+	if not rRoll then
+		return "";
+	end
+
+	local sActorPath = tostring(rRoll.nodeActorName or rRoll.nodeAttackerName or rRoll.nodeActor or "");
+	if sActorPath == "" and nodePC then
+		sActorPath = DB.getPath(nodePC) or "";
+	end
+	local sSpellList = normalizeText(tostring(rRoll.sSpellList or ""));
+	local sSpellName = normalizeText(tostring(rRoll.sSpellName or ""));
+	local sFieldKey = normalizeText(tostring(sField or ""));
+	local sResults = tostring(rRoll.sResults or "");
+	local sRollTotal = tostring(ActionsManager.total(rRoll) or "");
+
+	if sActorPath == "" and sSpellList == "" and sSpellName == "" and sFieldKey == "" and sResults == "" and sRollTotal == "" then
+		return "";
+	end
+
+	return table.concat({ sActorPath, sSpellList, sSpellName, sFieldKey, sResults, sRollTotal }, "|");
+end
+
+function isBaseCastingRollProcessedRecently(rRoll, nodePC, sField)
+	local sKey = buildBaseCastingRollKey(rRoll, nodePC, sField);
+	if sKey == "" then
+		return false;
+	end
+
+	local nNow = os.time() or 0;
+	for sExistingKey, nTimestamp in pairs(aProcessedBaseCastingRollKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedBaseCastingRollKeys[sExistingKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedBaseCastingRollKeys[sKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedBaseCastingRollKeys[sKey] = nNow;
+	return false;
+end
+
+function buildCombatEPStateKey(rSource, rTarget, nodeTarget, nAppliedDamage, bKill)
+	local sSourcePath = "";
+	if rSource then
+		sSourcePath = ActorManager.getCreatureNodeName(rSource) or "";
+	end
+
+	local sTargetPath = "";
+	if rTarget then
+		sTargetPath = ActorManager.getCreatureNodeName(rTarget) or "";
+	end
+	if sTargetPath == "" and nodeTarget then
+		sTargetPath = DB.getPath(nodeTarget) or "";
+	end
+
+	local sDamage = tostring(nAppliedDamage or 0);
+	local sKill = "0";
+	if bKill then
+		sKill = "1";
+	end
+
+	if sSourcePath == "" and sTargetPath == "" and sDamage == "0" and sKill == "0" then
+		return "";
+	end
+
+	return table.concat({ sSourcePath, sTargetPath, sDamage, sKill }, "|");
+end
+
+function purgeCombatEPState()
+	local nNow = os.time() or 0;
+	for sKey, tState in pairs(aCombatEPStateByKey) do
+		local nLast = tonumber(tState.nTimestamp) or 0;
+		if nLast <= 0 or (nNow - nLast) > 30 then
+			aCombatEPStateByKey[sKey] = nil;
+		end
+	end
+end
+
+function updateCombatEPState(sStateKey, nodeSourcePC, nodeTargetPC, nAppliedDamage, bKill)
+	if sStateKey == "" then
+		return;
+	end
+
+	purgeCombatEPState();
+
+	local tState = aCombatEPStateByKey[sStateKey] or {};
+	if nodeSourcePC then
+		tState.sSourcePCPath = DB.getPath(nodeSourcePC) or "";
+	end
+	if nodeTargetPC then
+		tState.sTargetPCPath = DB.getPath(nodeTargetPC) or "";
+	end
+	tState.nAppliedDamage = tonumber(nAppliedDamage) or 0;
+	tState.bKill = bKill and true or false;
+	tState.nTimestamp = os.time() or 0;
+
+	aCombatEPStateByKey[sStateKey] = tState;
+end
+
+function getCombatEPStateNodePC(sStateKey, bSource)
+	if sStateKey == "" then
+		return nil;
+	end
+
+	local tState = aCombatEPStateByKey[sStateKey];
+	if not tState then
+		return nil;
+	end
+
+	local sPath = "";
+	if bSource then
+		sPath = tState.sSourcePCPath or "";
+	else
+		sPath = tState.sTargetPCPath or "";
+	end
+
+	if sPath == "" then
+		return nil;
+	end
+
+	return DB.findNode(sPath);
+end
+
+function isCombatEPProcessedRecently(sStateKey, sField, nodePC)
+	if sStateKey == "" or sField == "" then
+		return false;
+	end
+
+	local sPath = "";
+	if nodePC then
+		sPath = DB.getPath(nodePC) or "";
+	end
+	local sKey = table.concat({ sStateKey, sField, sPath }, "|");
+
+	local nNow = os.time() or 0;
+	for sExistingKey, nTimestamp in pairs(aProcessedCombatEPKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedCombatEPKeys[sExistingKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedCombatEPKeys[sKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedCombatEPKeys[sKey] = nNow;
+	return false;
+end
+
+function buildSeverityStateKey(nodeAttackerCT, nodeTarget, sDescription)
+	local sAttackerPath = "";
+	if nodeAttackerCT then
+		sAttackerPath = DB.getPath(nodeAttackerCT) or "";
+	end
+
+	local sTargetPath = "";
+	if nodeTarget then
+		sTargetPath = DB.getPath(nodeTarget) or "";
+	end
+
+	local sDesc = normalizeText(sDescription or "");
+	if sAttackerPath == "" and sTargetPath == "" and sDesc == "" then
+		return "";
+	end
+
+	return table.concat({ sAttackerPath, sTargetPath, sDesc }, "|");
+end
+
+function purgeSeverityState()
+	local nNow = os.time() or 0;
+	for sKey, tState in pairs(aSeverityStateByKey) do
+		local nLast = tonumber(tState.nTimestamp) or 0;
+		if nLast <= 0 or (nNow - nLast) > 30 then
+			aSeverityStateByKey[sKey] = nil;
+		end
+	end
+end
+
+function updateSeverityState(sStateKey, nodeAttackerPC, sCritField)
+	if sStateKey == "" then
+		return;
+	end
+
+	purgeSeverityState();
+
+	local tState = aSeverityStateByKey[sStateKey] or {};
+	if nodeAttackerPC then
+		tState.sAttackerPCPath = DB.getPath(nodeAttackerPC) or "";
+	end
+	if sCritField and sCritField ~= "" then
+		tState.sCritField = sCritField;
+	end
+	tState.nTimestamp = os.time() or 0;
+
+	aSeverityStateByKey[sStateKey] = tState;
+end
+
+function getSeverityStateNodePC(sStateKey)
+	if sStateKey == "" then
+		return nil;
+	end
+
+	local tState = aSeverityStateByKey[sStateKey];
+	if not tState then
+		return nil;
+	end
+
+	local sPath = tState.sAttackerPCPath or "";
+	if sPath == "" then
+		return nil;
+	end
+
+	return DB.findNode(sPath);
+end
+
+function getSeverityFieldFromState(sStateKey)
+	if sStateKey == "" then
+		return "";
+	end
+
+	local tState = aSeverityStateByKey[sStateKey];
+	if not tState then
+		return "";
+	end
+
+	return tState.sCritField or "";
+end
+
+function isSeverityProcessedRecently(sStateKey, nodePC, sField)
+	if sStateKey == "" or sField == "" then
+		return false;
+	end
+
+	local sPath = "";
+	if nodePC then
+		sPath = DB.getPath(nodePC) or "";
+	end
+	local sKey = table.concat({ sStateKey, sPath, sField }, "|");
+
+	local nNow = os.time() or 0;
+	for sExistingKey, nTimestamp in pairs(aProcessedSeverityKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedSeverityKeys[sExistingKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedSeverityKeys[sKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedSeverityKeys[sKey] = nNow;
+	return false;
+end
+
+function onBaseCastingPostRoll(rSource, rTarget, rRoll)
+	if not rRoll then
+		return;
+	end
+
+	local sStateKey = buildBaseCastingStateKey(rSource, rRoll);
+
 	if not isBaseCastingSuccess(rRoll) then
 		return;
+	end
+
+	local nodePC = getPCNodeFromActor(rSource);
+	if not nodePC then
+		nodePC = getPCNodeFromRoll(rRoll);
 	end
 
 	local nSpellLevel = tonumber(rRoll.nSpellLevel) or 0;
@@ -144,9 +598,25 @@ function onBaseCastingPostRoll(rSource, rTarget, rRoll)
 	end
 
 	local sField = getSpellLevelField(nSpellLevel);
-	if sField ~= "" then
-		addXPValue(nodePC, sField, 1);
+
+	updateBaseCastingState(sStateKey, nodePC, nSpellLevel, sField);
+
+	if not nodePC then
+		nodePC = getPCNodeFromBaseCastingState(sStateKey);
 	end
+	if sField == "" then
+		sField = getBaseCastingFieldFromState(sStateKey);
+	end
+
+	if not nodePC or sField == "" then
+		return;
+	end
+
+	if isBaseCastingRollProcessedRecently(rRoll, nodePC, sField) then
+		return;
+	end
+
+	addXPValue(nodePC, sField, 1);
 end
 
 function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
@@ -161,6 +631,7 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 
 	local nodeAttackerPC = getPCNodeFromCT(nodeAttackerCT);
 	local nodeTargetPC = getPCNodeFromCT(nodeTarget);
+	local sSeverityStateKey = buildSeverityStateKey(nodeAttackerCT, nodeTarget, description);
 
 	if nodeAttackerPC then
 		updateCombatXPDescByOpponent(nodeAttackerPC, nodeTarget);
@@ -203,15 +674,24 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 		bNowDead = (nDamageAfter >= nTargetHits);
 	end
 
-	if nodeAttackerPC then
-		local sCritSeverity = getCriticalSeverity(woundEffects, description);
-		if sCritSeverity ~= "" then
-			local sCritOutcome = getCriticalOutcome(nodeAttackerCT, nodeTarget, woundEffects, description, bWasAlive, bNowDead);
-			local sCritField = getCriticalFieldName(sCritSeverity, sCritOutcome);
-			if sCritField ~= "" then
-				addXPValue(nodeAttackerPC, sCritField, 1);
-			end
-		end
+	local sCritSeverity = getCriticalSeverity(woundEffects, description);
+	local sCritField = "";
+	if sCritSeverity ~= "" then
+		local sCritOutcome = getCriticalOutcome(nodeAttackerCT, nodeTarget, woundEffects, description, bWasAlive, bNowDead);
+		sCritField = getCriticalFieldName(sCritSeverity, sCritOutcome);
+	end
+
+	updateSeverityState(sSeverityStateKey, nodeAttackerPC, sCritField);
+
+	if not nodeAttackerPC then
+		nodeAttackerPC = getSeverityStateNodePC(sSeverityStateKey);
+	end
+	if sCritField == "" then
+		sCritField = getSeverityFieldFromState(sSeverityStateKey);
+	end
+
+	if nodeAttackerPC and sCritField ~= "" and not isSeverityProcessedRecently(sSeverityStateKey, nodeAttackerPC, sCritField) then
+		addXPValue(nodeAttackerPC, sCritField, 1);
 	end
 end
 
@@ -234,10 +714,15 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 		return;
 	end
 
-	local nodeTargetPC = getPCNodeFromTarget(rTarget, nodeTarget, sTargetType);
-	if nodeTargetPC then
-		addXPValue(nodeTargetPC, "hitstaken", nAppliedDamage);
+	local bNowDead = false;
+	if nHitsAfter > 0 then
+		bNowDead = (nWoundsAfter >= nHitsAfter);
 	end
+	local bKill = bWasAlive and bNowDead;
+
+	local sCombatStateKey = buildCombatEPStateKey(rSource, rTarget, nodeTarget, nAppliedDamage, bKill);
+
+	local nodeTargetPC = getPCNodeFromTarget(rTarget, nodeTarget, sTargetType);
 
 	local nodeSourcePC = getPCNodeFromActor(rSource);
 	if not nodeSourcePC then
@@ -253,15 +738,24 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 		end
 	end
 
-	if nodeSourcePC then
+	updateCombatEPState(sCombatStateKey, nodeSourcePC, nodeTargetPC, nAppliedDamage, bKill);
+
+	if not nodeTargetPC then
+		nodeTargetPC = getCombatEPStateNodePC(sCombatStateKey, false);
+	end
+	if not nodeSourcePC then
+		nodeSourcePC = getCombatEPStateNodePC(sCombatStateKey, true);
+	end
+
+	if nodeTargetPC and not isCombatEPProcessedRecently(sCombatStateKey, "hitstaken", nodeTargetPC) then
+		addXPValue(nodeTargetPC, "hitstaken", nAppliedDamage);
+	end
+
+	if nodeSourcePC and not isCombatEPProcessedRecently(sCombatStateKey, "hitsgiven", nodeSourcePC) then
 		addXPValue(nodeSourcePC, "hitsgiven", nAppliedDamage);
 	end
 
-	local bNowDead = false;
-	if nHitsAfter > 0 then
-		bNowDead = (nWoundsAfter >= nHitsAfter);
-	end
-	if nodeSourcePC and bWasAlive and bNowDead then
+	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(sCombatStateKey, "foekill", nodeSourcePC) then
 		addXPValue(nodeSourcePC, "foekill", 1);
 	end
 end
