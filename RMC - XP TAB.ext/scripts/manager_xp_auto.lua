@@ -18,6 +18,21 @@ local aMMDifficultyToField = {
 	["absurd"] = "absurd",
 };
 
+local aMMDifficultyParseOrder = {
+	"extremely hard",
+	"extremelyhard",
+	"sheer folly",
+	"sheerfolly",
+	"very hard",
+	"veryhard",
+	"routine",
+	"medium",
+	"absurd",
+	"light",
+	"easy",
+	"hard",
+};
+
 local aSpellLevelToField = {
 	"spellone", "spelltwo", "spellthree", "spellfour", "spellfive", "spellsix", "spellseven", "spelleight", "spellnine", "spellten", "spelleleven"
 };
@@ -399,6 +414,13 @@ function getSkillDifficulty(rRoll)
 		return sFound;
 	end
 
+	local sNormalized = normalizeText(sDesc);
+	for _, sToken in ipairs(aMMDifficultyParseOrder) do
+		if sNormalized:find(sToken, 1, true) then
+			return sToken;
+		end
+	end
+
 	return "";
 end
 
@@ -408,6 +430,25 @@ function getMMDifficultyField(sDifficulty)
 end
 
 function isSkillSuccess(rRoll)
+	if not rRoll then
+		return false;
+	end
+
+	local sCombined = normalizeText(
+		(rRoll.sDesc or "") .. " " ..
+		(rRoll.name or "") .. " " ..
+		(rRoll.sResult or "") .. " " ..
+		(rRoll.result or "")
+	);
+
+	if sCombined:find("partial success", 1, true) or sCombined:find("failure", 1, true) then
+		return false;
+	end
+
+	if sCombined:find("absolute success", 1, true) or sCombined:find("[success]", 1, true) then
+		return true;
+	end
+
 	local nTotal = ActionsManager.total(rRoll) or 0;
 	return nTotal > 0;
 end
