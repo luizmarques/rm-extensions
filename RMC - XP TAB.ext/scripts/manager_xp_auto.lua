@@ -278,6 +278,17 @@ function getPCNodeFromActor(rActor)
 		return nil;
 	end
 
+	-- Rolls coming directly from a PC sheet may not have a CT node/link.
+	local sActorRecordType = ActorManager.getRecordType(rActor) or "";
+	if sActorRecordType == "charsheet" then
+		return nodeActor;
+	end
+
+	local sActorPath = DB.getPath(nodeActor) or "";
+	if sActorPath:match("^charsheet%.") then
+		return nodeActor;
+	end
+
 	local sClass, sRecord = DB.getValue(nodeActor, "link", "", "");
 	if sClass == "charsheet" and sRecord ~= "" then
 		return DB.findNode(sRecord);
@@ -433,6 +444,16 @@ function getCriticalSeverity(woundEffects, sDescription)
 
 	local sDesc = normalizeText(sDescription);
 	local sDescSeverity = sDesc:match("^([abcde])%s");
+	if not sDescSeverity then
+		sDescSeverity = sDesc:match("([abcde])%s+critical");
+	end
+	if not sDescSeverity then
+		local sDescUpper = (sDescription or ""):upper();
+		local sMatch = sDescUpper:match("([ABCDE])%s+CRITICAL");
+		if sMatch then
+			sDescSeverity = sMatch:lower();
+		end
+	end
 	if sDescSeverity then
 		return sDescSeverity;
 	end

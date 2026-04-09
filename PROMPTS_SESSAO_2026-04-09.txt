@@ -1,0 +1,35 @@
+PROMPTS DO USUARIO - SESSAO 2026-04-09
+
+1) Follow instructions in #prompt:init.prompt.md
+
+2) preciso fazer uma automação para preencher a tabela de XP dos personagens.
+
+Sempre que uma rolagem bem sucessedida de pericias, magias, ataques, etc. (voce pode conferir os tipos diretamente na XP TAB) é necessário fazer essa adiçao.
+
+algumas tabelas levam em consideraçao os danos a serem anotados, outros o tipo de acerto critico, outros niveis dos oponentes.
+
+Faça uma boa analise dos arquivos para identicar corretamente onde será implementado.
+
+As rolagens voce consegue extrair direto do chat, result rolls, etc.
+
+3) quais arquivos foram modificados?
+
+4) Além de skill e basecasting temos outros tipos de ataques como weapons e direct spells que tambem precisam ser preenchidas automaticamente.
+
+Faça um mapeamento de tudo que contem para ser preenchido novamente para adicionar na implemnetacao
+
+5) os danos adicionais que vem dos resultados dos criticos também, os danos tomados por round, , estão sendo adicinados?
+
+6) antes me diga a diferenca entre o hitstaken e o hitsgiven
+
+7) é necessario implentar os dois
+
+8) me informe todos os arquivos modificados nessa sessao
+ 
+ crie um arquivo para documentar as modificões e instruçoes que foram utilizadas
+
+9) crie um readme.md para explicar a extensao
+
+10) crie um readme na raiz para explicar o projeto
+
+11) crie um arquivo txt com todos os meus prompts dessa sessao na raiz do projeto
