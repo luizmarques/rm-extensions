@@ -36,6 +36,12 @@ function onAttackPostRoll(rSource, rTarget, rRoll)
 	if nodeAttackerPC and rTarget then
 		local nodeTargetCT = ActorManager.getCTNode(rTarget);
 		updateCombatXPDescByOpponent(nodeAttackerPC, nodeTargetCT);
+		if nodeTargetCT then
+			local sTargetPath = DB.getPath(nodeTargetCT) or "";
+			if sTargetPath ~= "" then
+				aPendingAttackerPCByTarget[sTargetPath] = DB.getPath(nodeAttackerPC) or "";
+			end
+		end
 	end
 
 	local nodeTargetPC = getPCNodeFromActor(rTarget);
@@ -58,6 +64,15 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 	end
 
 	local nodeAttackerPC = getPCNodeFromCT(nodeAttackerCT);
+	if not nodeAttackerPC and nodeTarget then
+		local sTargetPath = DB.getPath(nodeTarget) or "";
+		if sTargetPath ~= "" then
+			local sSourcePCPath = aPendingAttackerPCByTarget[sTargetPath] or "";
+			if sSourcePCPath ~= "" then
+				nodeAttackerPC = DB.findNode(sSourcePCPath);
+			end
+		end
+	end
 	local nodeTargetPC = getPCNodeFromCT(nodeTarget);
 
 	if nodeAttackerPC then
@@ -115,7 +130,7 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 		return;
 	end
 
-	if isSeverityProcessedRecently(nodeAttackerPC, sCritField, description) then
+	if isSeverityProcessedRecently(nodeAttackerPC, sCritField, description, nodeTarget) then
 		return;
 	end
 
@@ -489,14 +504,18 @@ function isCombatEPProcessedRecently(nodePC, sField, nValue, bKill)
 	return false;
 end
 
-function isSeverityProcessedRecently(nodePC, sField, sDescription)
+function isSeverityProcessedRecently(nodePC, sField, sDescription, nodeTarget)
 	if not nodePC or sField == "" then
 		return false;
 	end
 
 	local sPath = DB.getPath(nodePC) or "";
 	local sDesc = normalizeText(sDescription or "");
-	local sKey = table.concat({ sPath, sField, sDesc }, "|");
+	local sTargetPath = "";
+	if nodeTarget then
+		sTargetPath = DB.getPath(nodeTarget) or "";
+	end
+	local sKey = table.concat({ sPath, sField, sDesc, sTargetPath }, "|");
 
 	local nNow = os.time() or 0;
 	for sExistingKey, nTimestamp in pairs(aProcessedSeverityKeys) do
