@@ -664,6 +664,10 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
 		addXPValue(nodeSourcePC, "foekill", 1);
+		local nFoeKillBonusBase = getFoeKillBonusFromTarget(nodeTarget, sTargetType);
+		if nFoeKillBonusBase > 0 then
+			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
+		end
 	end
 end
 

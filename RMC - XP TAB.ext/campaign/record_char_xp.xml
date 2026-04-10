@@ -129,70 +129,7 @@
 				return nLevel;
 			end
 
-			function getFoeKillBonusBase()
-				local sSelection = "";
-				if foekillbonuscombo then
-					sSelection = foekillbonuscombo.getValue() or "";
-				end
 
-				local sKey = sSelection:lower();
-				local aBonusByType = {
-					["o.r - common man"] = 187.5,
-					["o.r - high man"] = 500,
-					["o.r - high man (dunedain)"] = 500,
-					["o.r - hobbit"] = 187.5,
-					["o.r - silvan elf"] = 250,
-					["o.r - sindar elf"] = 375,
-					["o.r - noldo elf"] = 500,
-					["o.r - dwarf"] = 375,
-					["o.r - half-elf"] = 375,
-					["common man"] = 150,
-					["high man"] = 400,
-					["high man (dunedain)"] = 400,
-					["hobbit"] = 150,
-					["silvan elf"] = 200,
-					["sindar elf"] = 300,
-					["noldo elf"] = 400,
-					["dwarf"] = 300,
-					["half-elf"] = 300,
-					["orc"] = 100,
-					["greater orc"] = 100,
-					["lesser orc"] = 100,
-					["uruk-hai"] = 500,
-					["warg"] = 200,
-					["lesser spider"] = 250,
-					["great spider"] = 400,
-					["hill troll"] = 500,
-					["ogre"] = 600,
-					["wolf"] = 200,
-					["wild dog"] = 100,
-					["horse (riding)"] = 100,
-					["warhorse"] = 400,
-					["boar (wild)"] = 300,
-					["bear (black)"] = 400,
-					["bear (grizzly)"] = 800,
-					["crow"] = 50,
-					["eagle"] = 1000,
-					["greater eagle"] = 3000,
-					["giant bat"] = 300,
-					["wyvern"] = 1500,
-					["young dragon"] = 5000,
-					["adult dragon"] = 10000,
-					["barrow-wight"] = 1000,
-					["nazgul"] = 12000,
-					["nazgul (ringwraith)"] = 12000,
-					["balrog"] = 25000,
-				};
-
-				local nSelected = aBonusByType[sKey];
-				if nSelected and nSelected > 0 then
-					return nSelected;
-				end
-
-				return 20;
-			end
-			
-		  
 function refresh()
     local mantot;
     local sesstot;
@@ -210,8 +147,7 @@ function refresh()
     hitstaken.setValue(nHptak);
 
 	local combatMultiplier = combatxpdesc.getValue() or 1;
-	local nFoeKillBonusBase = getFoeKillBonusBase();
-	local foeValue = (foekill.getValue() * nFoeKillBonusBase) * combatMultiplier or 0;
+	local foeValue = (foekillbase.getValue() or 0) * combatMultiplier;
     combatkills.setValue(foeValue); -- Atualiza combatkills com o valor correto
 
     local critValue = crit() * combatMultiplier;
@@ -293,7 +229,7 @@ end
 
 			function reset()
 				routine.setValue(0); easy.setValue(0); light.setValue(0); medium.setValue(0); hard.setValue(0); veryhard.setValue(0); extremelyhard.setValue(0); sheerfolly.setValue(0); absurd.setValue(0);
-				hitsgiven.setValue(0); hitstaken.setValue(0); foekill.setValue(0); combatkills.setValue(0); 
+				hitsgiven.setValue(0); hitstaken.setValue(0); foekill.setValue(0); foekillbase.setValue(0); combatkills.setValue(0); 
 				norma.setValue(0); selfa.setValue(0); unca.setValue(0); downa.setValue(0); stuna.setValue(0); soloa.setValue(0); largea.setValue(0); vlargea.setValue(0);
 				normb.setValue(0); selfb.setValue(0); uncb.setValue(0); downb.setValue(0); stunb.setValue(0); solob.setValue(0); largeb.setValue(0); vlargeb.setValue(0);
 				normc.setValue(0); selfc.setValue(0); uncc.setValue(0); downc.setValue(0); stunc.setValue(0); soloc.setValue(0); largec.setValue(0); vlargec.setValue(0);
@@ -314,6 +250,9 @@ end
 			<number_boxed name="xp">
 				<bounds>0,0,0,0</bounds>
 				 
+			</number_boxed>
+			<number_boxed name="foekillbase">
+				<bounds>0,0,0,0</bounds>
 			</number_boxed>
 			<!-- Main border frame for the maneuver xp -->
 			<genericcontrol name="manframe">
@@ -616,75 +555,7 @@ end
 				</script>
 			</number_boxed>
 
-			<row_heading name="foekillbonusabel">
-				<anchored to="hitstaken" position="righthigh" offset="5,0" width="105" />		
-				<static>Foes Killed Bonus</static>
-			</row_heading>
-			
-			<combobox name="foekillbonuscombo">
-			<anchored to="foekillbonusabel" position="righthigh" offset="20,0" width="100" />	
-				<listmaxsize>41</listmaxsize>
-				<option>41</option>
-				<script>
-				function onInit()
-				if super and super.onInit then
-				super.onInit();
-				end
-				local combo = window.foekillbonuscombo;
-				combo.clear();
-				
-				combo.add("");
-				combo.add("O.R - Common Man");
-				combo.add("O.R - High Man");
-				combo.add("O.R - Hobbit");
-				combo.add("O.R - Silvan Elf");
-				combo.add("O.R - Sindar Elf");
-				combo.add("O.R - Noldo Elf");
-				combo.add("O.R - Dwarf");
-				combo.add("O.R - Half-elf");
-				combo.add("Common Man");
-				combo.add("High Man");
-				combo.add("Hobbit");
-				combo.add("Silvan Elf");
-				combo.add("Sindar Elf");
-				combo.add("Noldo Elf");
-				combo.add("Dwarf");
-				combo.add("Half-elf");
-				combo.add("Greater Orc");
-				combo.add("Lesser Orc");
-				combo.add("Uruk-hai");
-				combo.add("Warg");
-				combo.add("Lesser Spider");
-				combo.add("Great Spider");
-				combo.add("Hill Troll");
-				combo.add("Ogre");
-				combo.add("Wolf");
-				combo.add("Wild Dog");
-				combo.add("Horse (Riding)");
-				combo.add("Warhorse");
-				combo.add("Boar (Wild)");
-				combo.add("Bear (Black)");
-				combo.add("Bear (Grizzly)");
-				combo.add("Crow");
-				combo.add("Eagle");
-				combo.add("Greater Eagle");
-				combo.add("Giant Bat");
-				combo.add("Wyvern");
-				combo.add("Young Dragon");
-				combo.add("Adult Dragon");
-				combo.add("Barrow-wight");
-				combo.add("Nazgul");
-				combo.add("Balrog");
-				end
-				
-			function onValueChanged()
-				window.refresh();
-			end
-				
-				</script>
-			</combobox>
 
-			
 			<row_heading name="combatxplabel">  <!-- Heading -->
 				<anchored to="comframe" position="insidetopleft" offset="15,55" width="75" />	
 				<static>Criticals</static>
