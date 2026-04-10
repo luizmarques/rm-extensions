@@ -5,16 +5,13 @@
 
 local fOriginalAddWoundEffects;
 local fOriginalApplyDamage;
-local fOriginalDeliverChatMessage;
-local fOriginalAddChatMessage;
 local aPendingAttackerPCByTarget = {};
 local aProcessedCombatEPKeys = {};
 local aProcessedSeverityKeys = {};
-local aProcessedChatSeverityKeys = {};
+local aProcessedCriticalMatrixKeys = {};
 local aProcessedSkillEPKeys = {};
 local aProcessedSpellEPKeys = {};
 local aPendingSkillRollByActor = {};
-local tPendingCombatChatActor = { path = "", time = 0 };
 
 function onInit()
 	if not Session.IsHost then
@@ -32,61 +29,6 @@ function onInit()
 	if ActionDamage and ActionDamage.applyDamage then
 		fOriginalApplyDamage = ActionDamage.applyDamage;
 		ActionDamage.applyDamage = onApplyDamageWithXP;
-	end
-
-	if Comm and Comm.deliverChatMessage then
-		fOriginalDeliverChatMessage = Comm.deliverChatMessage;
-		Comm.deliverChatMessage = onDeliverChatMessageWithXP;
-	end
-
-	if Comm and Comm.addChatMessage then
-		fOriginalAddChatMessage = Comm.addChatMessage;
-		Comm.addChatMessage = onAddChatMessageWithXP;
-	end
-end
-
-function onDeliverChatMessageWithXP(rMessage, sUser, ...)
-	if fOriginalDeliverChatMessage then
-		fOriginalDeliverChatMessage(rMessage, sUser, ...);
-	end
-	processCombatCriticalFromChatMessage(rMessage);
-end
-
-function onAddChatMessageWithXP(rMessage, ...)
-	if fOriginalAddChatMessage then
-		fOriginalAddChatMessage(rMessage, ...);
-	end
-	processCombatCriticalFromChatMessage(rMessage);
-end
-
-function processCombatCriticalFromChatMessage(rMessage)
-	if type(rMessage) ~= "table" then
-		return;
-	end
-
-	local sText = tostring(rMessage.text or "");
-	if sText == "" then
-		return;
-	end
-
-	local aSeverities = extractCriticalSeveritiesFromChatText(sText);
-	if type(aSeverities) ~= "table" or #aSeverities == 0 then
-		return;
-	end
-
-	local nodeAttackerPC = getPCNodeFromChatMessage(rMessage);
-	if not nodeAttackerPC then
-		nodeAttackerPC = getPendingCombatChatActor();
-	end
-	if not nodeAttackerPC then
-		return;
-	end
-
-	for _, sSeverity in ipairs(aSeverities) do
-		local sField = getCriticalFieldName(sSeverity, "norm");
-		if sField ~= "" and not isChatSeverityProcessedRecently(nodeAttackerPC, sField, sText, sSeverity) then
-			addXPValue(nodeAttackerPC, sField, 1);
-		end
 	end
 end
 
@@ -178,17 +120,206 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 		end
 	end
 
+	local nTargetHits = DB.getValue(nodeTarget, "hits", 0);
+	local nDamageBefore = DB.getValue(nodeTarget, "damage", 0);
+	local bWasAlive = true;
+	if nTargetHits > 0 then
+		bWasAlive = (nDamageBefore < nTargetHits);
+	end
+
 	fOriginalAddWoundEffects(nodeTarget, woundEffects, description, ...);
 
 	if sTargetPath ~= "" then
 		aPendingAttackerPCByTarget[sTargetPath] = sPrevPendingAttacker;
 	end
 
-	if bIsApplyTrigger and nodeAttackerPC then
-		setPendingCombatChatActor(nodeAttackerPC);
+	if bIsApplyTrigger then
+		processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTarget, woundEffects, description, bWasAlive);
 	end
 
 	tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
+end
+
+function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTarget, woundEffects, sDescription, bWasAlive)
+	if not nodeAttackerPC or type(woundEffects) ~= "table" then
+		return;
+	end
+
+	local sSeverity = getCriticalSeverityFromEvent(woundEffects, sDescription);
+	if sSeverity == "" then
+		return;
+	end
+
+	local aOutcomes = getCriticalMatrixOutcomes(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive);
+	if #aOutcomes == 0 then
+		return;
+	end
+
+	local sEventKey = getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sSeverity, aOutcomes);
+	if isCriticalMatrixProcessedRecently(sEventKey) then
+		return;
+	end
+
+	for _, sOutcome in ipairs(aOutcomes) do
+		local sField = getCriticalFieldName(sSeverity, sOutcome);
+		if sField ~= "" then
+			addXPValue(nodeAttackerPC, sField, 1);
+		end
+	end
+end
+
+function getCriticalSeverityFromEvent(woundEffects, sDescription)
+	if type(woundEffects) == "table" then
+		local sSeverity = normalizeText(tostring(woundEffects.CriticalSeverity or ""));
+		if sSeverity:match("^[abcde]$") then
+			return sSeverity;
+		end
+
+		local sCode = tostring(woundEffects.CriticalCode or ""):upper();
+		local sCodeSev = sCode:match("%d+([ABCDE])[A-Z]");
+		if sCodeSev then
+			return sCodeSev:lower();
+		end
+	end
+
+	local sDesc = tostring(sDescription or ""):upper();
+	local sDescSev = sDesc:match("%d+([ABCDE])[A-Z]");
+	if not sDescSev then
+		sDescSev = sDesc:match("([ABCDE])%s+CRITICAL");
+	end
+	if sDescSev then
+		return sDescSev:lower();
+	end
+
+	return "";
+end
+
+function getCriticalMatrixOutcomes(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive)
+	local tOutcomes = { norm = true };
+
+	if nodeAttackerCT and nodeTarget and DB.getPath(nodeAttackerCT) == DB.getPath(nodeTarget) then
+		tOutcomes.self = true;
+	end
+
+	if bWasAlive and isTargetNowDead(nodeTarget) then
+		tOutcomes.solo = true;
+	end
+
+	local sCritName = normalizeText(tostring(woundEffects.CriticalName or ""));
+	local sDesc = normalizeText(sDescription or "");
+	if sCritName:find("super-large", 1, true) or sCritName:find("super large", 1, true) or sCritName:find("superlarge", 1, true)
+		or sDesc:find("super-large", 1, true) or sDesc:find("super large", 1, true) then
+		tOutcomes.vlarge = true;
+	elseif sCritName:find("large", 1, true) or sCritName:find("lrg", 1, true)
+		or sDesc:find(" large ", 1, true) or sDesc:find(" lrg ", 1, true) then
+		tOutcomes.large = true;
+	end
+
+	if hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Dying")
+		or hasAnyWoundText(woundEffects, { "unconscious", "dying" })
+		or sDesc:find("unconscious", 1, true) or sDesc:find("dying", 1, true) then
+		tOutcomes.unc = true;
+	end
+
+	if hasAnyWoundText(woundEffects, { "down", "prone", "kneeling" })
+		or sDesc:find(" down", 1, true) or sDesc:find("prone", 1, true) or sDesc:find("kneeling", 1, true) then
+		tOutcomes.down = true;
+	end
+
+	if hasWoundFlag(woundEffects, "Stun") or hasWoundFlag(woundEffects, "NoParry") or hasWoundFlag(woundEffects, "MustParry")
+		or hasAnyWoundText(woundEffects, { "stun", "no parry", "must parry", "mustparry" })
+		or sDesc:find("stun", 1, true) or sDesc:find("no parry", 1, true) or sDesc:find("must parry", 1, true) then
+		tOutcomes.stun = true;
+	end
+
+	local aOutcomes = {};
+	for _, sOutcome in ipairs({ "norm", "unc", "down", "stun", "solo", "large", "vlarge", "self" }) do
+		if tOutcomes[sOutcome] then
+			table.insert(aOutcomes, sOutcome);
+		end
+	end
+
+	return aOutcomes;
+end
+
+function hasWoundFlag(woundEffects, sFlag)
+	if type(woundEffects) ~= "table" or sFlag == "" then
+		return false;
+	end
+	return woundEffects[sFlag] ~= nil or woundEffects["Conditional" .. sFlag] ~= nil;
+end
+
+function hasAnyWoundText(woundEffects, aNeedles)
+	if type(woundEffects) ~= "table" or type(aNeedles) ~= "table" then
+		return false;
+	end
+
+	for _, v in pairs(woundEffects) do
+		if type(v) == "string" then
+			local sText = normalizeText(v);
+			for _, sNeedle in ipairs(aNeedles) do
+				if sText:find(sNeedle, 1, true) then
+					return true;
+				end
+			end
+		end
+	end
+
+	return false;
+end
+
+function isTargetNowDead(nodeTarget)
+	if not nodeTarget then
+		return false;
+	end
+
+	local nHits = tonumber(DB.getValue(nodeTarget, "hits", 0)) or 0;
+	if nHits <= 0 then
+		return false;
+	end
+
+	local nDamage = tonumber(DB.getValue(nodeTarget, "damage", 0)) or 0;
+	return nDamage >= nHits;
+end
+
+function getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sSeverity, aOutcomes)
+	local sAttackerPath = DB.getPath(nodeAttackerPC) or "";
+	local sTargetPath = "";
+	if nodeTarget then
+		sTargetPath = DB.getPath(nodeTarget) or "";
+	end
+
+	local sCode = "";
+	local sName = "";
+	if type(woundEffects) == "table" then
+		sCode = tostring(woundEffects.CriticalCode or ""):upper();
+		sName = normalizeText(tostring(woundEffects.CriticalName or ""));
+	end
+
+	local sOutcomes = table.concat(aOutcomes or {}, ",");
+	local sDesc = normalizeText(sDescription or "");
+	return table.concat({ sAttackerPath, sTargetPath, sSeverity or "", sCode, sName, sOutcomes, sDesc }, "|");
+end
+
+function isCriticalMatrixProcessedRecently(sEventKey)
+	if sEventKey == "" then
+		return false;
+	end
+
+	local nNow = os.time() or 0;
+	for sKey, nTimestamp in pairs(aProcessedCriticalMatrixKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedCriticalMatrixKeys[sKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedCriticalMatrixKeys[sEventKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedCriticalMatrixKeys[sEventKey] = nNow;
+	return false;
 end
 
 function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
@@ -723,104 +854,6 @@ function getSpellLevelFieldName(nSpellLevel)
 	return "spelleleven";
 end
 
-function extractCriticalSeveritiesFromChatText(sText)
-	local aSeverities = {};
-	if type(sText) ~= "string" or sText == "" then
-		return aSeverities;
-	end
-
-	for _, sSeverity in sText:gmatch("(%d+)%s*([ABCDE])%s*[A-Z]") do
-		table.insert(aSeverities, string.lower(sSeverity));
-	end
-
-	return aSeverities;
-end
-
-function setPendingCombatChatActor(nodeAttackerPC)
-	if not nodeAttackerPC then
-		return;
-	end
-
-	local sPath = DB.getPath(nodeAttackerPC) or "";
-	if sPath == "" then
-		return;
-	end
-
-	tPendingCombatChatActor.path = sPath;
-	tPendingCombatChatActor.time = os.time() or 0;
-end
-
-function getPendingCombatChatActor()
-	if type(tPendingCombatChatActor) ~= "table" then
-		return nil;
-	end
-
-	local sPath = tPendingCombatChatActor.path or "";
-	if sPath == "" then
-		return nil;
-	end
-
-	local nNow = os.time() or 0;
-	if (nNow - (tonumber(tPendingCombatChatActor.time) or 0)) > 60 then
-		tPendingCombatChatActor.path = "";
-		tPendingCombatChatActor.time = 0;
-		return nil;
-	end
-
-	return DB.findNode(sPath);
-end
-
-function getPCNodeFromChatMessage(rMessage)
-	if type(rMessage) ~= "table" then
-		return nil;
-	end
-
-	local sText = tostring(rMessage.text or "");
-	if sText ~= "" then
-		local sAttackerName = sText:match("%[Attacker/Actor:%s*([^%]]+)%]");
-		if sAttackerName and sAttackerName ~= "" then
-			local nodePC = getPCNodeByName(sAttackerName);
-			if nodePC then
-				return nodePC;
-			end
-		end
-	end
-
-	local aNameFields = {
-		rMessage.sender,
-		rMessage.sendername,
-		rMessage.identity,
-		rMessage.sIdentity,
-	};
-
-	for _, vName in ipairs(aNameFields) do
-		if type(vName) == "string" and vName ~= "" then
-			local nodePC = getPCNodeByName(vName);
-			if nodePC then
-				return nodePC;
-			end
-		end
-	end
-
-	return nil;
-end
-
-function getPCNodeByName(sName)
-	local sNeedle = normalizeText(sName or "");
-	if sNeedle == "" then
-		return nil;
-	end
-
-	for _, nodePC in pairs(DB.getChildren("charsheet")) do
-		local sPCName = normalizeText(DB.getValue(nodePC, "name", ""));
-		if sPCName ~= "" and sPCName == sNeedle then
-			return nodePC;
-		end
-	end
-
-	return nil;
-end
-
 function getCriticalFieldName(sSeverity, sOutcome)
 	if sSeverity == "" or sOutcome == "" then
 		return "";
@@ -843,31 +876,6 @@ function getCriticalFieldName(sSeverity, sOutcome)
 	end
 
 	return sPrefix .. sSeverity;
-end
-
-function isChatSeverityProcessedRecently(nodePC, sField, sText, sSeverity)
-	if not nodePC or sField == "" then
-		return false;
-	end
-
-	local sPath = DB.getPath(nodePC) or "";
-	local sNormText = normalizeText(sText or "");
-	local sKey = table.concat({ sPath, sField, sSeverity or "", sNormText }, "|");
-
-	local nNow = os.time() or 0;
-	for sExistingKey, nTimestamp in pairs(aProcessedChatSeverityKeys) do
-		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
-			aProcessedChatSeverityKeys[sExistingKey] = nil;
-		end
-	end
-
-	local nLast = tonumber(aProcessedChatSeverityKeys[sKey]) or 0;
-	if nLast > 0 and (nNow - nLast) <= 5 then
-		return true;
-	end
-
-	aProcessedChatSeverityKeys[sKey] = nNow;
-	return false;
 end
 
 function isCombatEPProcessedRecently(nodePC, sField, nValue, bKill)
