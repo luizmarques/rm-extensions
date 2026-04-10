@@ -1352,7 +1352,7 @@ function updateCombatXPDescByOpponent(nodePC, nodeOpponentCT)
 		return;
 	end
 
-	local nDiff = math.abs(nOpponentLevel - nPCLevel);
+	local nDiff = nOpponentLevel - nPCLevel;
 	if nDiff < 1 then
 		nDiff = 1;
 	end
