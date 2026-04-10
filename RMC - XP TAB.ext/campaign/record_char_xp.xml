@@ -48,7 +48,7 @@
 					mutliplier.setVisible(false);
 					adventuretotal.setVisible(false);
 					totallabel.setVisible(false);
-					gmlabel.setVisible(flase);
+					gmlabel.setVisible(false);
 					gmexframe.setVisible(true);
 					ideaslabel.setVisible(true);
 					ideaxp.setVisible(true);
@@ -529,7 +529,7 @@ end
 			</buttoncontrol>
 				
 			<row_heading name="hitstakenlabel">
-				<anchored to="hitsgivenlabel" position="right" offset="30" width="75" />
+				<anchored to="hitsgivenlabel" position="righthigh" offset="30" width="75" />
 				<static>HP Taken</static>
 			</row_heading>
 			
@@ -578,7 +578,7 @@ end
 			</buttoncontrol>
 			
 			<row_heading name="foekilllabel">
-				<anchored to="addhitstaken_butt" position="right" offset="25" width="75" />		
+				<anchored to="addhitstaken_butt" position="righthigh" offset="25" width="75" />		
 				<static>Foes Killed</static>
 			</row_heading>
 			
@@ -592,14 +592,12 @@ end
 			</number_boxed>
 
 			<row_heading name="foekillbonusabel">
-				<anchored to="hitstaken" position="right" offset="5,0" width="105" />		
+				<anchored to="hitstaken" position="righthigh" offset="5,0" width="105" />		
 				<static>Foes Killed Bonus</static>
 			</row_heading>
 			
 			<combobox name="foekillbonuscombo">
-			<anchored to="foekillbonusabel" position="right" offset="20,0" width="100" >
-				<right offset="125" />
-			</anchored>	
+			<anchored to="foekillbonusabel" position="righthigh" offset="20,0" width="100" />	
 				<listmaxsize>41</listmaxsize>
 				<option>41</option>
 				<script>
@@ -846,7 +844,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="normb">  <!-- B Criticals Number fields -->
-				<anchored to="norma" position="below" offset="0,5" />
+				<anchored to="norma" position="belowleft" offset="0,5" width="30" />
 				<script>															
 				function onValueChanged()
 					window.refresh();
@@ -912,7 +910,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="normc">  <!-- C Criticals Number fields -->
-				<anchored to="normb" position="below" offset="0,5" />
+				<anchored to="normb" position="belowleft" offset="0,5" width="30" />
 				<script>															
 					function onValueChanged()
 						window.refresh();
@@ -977,7 +975,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="normd">  <!-- D Criticals Number fields -->
-				<anchored to="normc" position="below" offset="0,5" />
+				<anchored to="normc" position="belowleft" offset="0,5" width="30" />
 				<script>															
 					function onValueChanged()
 						window.refresh();
@@ -1479,7 +1477,7 @@ end
 			</stringcontrolX>
 			
 			<number_boxed name="trvlxp">
-				<anchored to="ideaxp" position="below" offset="0,10" />
+				<anchored to="ideaxp" position="belowleft" offset="0,10" width="30" />
 				<gmeditonly />
 				<script>															
 					function onValueChanged()
@@ -1499,7 +1497,7 @@ end
 			</stringcontrolX>
 			
 			<number_boxed name="trvl2xp">
-				<anchored to="trvlxp" position="below" offset="0,10" />
+				<anchored to="trvlxp" position="belowleft" offset="0,10" width="30" />
 				<gmeditonly />
 				<script>															
 					function onValueChanged()
