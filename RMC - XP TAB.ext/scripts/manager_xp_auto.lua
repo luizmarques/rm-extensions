@@ -895,7 +895,58 @@ function getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType)
 		return 200, "Troll";
 	end
 
+	local nFallbackKillPoints = getFallbackKillPointsFromTarget(nodeTarget, sTargetType);
+	if nFallbackKillPoints > 0 then
+		return nFallbackKillPoints, "Base Formula (Hits + 20xLevel)";
+	end
+
 	return 0, "";
+end
+
+function getFallbackKillPointsFromTarget(nodeTarget, sTargetType)
+	if not nodeTarget then
+		return 0;
+	end
+
+	local nHits = 0;
+	if sTargetType == "charsheet" then
+		nHits = tonumber(DB.getValue(nodeTarget, "hits.max", 0)) or 0;
+	else
+		nHits = tonumber(DB.getValue(nodeTarget, "hits", 0)) or 0;
+		if nHits <= 0 then
+			nHits = tonumber(DB.getValue(nodeTarget, "hits.max", 0)) or 0;
+		end
+	end
+
+	local nLevel = tonumber(DB.getValue(nodeTarget, "level", 0)) or 0;
+
+	if nHits <= 0 or nLevel <= 0 then
+		local _, sRecord = DB.getValue(nodeTarget, "link", "", "");
+		if sRecord ~= "" then
+			local nodeLinked = DB.findNode(sRecord);
+			if nodeLinked then
+				if nHits <= 0 then
+					nHits = tonumber(DB.getValue(nodeLinked, "hits.max", 0)) or 0;
+					if nHits <= 0 then
+						nHits = tonumber(DB.getValue(nodeLinked, "hits", 0)) or 0;
+					end
+				end
+				if nLevel <= 0 then
+					nLevel = tonumber(DB.getValue(nodeLinked, "level", 0)) or 0;
+				end
+			end
+		end
+	end
+
+	if nHits <= 0 and nodeTarget then
+		nHits = tonumber(DB.getValue(nodeTarget, "hp.total", 0)) or 0;
+	end
+
+	if nHits <= 0 and nLevel <= 0 then
+		return 0;
+	end
+
+	return nHits + (20 * nLevel);
 end
 
 function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus)

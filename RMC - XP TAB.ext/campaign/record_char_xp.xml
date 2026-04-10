@@ -230,17 +230,41 @@ end
 
 				foekillbonuscombo.clear();
 
-				local nodeStorage = getFoeKillBonusStorageNode();
-				if not nodeStorage then
-					return;
+				local aEntries = {};
+				local function addEntriesFromNode(nodeStorage)
+					if not nodeStorage then
+						return;
+					end
+
+					for _, nodeEntry in pairs(DB.getChildren(nodeStorage, "foekillbonuslist")) do
+						local sText = DB.getValue(nodeEntry, "text", "");
+						if sText == "" then
+							local nOrder = tonumber(DB.getValue(nodeEntry, "order", 0)) or 0;
+							if nOrder < 1 then
+								nOrder = #aEntries + 1;
+							end
+
+							local sCategory = DB.getValue(nodeEntry, "category", "Unrecognized");
+							local nBonus = tonumber(DB.getValue(nodeEntry, "bonus", 0)) or 0;
+							local sFoe = DB.getValue(nodeEntry, "foe", "Unknown");
+							sText = string.format("%03d - %s: +%d (%s)", nOrder, sCategory, nBonus, sFoe);
+						end
+
+						if sText ~= "" then
+							table.insert(aEntries, sText);
+						end
+					end
 				end
 
-				local aEntries = {};
-				for _, nodeEntry in pairs(DB.getChildren(nodeStorage, "foekillbonuslist")) do
-					local sText = DB.getValue(nodeEntry, "text", "");
-					if sText ~= "" then
-						table.insert(aEntries, sText);
-					end
+				local nodeXP = getDatabaseNode();
+				local nodeChar = nil;
+				if nodeXP and nodeXP.getParent then
+					nodeChar = nodeXP.getParent();
+				end
+
+				addEntriesFromNode(nodeXP);
+				if nodeChar and nodeChar ~= nodeXP then
+					addEntriesFromNode(nodeChar);
 				end
 
 				table.sort(aEntries);
