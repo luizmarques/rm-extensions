@@ -667,6 +667,7 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	end
 end
 
+
 function getTargetHealthState(rTarget)
 	local nHits = 0;
 	local nWounds = 0;
