@@ -7,6 +7,8 @@ local fOriginalAddWoundEffects;
 local fOriginalApplyDamage;
 local OOB_MSGTYPE_XPAUTO_SKILL_POSTROLL = "xpautoskpostroll";
 local OOB_MSGTYPE_XPAUTO_BASECAST_POSTROLL = "xpautobcpostroll";
+local OOB_MSGTYPE_XPAUTO_WOUNDEFFECTS = "xpautowoundeffects";
+local OOB_MSGTYPE_XPAUTO_APPLYDAMAGE = "xpautoapplydamage";
 local aPendingAttackerPCByTarget = {};
 local aProcessedCombatEPKeys = {};
 local aProcessedSeverityKeys = {};
@@ -23,14 +25,16 @@ function onInit()
 	if Session.IsHost then
 		OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_XPAUTO_SKILL_POSTROLL, handleSkillPostRollOOB);
 		OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_XPAUTO_BASECAST_POSTROLL, handleBaseCastingPostRollOOB);
+		OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_XPAUTO_WOUNDEFFECTS, handleWoundEffectsOOB);
+		OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_XPAUTO_APPLYDAMAGE, handleApplyDamageOOB);
 	end
 
-	if Session.IsHost and CombatManager2 and CombatManager2.addWoundEffects then
+	if CombatManager2 and CombatManager2.addWoundEffects then
 		fOriginalAddWoundEffects = CombatManager2.addWoundEffects;
 		CombatManager2.addWoundEffects = onAddWoundEffectsWithXP;
 	end
 
-	if Session.IsHost and ActionDamage and ActionDamage.applyDamage then
+	if ActionDamage and ActionDamage.applyDamage then
 		fOriginalApplyDamage = ActionDamage.applyDamage;
 		ActionDamage.applyDamage = onApplyDamageWithXP;
 	end
@@ -152,6 +156,139 @@ function handleBaseCastingPostRollOOB(msgOOB)
 	local rSource = decodeSourceFromOOB(msgOOB);
 	local rRoll = decodeRollFromOOB(msgOOB);
 	processBaseCastingPostRollHost(rSource, rRoll);
+end
+
+function notifyWoundEffectsOOB(nodeAttackerCT, nodeAttackerPC, nodeTarget, nodeTargetPC, sDescription, bWasAlive, sSeverity, sOutcome, woundEffects)
+	local msgOOB = {};
+	msgOOB.type = OOB_MSGTYPE_XPAUTO_WOUNDEFFECTS;
+	msgOOB.nodeAttackerCTPath = nodeAttackerCT and (DB.getPath(nodeAttackerCT) or "") or "";
+	msgOOB.nodeAttackerPCPath = nodeAttackerPC and (DB.getPath(nodeAttackerPC) or "") or "";
+	msgOOB.nodeTargetPath = nodeTarget and (DB.getPath(nodeTarget) or "") or "";
+	msgOOB.nodeTargetPCPath = nodeTargetPC and (DB.getPath(nodeTargetPC) or "") or "";
+	msgOOB.sDescription = tostring(sDescription or "");
+	msgOOB.bWasAlive = bWasAlive and 1 or 0;
+	msgOOB.sSeverity = tostring(sSeverity or "");
+	msgOOB.sOutcome = tostring(sOutcome or "");
+	if type(woundEffects) == "table" then
+		msgOOB.sCriticalCode = tostring(woundEffects.CriticalCode or "");
+		msgOOB.sCriticalName = tostring(woundEffects.CriticalName or "");
+	end
+
+	Comm.deliverOOBMessage(msgOOB, "");
+end
+
+function notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill)
+	local msgOOB = {};
+	msgOOB.type = OOB_MSGTYPE_XPAUTO_APPLYDAMAGE;
+	msgOOB.nodeSourcePCPath = nodeSourcePC and (DB.getPath(nodeSourcePC) or "") or "";
+	msgOOB.nodeTargetPCPath = nodeTargetPC and (DB.getPath(nodeTargetPC) or "") or "";
+	msgOOB.nodeTargetPath = nodeTarget and (DB.getPath(nodeTarget) or "") or "";
+	msgOOB.sTargetType = tostring(sTargetType or "");
+	msgOOB.nAppliedDamage = tonumber(nAppliedDamage or 0) or 0;
+	msgOOB.bKill = bKill and 1 or 0;
+
+	Comm.deliverOOBMessage(msgOOB, "");
+end
+
+function handleWoundEffectsOOB(msgOOB)
+	if not Session.IsHost or type(msgOOB) ~= "table" then
+		return;
+	end
+
+	local nodeAttackerCT = DB.findNode(tostring(msgOOB.nodeAttackerCTPath or ""));
+	local nodeAttackerPC = DB.findNode(tostring(msgOOB.nodeAttackerPCPath or ""));
+	local nodeTarget = DB.findNode(tostring(msgOOB.nodeTargetPath or ""));
+	local nodeTargetPC = DB.findNode(tostring(msgOOB.nodeTargetPCPath or ""));
+	local sDescription = tostring(msgOOB.sDescription or "");
+	local sSeverity = normalizeText(tostring(msgOOB.sSeverity or ""));
+	local sOutcome = normalizeText(tostring(msgOOB.sOutcome or ""));
+	local bWasAlive = tonumber(msgOOB.bWasAlive or 0) == 1;
+	local sCriticalCode = tostring(msgOOB.sCriticalCode or "");
+	local sCriticalName = tostring(msgOOB.sCriticalName or "");
+
+	if nodeAttackerPC and nodeTarget then
+		updateCombatXPDescByOpponent(nodeAttackerPC, nodeTarget);
+	end
+	if nodeTargetPC and nodeAttackerCT then
+		updateCombatXPDescByOpponent(nodeTargetPC, nodeAttackerCT);
+	end
+
+	if sSeverity:match("^[abcde]$") then
+		if sOutcome == "" then
+			sOutcome = "norm";
+		end
+
+		if nodeAttackerPC then
+			local sField = getCriticalFieldName(sSeverity, sOutcome);
+			if sField ~= "" then
+				local sEventKey = table.concat({
+					DB.getPath(nodeAttackerPC) or "",
+					nodeTarget and (DB.getPath(nodeTarget) or "") or "",
+					sSeverity,
+					normalizeText(sCriticalCode),
+					normalizeText(sCriticalName),
+					sOutcome,
+					normalizeText(sDescription)
+				}, "|");
+				if not isCriticalMatrixProcessedRecently(sEventKey) then
+					addXPValue(nodeAttackerPC, sField, 1);
+				end
+			end
+		end
+
+		if nodeTargetPC then
+			local sSelfField = getCriticalFieldName(sSeverity, "self");
+			if sSelfField ~= "" then
+				local sSelfEventKey = table.concat({
+					DB.getPath(nodeTargetPC) or "",
+					nodeTarget and (DB.getPath(nodeTarget) or "") or "",
+					sSeverity,
+					normalizeText(sCriticalCode),
+					normalizeText(sCriticalName),
+					normalizeText(sDescription)
+				}, "|");
+				if not isCriticalSelfProcessedRecently(sSelfEventKey) then
+					addXPValue(nodeTargetPC, sSelfField, 1);
+				end
+			end
+		end
+	end
+
+	tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, sDescription);
+end
+
+function handleApplyDamageOOB(msgOOB)
+	if not Session.IsHost or type(msgOOB) ~= "table" then
+		return;
+	end
+
+	local nodeSourcePC = DB.findNode(tostring(msgOOB.nodeSourcePCPath or ""));
+	local nodeTargetPC = DB.findNode(tostring(msgOOB.nodeTargetPCPath or ""));
+	local nodeTarget = DB.findNode(tostring(msgOOB.nodeTargetPath or ""));
+	local sTargetType = tostring(msgOOB.sTargetType or "");
+	local nAppliedDamage = tonumber(msgOOB.nAppliedDamage or 0) or 0;
+	local bKill = tonumber(msgOOB.bKill or 0) == 1;
+
+	if nAppliedDamage <= 0 then
+		return;
+	end
+
+	if nodeTargetPC and not isCombatEPProcessedRecently(nodeTargetPC, "hitstaken", nAppliedDamage, bKill) then
+		addXPValue(nodeTargetPC, "hitstaken", nAppliedDamage);
+	end
+
+	if nodeSourcePC and not isCombatEPProcessedRecently(nodeSourcePC, "hitsgiven", nAppliedDamage, bKill) then
+		addXPValue(nodeSourcePC, "hitsgiven", nAppliedDamage);
+	end
+
+	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
+		addXPValue(nodeSourcePC, "foekill", 1);
+		local nFoeKillBonusBase, sFoeKillBonusCategory = getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType);
+		if nFoeKillBonusBase > 0 then
+			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
+			addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase);
+		end
+	end
 end
 
 function buildPostRollOOBMessage(rSource, rRoll)
@@ -293,6 +430,20 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 
 	if sTargetPath ~= "" then
 		aPendingAttackerPCByTarget[sTargetPath] = sPrevPendingAttacker;
+	end
+
+	if not Session.IsHost then
+		local sSeverity = "";
+		local sOutcome = "";
+		if bIsApplyTrigger then
+			sSeverity = getCriticalSeverityFromEvent(woundEffects, description);
+			if sSeverity ~= "" then
+				sOutcome = getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, description, bWasAlive);
+			end
+		end
+		notifyWoundEffectsOOB(nodeAttackerCT, nodeAttackerPC, nodeTarget, nodeTargetPC, description, bWasAlive, sSeverity, sOutcome, woundEffects);
+		tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
+		return;
 	end
 
 	if bIsApplyTrigger then
@@ -656,6 +807,11 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 
 	local nHitsTakenXP = nAppliedDamage;
 	local nHitsGivenXP = nAppliedDamage;
+
+	if not Session.IsHost then
+		notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill);
+		return;
+	end
 
 	if nodeTargetPC and nHitsTakenXP > 0 and not isCombatEPProcessedRecently(nodeTargetPC, "hitstaken", nHitsTakenXP, bKill) then
 		addXPValue(nodeTargetPC, "hitstaken", nHitsTakenXP);
