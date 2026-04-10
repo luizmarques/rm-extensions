@@ -5,6 +5,8 @@
 
 local fOriginalAddWoundEffects;
 local fOriginalApplyDamage;
+local OOB_MSGTYPE_XPAUTO_SKILL_POSTROLL = "xpautoskpostroll";
+local OOB_MSGTYPE_XPAUTO_BASECAST_POSTROLL = "xpautobcpostroll";
 local aPendingAttackerPCByTarget = {};
 local aProcessedCombatEPKeys = {};
 local aProcessedSeverityKeys = {};
@@ -15,19 +17,20 @@ local aProcessedSpellEPKeys = {};
 local aPendingSkillRollByActor = {};
 
 function onInit()
-	if not Session.IsHost then
-		return;
-	end
-
 	ActionsManager.registerPostRollHandler("skill", onSkillPostRoll);
 	ActionsManager.registerPostRollHandler("basecasting", onBaseCastingPostRoll);
 
-	if CombatManager2 and CombatManager2.addWoundEffects then
+	if Session.IsHost then
+		OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_XPAUTO_SKILL_POSTROLL, handleSkillPostRollOOB);
+		OOBManager.registerOOBMsgHandler(OOB_MSGTYPE_XPAUTO_BASECAST_POSTROLL, handleBaseCastingPostRollOOB);
+	end
+
+	if Session.IsHost and CombatManager2 and CombatManager2.addWoundEffects then
 		fOriginalAddWoundEffects = CombatManager2.addWoundEffects;
 		CombatManager2.addWoundEffects = onAddWoundEffectsWithXP;
 	end
 
-	if ActionDamage and ActionDamage.applyDamage then
+	if Session.IsHost and ActionDamage and ActionDamage.applyDamage then
 		fOriginalApplyDamage = ActionDamage.applyDamage;
 		ActionDamage.applyDamage = onApplyDamageWithXP;
 	end
@@ -35,6 +38,19 @@ end
 
 function onSkillPostRoll(rSource, a2, a3)
 	local rRoll = a3 or a2;
+	if not rRoll then
+		return;
+	end
+
+	if not Session.IsHost then
+		notifySkillPostRollOOB(rSource, rRoll);
+		return;
+	end
+
+	processSkillPostRollHost(rSource, rRoll);
+end
+
+function processSkillPostRollHost(rSource, rRoll)
 	if not rRoll then
 		return;
 	end
@@ -54,6 +70,19 @@ end
 
 function onBaseCastingPostRoll(rSource, a2, a3)
 	local rRoll = a3 or a2;
+	if not rRoll then
+		return;
+	end
+
+	if not Session.IsHost then
+		notifyBaseCastingPostRollOOB(rSource, rRoll);
+		return;
+	end
+
+	processBaseCastingPostRollHost(rSource, rRoll);
+end
+
+function processBaseCastingPostRollHost(rSource, rRoll)
 	if not rRoll then
 		return;
 	end
@@ -83,6 +112,135 @@ function onBaseCastingPostRoll(rSource, a2, a3)
 	end
 
 	addXPValue(nodeSourcePC, sSpellField, 1);
+end
+
+function notifySkillPostRollOOB(rSource, rRoll)
+	if not rRoll then
+		return;
+	end
+
+	local msgOOB = buildPostRollOOBMessage(rSource, rRoll);
+	msgOOB.type = OOB_MSGTYPE_XPAUTO_SKILL_POSTROLL;
+	Comm.deliverOOBMessage(msgOOB, "");
+end
+
+function notifyBaseCastingPostRollOOB(rSource, rRoll)
+	if not rRoll then
+		return;
+	end
+
+	local msgOOB = buildPostRollOOBMessage(rSource, rRoll);
+	msgOOB.type = OOB_MSGTYPE_XPAUTO_BASECAST_POSTROLL;
+	Comm.deliverOOBMessage(msgOOB, "");
+end
+
+function handleSkillPostRollOOB(msgOOB)
+	if not Session.IsHost or type(msgOOB) ~= "table" then
+		return;
+	end
+
+	local rSource = decodeSourceFromOOB(msgOOB);
+	local rRoll = decodeRollFromOOB(msgOOB);
+	processSkillPostRollHost(rSource, rRoll);
+end
+
+function handleBaseCastingPostRollOOB(msgOOB)
+	if not Session.IsHost or type(msgOOB) ~= "table" then
+		return;
+	end
+
+	local rSource = decodeSourceFromOOB(msgOOB);
+	local rRoll = decodeRollFromOOB(msgOOB);
+	processBaseCastingPostRollHost(rSource, rRoll);
+end
+
+function buildPostRollOOBMessage(rSource, rRoll)
+	local msgOOB = {};
+	msgOOB.nodeSourcePath = getSourcePathFromActor(rSource);
+	msgOOB.nodeActorName = tostring(rRoll.nodeActorName or "");
+	msgOOB.nodeAttackerName = tostring(rRoll.nodeAttackerName or "");
+	msgOOB.targetNodeName = tostring(rRoll.targetNodeName or "");
+	msgOOB.skillName = tostring(rRoll.skillName or "");
+	msgOOB.sDesc = tostring(rRoll.sDesc or "");
+	msgOOB.difficultyName = tostring(rRoll.difficultyName or "");
+	msgOOB.columnTitle = tostring(rRoll.columnTitle or "");
+	msgOOB.modifiers = tostring(rRoll.modifiers or "");
+	msgOOB.nSpellLevel = tonumber(rRoll.nSpellLevel or 0) or 0;
+	msgOOB.sSpellNodeName = tostring(rRoll.sSpellNodeName or "");
+	msgOOB.sSpellListNodeName = tostring(rRoll.sSpellListNodeName or "");
+	msgOOB.nFailure = tonumber(rRoll.nFailure or 0) or 0;
+	msgOOB.unmodified = tonumber(rRoll.unmodified or 0) or 0;
+	msgOOB.dieResult = tonumber(rRoll.dieResult or 0) or 0;
+	msgOOB.primaryDieResult = tonumber(getRollPrimaryDieResult(rRoll) or 0) or 0;
+	return msgOOB;
+end
+
+function decodeRollFromOOB(msgOOB)
+	local rRoll = {};
+	rRoll.nodeActorName = msgOOB.nodeActorName;
+	rRoll.nodeAttackerName = msgOOB.nodeAttackerName;
+	rRoll.targetNodeName = msgOOB.targetNodeName;
+	rRoll.skillName = msgOOB.skillName;
+	rRoll.sDesc = msgOOB.sDesc;
+	rRoll.difficultyName = msgOOB.difficultyName;
+	rRoll.columnTitle = msgOOB.columnTitle;
+	rRoll.modifiers = msgOOB.modifiers;
+	rRoll.nSpellLevel = tonumber(msgOOB.nSpellLevel or 0) or 0;
+	rRoll.sSpellNodeName = msgOOB.sSpellNodeName;
+	rRoll.sSpellListNodeName = msgOOB.sSpellListNodeName;
+	rRoll.nFailure = tonumber(msgOOB.nFailure or 0) or 0;
+	rRoll.unmodified = tonumber(msgOOB.unmodified or 0) or 0;
+	rRoll.dieResult = tonumber(msgOOB.dieResult or 0) or 0;
+	rRoll.aDice = {
+		{ result = tonumber(msgOOB.primaryDieResult or 0) or 0 }
+	};
+	return rRoll;
+end
+
+function decodeSourceFromOOB(msgOOB)
+	local sPath = tostring(msgOOB.nodeSourcePath or "");
+	if sPath == "" then
+		return nil;
+	end
+
+	local nodeSource = DB.findNode(sPath);
+	if not nodeSource then
+		return nil;
+	end
+
+	local sClass, sRecord = DB.getValue(nodeSource, "link", "", "");
+	if sClass == "charsheet" and sRecord ~= "" then
+		return ActorManager.resolveActor(sClass, sRecord);
+	end
+
+	local sNodePath = DB.getPath(nodeSource) or "";
+	if sNodePath:match("^charsheet%.") then
+		return ActorManager.resolveActor("charsheet", sNodePath);
+	end
+
+	if sNodePath:match("^combattracker%.list%.") then
+		return ActorManager.resolveActor("ct", sNodePath);
+	end
+
+	return nil;
+end
+
+function getSourcePathFromActor(rSource)
+	if not rSource then
+		return "";
+	end
+
+	local nodeCT = ActorManager.getCTNode(rSource);
+	if nodeCT then
+		return DB.getPath(nodeCT) or "";
+	end
+
+	local nodeActor = ActorManager.getCreatureNode(rSource);
+	if nodeActor then
+		return DB.getPath(nodeActor) or "";
+	end
+
+	return "";
 end
 
 function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)

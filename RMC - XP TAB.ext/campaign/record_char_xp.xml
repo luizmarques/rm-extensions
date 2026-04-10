@@ -73,6 +73,32 @@
 				end
 				refresh();
 			end
+
+			function isHostOrOwner()
+				if User.isHost() then
+					return true;
+				end
+
+				local nodeXP = getDatabaseNode();
+				if not nodeXP then
+					return false;
+				end
+
+				local nodeChar = nodeXP.getParent();
+				if not nodeChar then
+					return false;
+				end
+
+				if nodeChar.isReadOnly and nodeChar.isReadOnly() then
+					return false;
+				end
+
+				if nodeChar.isOwner then
+					return nodeChar.isOwner();
+				end
+
+				return false;
+			end
 		  
 			function spellcalc(spelllvl)
 				local lvl;
@@ -214,7 +240,7 @@ function refresh()
 	
 	-- Atualizar o nível do personagem no banco de dados para que as skills recebam o bônus correto
 	local nodeChar = getDatabaseNode().getParent();
-	if nodeChar then
+	if nodeChar and isHostOrOwner() then
 		DB.setValue(nodeChar, "level", "number", nNewLevel);
 	end
 end
@@ -241,8 +267,7 @@ end
 				
 				-- Atualizar os bônus de nível das skills
 				local nodeChar = getDatabaseNode().getParent();
-				if nodeChar then
-					DB.addHandler(DB.getPath(nodeChar, "level"), "onUpdate", function() end);
+				if nodeChar and isHostOrOwner() then
 					DB.setValue(nodeChar, "level", "number", nNewLevel);
 				end
 			end
@@ -1521,8 +1546,10 @@ end
 				</icon>
 				<script>
 					function onInit()
-						if User.isHost() then
+						if window.isHostOrOwner() then
 							setVisible(true);
+						else
+							setVisible(false);
 						end
 					end
 
@@ -1544,8 +1571,10 @@ end
 				</icon>
 				<script>
 				  function onInit()
-					if User.isHost() then
+					if window.isHostOrOwner() then
 					  setVisible(true);
+					else
+					  setVisible(false);
 					end
 				  end
 				  
