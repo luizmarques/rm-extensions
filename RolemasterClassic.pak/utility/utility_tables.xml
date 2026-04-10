@@ -1288,6 +1288,12 @@
 								aWoundEffects.CriticalName = aResultTable.Name;
 								aWoundEffects.CriticalCode = aResultTable.Code;
 							end
+							aWoundEffects.CriticalApplyParent = window.parentcontrol.getName() or "";
+							if window.parentcontrol.getName() == "resultgrid" then
+								aWoundEffects.CriticalApplyResultGrid = 1;
+							else
+								aWoundEffects.CriticalApplyResultGrid = 0;
+							end
 							local sTableClass = window.getTableClass();
 							aWoundEffects.AttackerNodeName = DB.getPath(nodeAttacker);
 							if (sTableClass == "Fumbles/Failures" or sTableClass == "Spell Failure") and nodeAttacker then

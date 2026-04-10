@@ -149,6 +149,15 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 		return;
 	end
 
+	local bIsCriticalResultApply = false;
+	if type(woundEffects) == "table" then
+		bIsCriticalResultApply = ((tonumber(woundEffects.CriticalApplyResultGrid) or 0) == 1);
+	end
+	if not bIsCriticalResultApply then
+		tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
+		return;
+	end
+
 	local sCritOutcome = getCriticalOutcome(nodeAttackerCT, nodeTarget, woundEffects, description, bWasAlive, bNowDead);
 	local sCritField = getCriticalFieldName(sCritSeverity, sCritOutcome);
 	if not nodeAttackerPC or sCritField == "" then
