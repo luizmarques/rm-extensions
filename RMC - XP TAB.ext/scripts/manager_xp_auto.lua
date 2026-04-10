@@ -678,9 +678,10 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
 		addXPValue(nodeSourcePC, "foekill", 1);
-		local nFoeKillBonusBase = getFoeKillBonusFromTarget(nodeTarget, sTargetType);
+		local nFoeKillBonusBase, sFoeKillBonusCategory = getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType);
 		if nFoeKillBonusBase > 0 then
 			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
+			addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase);
 		end
 	end
 end
@@ -708,72 +709,252 @@ function isHealthStateKnockedOut(nodeTarget, nHits, nWounds)
 	return false;
 end
 
-function getFoeKillBonusFromTarget(nodeTarget, sTargetType)
-	local aBonusByType = {
-		["o.r - common man"] = 187.5,
-		["o.r - high man"] = 500,
-		["o.r - high man (dunedain)"] = 500,
-		["o.r - hobbit"] = 187.5,
-		["o.r - silvan elf"] = 250,
-		["o.r - sindar elf"] = 375,
-		["o.r - noldo elf"] = 500,
-		["o.r - dwarf"] = 375,
-		["o.r - half-elf"] = 375,
-		["common man"] = 150,
-		["high man"] = 400,
-		["high man (dunedain)"] = 400,
-		["hobbit"] = 150,
-		["silvan elf"] = 200,
-		["sindar elf"] = 300,
-		["noldo elf"] = 400,
-		["dwarf"] = 300,
-		["half-elf"] = 300,
-		["orc"] = 100,
-		["greater orc"] = 100,
-		["lesser orc"] = 100,
-		["uruk-hai"] = 500,
-		["warg"] = 200,
-		["lesser spider"] = 250,
-		["great spider"] = 400,
-		["hill troll"] = 500,
-		["ogre"] = 600,
-		["wolf"] = 200,
-		["wild dog"] = 100,
-		["horse (riding)"] = 100,
-		["warhorse"] = 400,
-		["boar (wild)"] = 300,
-		["bear (black)"] = 400,
-		["bear (grizzly)"] = 800,
-		["crow"] = 50,
-		["eagle"] = 1000,
-		["greater eagle"] = 3000,
-		["giant bat"] = 300,
-		["wyvern"] = 1500,
-		["young dragon"] = 5000,
-		["adult dragon"] = 10000,
-		["barrow-wight"] = 1000,
-		["nazgul"] = 12000,
-		["nazgul (ringwraith)"] = 12000,
-		["balrog"] = 25000,
-	};
+function getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType)
+	local aCandidates = getTargetTypeCandidates(nodeTarget, sTargetType);
+	local sTargetText = normalizeText(table.concat(aCandidates, " "));
 
-	for _, sCandidate in ipairs(getTargetTypeCandidates(nodeTarget, sTargetType)) do
-		local sKey = normalizeText(sCandidate);
-		if sKey ~= "" then
-			local nBonus = aBonusByType[sKey];
-			if nBonus and nBonus > 0 then
-				return nBonus;
-			end
+	if isFoeOwnRace(nodeSourcePC, aCandidates) then
+		return 150, "Own Race";
+	end
 
-			sKey = sKey:gsub("^o%.r%s*%-%s*", "");
-			nBonus = aBonusByType[sKey];
-			if nBonus and nBonus > 0 then
-				return nBonus;
+	if isAnyFoeCategory(aCandidates, { "human", "high man", "common man", "dunedain" }) then
+		return 100, "Human";
+	end
+
+	if isAnyFoeCategory(aCandidates, { "dwarf" }) then
+		return 100, "Dwarf";
+	end
+
+	if isAnyFoeCategory(aCandidates, { "elf", "silvan elf", "sindar elf", "noldo elf", "half-elf" }) then
+		return 100, "Elf";
+	end
+
+	if isAnyFoeCategory(aCandidates, { "hobbit", "halfling" }) then
+		return 100, "Hobbits";
+	end
+
+	if sTargetText:find("demon", 1, true) then
+		local nTypeOrPale = extractDemonTypeOrPale(sTargetText);
+		if nTypeOrPale < 1 then
+			nTypeOrPale = 1;
+		end
+
+		local nBonus = (nTypeOrPale * nTypeOrPale) * 50;
+		local sLabel = "Demons (Type " .. tostring(nTypeOrPale) .. ")";
+		if sTargetText:find("demon of might", 1, true) or sTargetText:find("beyond pale", 1, true) then
+			nBonus = nBonus + 5000;
+			sLabel = sLabel .. " + Beyond Pale";
+		end
+
+		return nBonus, sLabel;
+	end
+
+	if isAnyFoeCategory(aCandidates, { "dragon" }) then
+		return 2000, "Dragons";
+	end
+
+	if isAnyFoeCategory(aCandidates, { "eagle" }) then
+		return 2000, "Eagle";
+	end
+
+	if isAnyFoeCategory(aCandidates, { "orc", "uruk", "uruk-hai" }) then
+		return 75, "Orc";
+	end
+
+	if isAnyFoeCategory(aCandidates, { "troll" }) then
+		return 200, "Troll";
+	end
+
+	return 0, "";
+end
+
+function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus)
+	if not nodePC then
+		return;
+	end
+
+	nBonus = tonumber(nBonus or 0) or 0;
+	if nBonus <= 0 then
+		return;
+	end
+
+	local nodeList = DB.createChild(nodePC, "foekillbonuslist");
+	if not nodeList then
+		return;
+	end
+
+	local nOrder = 1;
+	for _, _ in pairs(DB.getChildren(nodeList)) do
+		nOrder = nOrder + 1;
+	end
+
+	local nodeEntry = DB.createChild(nodeList);
+	if not nodeEntry then
+		return;
+	end
+
+	local sFoeName = "Unknown";
+	if nodeTarget then
+		sFoeName = DB.getValue(nodeTarget, "name", "");
+	end
+	if normalizeText(sFoeName) == "" then
+		sFoeName = "Unknown";
+	end
+
+	local sEntryCategory = sCategory or "Bonus";
+	local sEntryText = string.format("%03d - %s: +%d (%s)", nOrder, sEntryCategory, nBonus, sFoeName);
+
+	DB.setValue(nodeEntry, "order", "number", nOrder);
+	DB.setValue(nodeEntry, "category", "string", sEntryCategory);
+	DB.setValue(nodeEntry, "bonus", "number", nBonus);
+	DB.setValue(nodeEntry, "foe", "string", sFoeName);
+	DB.setValue(nodeEntry, "text", "string", sEntryText);
+end
+
+function isAnyFoeCategory(aCandidates, aNeedles)
+	if type(aCandidates) ~= "table" or type(aNeedles) ~= "table" then
+		return false;
+	end
+
+	for _, sCandidateRaw in ipairs(aCandidates) do
+		local sCandidate = normalizeText(sCandidateRaw);
+		if sCandidate ~= "" then
+			for _, sNeedleRaw in ipairs(aNeedles) do
+				local sNeedle = normalizeText(sNeedleRaw);
+				if sNeedle ~= "" and sCandidate:find(sNeedle, 1, true) then
+					return true;
+				end
 			end
 		end
 	end
 
-	return 20;
+	return false;
+end
+
+function isFoeOwnRace(nodeSourcePC, aTargetCandidates)
+	if not nodeSourcePC or type(aTargetCandidates) ~= "table" then
+		return false;
+	end
+
+	local sSourceRace = normalizeText(DB.getValue(nodeSourcePC, "race", ""));
+	if sSourceRace == "" then
+		return false;
+	end
+
+	local sSourceGroup = getRaceGroupName(sSourceRace);
+	if sSourceGroup == "" then
+		return false;
+	end
+
+	for _, sCandidateRaw in ipairs(aTargetCandidates) do
+		local sTargetGroup = getRaceGroupName(sCandidateRaw);
+		if sTargetGroup ~= "" and sTargetGroup == sSourceGroup then
+			return true;
+		end
+	end
+
+	return false;
+end
+
+function getRaceGroupName(sRace)
+	local sValue = normalizeText(sRace);
+	if sValue == "" then
+		return "";
+	end
+
+	if sValue:find("human", 1, true) or sValue:find("high man", 1, true) or sValue:find("common man", 1, true)
+		or sValue:find("dunedain", 1, true) then
+		return "human";
+	end
+
+	if sValue:find("dwarf", 1, true) then
+		return "dwarf";
+	end
+
+	if sValue:find("hobbit", 1, true) or sValue:find("halfling", 1, true) then
+		return "hobbit";
+	end
+
+	if sValue:find("elf", 1, true) then
+		return "elf";
+	end
+
+	if sValue:find("orc", 1, true) or sValue:find("uruk", 1, true) then
+		return "orc";
+	end
+
+	if sValue:find("troll", 1, true) then
+		return "troll";
+	end
+
+	return "";
+end
+
+function extractDemonTypeOrPale(sText)
+	local nValue = extractNumericOrRoman(sText:match("type%s*[:%-]?%s*([%dIVXLCM]+)"));
+	if nValue > 0 then
+		return nValue;
+	end
+
+	nValue = extractNumericOrRoman(sText:match("pale%s*[:%-]?%s*([%dIVXLCM]+)"));
+	if nValue > 0 then
+		return nValue;
+	end
+
+	return 1;
+end
+
+function extractNumericOrRoman(sValue)
+	if type(sValue) ~= "string" or sValue == "" then
+		return 0;
+	end
+
+	local nNumeric = tonumber(sValue);
+	if nNumeric and nNumeric > 0 then
+		return nNumeric;
+	end
+
+	return romanToNumber(sValue);
+end
+
+function romanToNumber(sRoman)
+	if type(sRoman) ~= "string" then
+		return 0;
+	end
+
+	sRoman = sRoman:upper();
+	if sRoman == "" then
+		return 0;
+	end
+
+	local aValues = {
+		I = 1,
+		V = 5,
+		X = 10,
+		L = 50,
+		C = 100,
+		D = 500,
+		M = 1000,
+	};
+
+	local nTotal = 0;
+	local nPrev = 0;
+	for i = #sRoman, 1, -1 do
+		local sChar = sRoman:sub(i, i);
+		local nCurrent = aValues[sChar];
+		if not nCurrent then
+			return 0;
+		end
+
+		if nCurrent < nPrev then
+			nTotal = nTotal - nCurrent;
+		else
+			nTotal = nTotal + nCurrent;
+			nPrev = nCurrent;
+		end
+	end
+
+	return nTotal;
 end
 
 function getTargetTypeCandidates(nodeTarget, sTargetType)

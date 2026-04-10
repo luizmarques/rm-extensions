@@ -40,6 +40,7 @@
 					sessiontotallabel.setVisible(true);
 					combatkills.setVisible(true);
 					combatkillslabel.setVisible(true);
+					foekillbonuscombo.setVisible(true);
 					multiplierlabel.setVisible(true);
 					adventuretotallabel.setVisible(true);
 				else
@@ -68,6 +69,7 @@
 					sessiontotallabel.setVisible(true);
 					combatkills.setVisible(false);
 					combatkillslabel.setVisible(false);
+					foekillbonuscombo.setVisible(true);
 					multiplierlabel.setVisible(false);
 					adventuretotallabel.setVisible(false);
 				end
@@ -179,7 +181,91 @@ function refresh()
 	if nodeChar and isHostOrOwner() then
 		DB.setValue(nodeChar, "level", "number", nNewLevel);
 	end
+
+	refreshFoeKillBonusCombo();
 end
+
+			function hasFoeKillBonusEntries(nodeData)
+				if not nodeData then
+					return false;
+				end
+
+				for _, _ in pairs(DB.getChildren(nodeData, "foekillbonuslist")) do
+					return true;
+				end
+
+				return false;
+			end
+
+			function getFoeKillBonusStorageNode()
+				local nodeXP = getDatabaseNode();
+				if not nodeXP then
+					return nil;
+				end
+
+				if hasFoeKillBonusEntries(nodeXP) then
+					return nodeXP;
+				end
+
+				local nodeParent = nodeXP.getParent and nodeXP.getParent();
+				if nodeParent and hasFoeKillBonusEntries(nodeParent) then
+					return nodeParent;
+				end
+
+				if DB.getValue(nodeXP, "foekill", nil) ~= nil then
+					return nodeXP;
+				end
+
+				if nodeParent then
+					return nodeParent;
+				end
+
+				return nodeXP;
+			end
+
+			function refreshFoeKillBonusCombo()
+				if not foekillbonuscombo then
+					return;
+				end
+
+				foekillbonuscombo.clear();
+
+				local nodeStorage = getFoeKillBonusStorageNode();
+				if not nodeStorage then
+					return;
+				end
+
+				local aEntries = {};
+				for _, nodeEntry in pairs(DB.getChildren(nodeStorage, "foekillbonuslist")) do
+					local sText = DB.getValue(nodeEntry, "text", "");
+					if sText ~= "" then
+						table.insert(aEntries, sText);
+					end
+				end
+
+				table.sort(aEntries);
+				for _, sEntry in ipairs(aEntries) do
+					foekillbonuscombo.add(sEntry, sEntry);
+				end
+
+				if #aEntries > 0 then
+					local sCurrent = foekillbonuscombo.getValue() or "";
+					if sCurrent == "" or not foekillbonuscombo.hasValue(sCurrent) then
+						foekillbonuscombo.setValue(aEntries[#aEntries]);
+					end
+				else
+					foekillbonuscombo.setValue("");
+				end
+			end
+
+			function clearFoeKillBonusEntries()
+				local nodeStorage = getFoeKillBonusStorageNode();
+				if not nodeStorage then
+					return;
+				end
+
+				DB.deleteChildren(nodeStorage, "foekillbonuslist");
+			end
 
 
 			 
@@ -230,6 +316,7 @@ end
 			function reset()
 				routine.setValue(0); easy.setValue(0); light.setValue(0); medium.setValue(0); hard.setValue(0); veryhard.setValue(0); extremelyhard.setValue(0); sheerfolly.setValue(0); absurd.setValue(0);
 				hitsgiven.setValue(0); hitstaken.setValue(0); foekill.setValue(0); foekillbase.setValue(0); combatkills.setValue(0); 
+				clearFoeKillBonusEntries();
 				norma.setValue(0); selfa.setValue(0); unca.setValue(0); downa.setValue(0); stuna.setValue(0); soloa.setValue(0); largea.setValue(0); vlargea.setValue(0);
 				normb.setValue(0); selfb.setValue(0); uncb.setValue(0); downb.setValue(0); stunb.setValue(0); solob.setValue(0); largeb.setValue(0); vlargeb.setValue(0);
 				normc.setValue(0); selfc.setValue(0); uncc.setValue(0); downc.setValue(0); stunc.setValue(0); soloc.setValue(0); largec.setValue(0); vlargec.setValue(0);
@@ -554,6 +641,23 @@ end
 					end
 				</script>
 			</number_boxed>
+
+			<combobox_labeled_RMC name="foekillbonuscombo">
+				<anchored to="foekilllabel" position="belowleft" offset="0,4" width="210" height="20" />
+				<label>Foes Killed Bonus</label>
+				<listmaxsize>12</listmaxsize>
+				<readonly />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+
+						setComboBoxReadOnly(true);
+						window.refreshFoeKillBonusCombo();
+					end
+				</script>
+			</combobox_labeled_RMC>
 
 
 			<row_heading name="combatxplabel">  <!-- Heading -->
