@@ -158,7 +158,7 @@ function refresh()
     hitstaken.setValue(nHptak);
 
 	local combatMultiplier = combatxpdesc.getValue() or 1;
-	local foeValue = (foekillbase.getValue() or 0) * combatMultiplier;
+	local foeValue = foekillbase.getValue() or 0;
     combatkills.setValue(foeValue); -- Atualiza combatkills com o valor correto
 
     local critValue = crit() * combatMultiplier;
