@@ -150,21 +150,19 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTarget,
 		return;
 	end
 
-	local aOutcomes = getCriticalMatrixOutcomes(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive);
-	if #aOutcomes == 0 then
+	local sOutcome = getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive);
+	if sOutcome == "" then
 		return;
 	end
 
-	local sEventKey = getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sSeverity, aOutcomes);
+	local sEventKey = getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sSeverity, sOutcome);
 	if isCriticalMatrixProcessedRecently(sEventKey) then
 		return;
 	end
 
-	for _, sOutcome in ipairs(aOutcomes) do
-		local sField = getCriticalFieldName(sSeverity, sOutcome);
-		if sField ~= "" then
-			addXPValue(nodeAttackerPC, sField, 1);
-		end
+	local sField = getCriticalFieldName(sSeverity, sOutcome);
+	if sField ~= "" then
+		addXPValue(nodeAttackerPC, sField, 1);
 	end
 end
 
@@ -194,52 +192,68 @@ function getCriticalSeverityFromEvent(woundEffects, sDescription)
 	return "";
 end
 
-function getCriticalMatrixOutcomes(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive)
-	local tOutcomes = { norm = true };
+function getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive)
+	local sCritName = normalizeText(tostring(woundEffects.CriticalName or ""));
+	local sDesc = normalizeText(sDescription or "");
 
 	if nodeAttackerCT and nodeTarget and DB.getPath(nodeAttackerCT) == DB.getPath(nodeTarget) then
-		tOutcomes.self = true;
+		return "self";
 	end
 
 	if bWasAlive and isTargetNowDead(nodeTarget) then
-		tOutcomes.solo = true;
+		return "solo";
 	end
 
-	local sCritName = normalizeText(tostring(woundEffects.CriticalName or ""));
-	local sDesc = normalizeText(sDescription or "");
-	if sCritName:find("super-large", 1, true) or sCritName:find("super large", 1, true) or sCritName:find("superlarge", 1, true)
-		or sDesc:find("super-large", 1, true) or sDesc:find("super large", 1, true) then
-		tOutcomes.vlarge = true;
-	elseif sCritName:find("large", 1, true) or sCritName:find("lrg", 1, true)
-		or sDesc:find(" large ", 1, true) or sDesc:find(" lrg ", 1, true) then
-		tOutcomes.large = true;
-	end
-
-	if hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Dying")
+	if isTargetInEffectState(nodeTarget, { "unconscious", "dying" })
+		or hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Dying")
 		or hasAnyWoundText(woundEffects, { "unconscious", "dying" })
 		or sDesc:find("unconscious", 1, true) or sDesc:find("dying", 1, true) then
-		tOutcomes.unc = true;
+		return "unc";
 	end
 
-	if hasAnyWoundText(woundEffects, { "down", "prone", "kneeling" })
+	if isTargetInEffectState(nodeTarget, { "prone", "kneeling", "down" })
+		or hasAnyWoundText(woundEffects, { "down", "prone", "kneeling" })
 		or sDesc:find(" down", 1, true) or sDesc:find("prone", 1, true) or sDesc:find("kneeling", 1, true) then
-		tOutcomes.down = true;
+		return "down";
 	end
 
-	if hasWoundFlag(woundEffects, "Stun") or hasWoundFlag(woundEffects, "NoParry") or hasWoundFlag(woundEffects, "MustParry")
+	if isTargetInEffectState(nodeTarget, { "stun", "no parry", "must parry" })
+		or hasWoundFlag(woundEffects, "Stun") or hasWoundFlag(woundEffects, "NoParry") or hasWoundFlag(woundEffects, "MustParry")
 		or hasAnyWoundText(woundEffects, { "stun", "no parry", "must parry", "mustparry" })
 		or sDesc:find("stun", 1, true) or sDesc:find("no parry", 1, true) or sDesc:find("must parry", 1, true) then
-		tOutcomes.stun = true;
+		return "stun";
 	end
 
-	local aOutcomes = {};
-	for _, sOutcome in ipairs({ "norm", "unc", "down", "stun", "solo", "large", "vlarge", "self" }) do
-		if tOutcomes[sOutcome] then
-			table.insert(aOutcomes, sOutcome);
+	if sCritName:find("super-large", 1, true) or sCritName:find("super large", 1, true) or sCritName:find("superlarge", 1, true)
+		or sDesc:find("super-large", 1, true) or sDesc:find("super large", 1, true) then
+		return "vlarge";
+	end
+
+	if sCritName:find("large", 1, true) or sCritName:find("lrg", 1, true)
+		or sDesc:find(" large ", 1, true) or sDesc:find(" lrg ", 1, true) then
+		return "large";
+	end
+
+	return "norm";
+end
+
+function isTargetInEffectState(nodeTarget, aNeedles)
+	if not nodeTarget or type(aNeedles) ~= "table" then
+		return false;
+	end
+
+	for _, nodeEffect in pairs(DB.getChildren(nodeTarget, "effects")) do
+		local sLabel = normalizeText(DB.getValue(nodeEffect, "label", ""));
+		if sLabel ~= "" then
+			for _, sNeedle in ipairs(aNeedles) do
+				if sLabel:find(sNeedle, 1, true) then
+					return true;
+				end
+			end
 		end
 	end
 
-	return aOutcomes;
+	return false;
 end
 
 function hasWoundFlag(woundEffects, sFlag)
@@ -282,7 +296,7 @@ function isTargetNowDead(nodeTarget)
 	return nDamage >= nHits;
 end
 
-function getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sSeverity, aOutcomes)
+function getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sSeverity, sOutcome)
 	local sAttackerPath = DB.getPath(nodeAttackerPC) or "";
 	local sTargetPath = "";
 	if nodeTarget then
@@ -296,9 +310,8 @@ function getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDe
 		sName = normalizeText(tostring(woundEffects.CriticalName or ""));
 	end
 
-	local sOutcomes = table.concat(aOutcomes or {}, ",");
 	local sDesc = normalizeText(sDescription or "");
-	return table.concat({ sAttackerPath, sTargetPath, sSeverity or "", sCode, sName, sOutcomes, sDesc }, "|");
+	return table.concat({ sAttackerPath, sTargetPath, sSeverity or "", sCode, sName, sOutcome or "", sDesc }, "|");
 end
 
 function isCriticalMatrixProcessedRecently(sEventKey)
