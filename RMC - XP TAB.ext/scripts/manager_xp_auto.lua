@@ -9,6 +9,7 @@ local aPendingAttackerPCByTarget = {};
 local aProcessedCombatEPKeys = {};
 local aProcessedSeverityKeys = {};
 local aProcessedCriticalMatrixKeys = {};
+local aProcessedCriticalSelfKeys = {};
 local aProcessedSkillEPKeys = {};
 local aProcessedSpellEPKeys = {};
 local aPendingSkillRollByActor = {};
@@ -98,6 +99,9 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 
 	local nodeAttackerPC = getPCNodeFromCT(nodeAttackerCT);
 	local nodeTargetPC = getPCNodeFromCT(nodeTarget);
+	if not nodeTargetPC then
+		nodeTargetPC = getPCNodeFromNode(nodeTarget);
+	end
 
 	if nodeAttackerPC then
 		updateCombatXPDescByOpponent(nodeAttackerPC, nodeTarget);
@@ -134,14 +138,14 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 	end
 
 	if bIsApplyTrigger then
-		processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTarget, woundEffects, description, bWasAlive);
+		processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetPC, nodeTarget, woundEffects, description, bWasAlive);
 	end
 
 	tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
 end
 
-function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTarget, woundEffects, sDescription, bWasAlive)
-	if not nodeAttackerPC or type(woundEffects) ~= "table" then
+function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetPC, nodeTarget, woundEffects, sDescription, bWasAlive)
+	if type(woundEffects) ~= "table" then
 		return;
 	end
 
@@ -150,19 +154,27 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTarget,
 		return;
 	end
 
-	local sOutcome = getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive);
-	if sOutcome == "" then
-		return;
+	if nodeAttackerPC then
+		local sOutcome = getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive);
+		if sOutcome ~= "" then
+			local sEventKey = getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sSeverity, sOutcome);
+			if not isCriticalMatrixProcessedRecently(sEventKey) then
+				local sField = getCriticalFieldName(sSeverity, sOutcome);
+				if sField ~= "" then
+					addXPValue(nodeAttackerPC, sField, 1);
+				end
+			end
+		end
 	end
 
-	local sEventKey = getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sSeverity, sOutcome);
-	if isCriticalMatrixProcessedRecently(sEventKey) then
-		return;
-	end
-
-	local sField = getCriticalFieldName(sSeverity, sOutcome);
-	if sField ~= "" then
-		addXPValue(nodeAttackerPC, sField, 1);
+	if nodeTargetPC then
+		local sSelfField = getCriticalFieldName(sSeverity, "self");
+		if sSelfField ~= "" then
+			local sSelfEventKey = getCriticalSelfEventKey(nodeTargetPC, nodeTarget, woundEffects, sDescription, sSeverity);
+			if not isCriticalSelfProcessedRecently(sSelfEventKey) then
+				addXPValue(nodeTargetPC, sSelfField, 1);
+			end
+		end
 	end
 end
 
@@ -203,12 +215,12 @@ function getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDes
 		return "solo";
 	end
 
-	if hasTargetEffectOrCondition(nodeTarget, { "Unconscious", "Unconcious", "Uncouncious", "Dying", "Dead" })
-		or isTargetInEffectState(nodeTarget, { "unconscious", "unconcious", "uncouncious", "dying", "dead" })
+	if hasTargetEffectOrCondition(nodeTarget, { "Unconscious", "Dying", "Dead" })
+		or isTargetInEffectState(nodeTarget, { "unconscious", "dying", "dead" })
 		or isTargetUnconsciousByHealth(nodeTarget)
-		or hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Unconcious") or hasWoundFlag(woundEffects, "Uncouncious") or hasWoundFlag(woundEffects, "Dying")
-		or hasAnyWoundText(woundEffects, { "unconscious", "unconcious", "uncouncious", "dying" })
-		or sDesc:find("unconscious", 1, true) or sDesc:find("unconcious", 1, true) or sDesc:find("uncouncious", 1, true) or sDesc:find("dying", 1, true) then
+		or hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Dying")
+		or hasAnyWoundText(woundEffects, { "unconscious", "dying" })
+		or sDesc:find("unconscious", 1, true) or sDesc:find("dying", 1, true) then
 		return "unc";
 	end
 
@@ -303,23 +315,7 @@ function hasWoundFlag(woundEffects, sFlag)
 	if type(woundEffects) ~= "table" or sFlag == "" then
 		return false;
 	end
-
-	local aKeys = {
-		sFlag,
-		"Conditional" .. sFlag,
-		sFlag:lower(),
-		"Conditional" .. sFlag:lower(),
-		sFlag:upper(),
-		"Conditional" .. sFlag:upper(),
-	};
-
-	for _, sKey in ipairs(aKeys) do
-		if woundEffects[sKey] ~= nil then
-			return true;
-		end
-	end
-
-	return false;
+	return woundEffects[sFlag] ~= nil or woundEffects["Conditional" .. sFlag] ~= nil;
 end
 
 function hasAnyWoundText(woundEffects, aNeedles)
@@ -417,6 +413,45 @@ function isCriticalMatrixProcessedRecently(sEventKey)
 	end
 
 	aProcessedCriticalMatrixKeys[sEventKey] = nNow;
+	return false;
+end
+
+function getCriticalSelfEventKey(nodeTargetPC, nodeTarget, woundEffects, sDescription, sSeverity)
+	local sTargetPCPath = DB.getPath(nodeTargetPC) or "";
+	local sTargetPath = "";
+	if nodeTarget then
+		sTargetPath = DB.getPath(nodeTarget) or "";
+	end
+
+	local sCode = "";
+	local sName = "";
+	if type(woundEffects) == "table" then
+		sCode = tostring(woundEffects.CriticalCode or ""):upper();
+		sName = normalizeText(tostring(woundEffects.CriticalName or ""));
+	end
+
+	local sDesc = normalizeText(sDescription or "");
+	return table.concat({ sTargetPCPath, sTargetPath, sSeverity or "", sCode, sName, sDesc }, "|");
+end
+
+function isCriticalSelfProcessedRecently(sEventKey)
+	if sEventKey == "" then
+		return false;
+	end
+
+	local nNow = os.time() or 0;
+	for sKey, nTimestamp in pairs(aProcessedCriticalSelfKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedCriticalSelfKeys[sKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedCriticalSelfKeys[sEventKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedCriticalSelfKeys[sEventKey] = nNow;
 	return false;
 end
 
