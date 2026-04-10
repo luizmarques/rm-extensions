@@ -11,6 +11,7 @@ local aProcessedSeverityKeys = {};
 local aProcessedSkillEPKeys = {};
 local aProcessedSpellEPKeys = {};
 local aPendingSkillRollByActor = {};
+local aPendingCriticalSeverityByPair = {};
 
 function onInit()
 	if not Session.IsHost then
@@ -144,33 +145,81 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 	end
 
 	local sCritSeverity = getCriticalSeverity(woundEffects, description);
-	if sCritSeverity == "" then
+	local sPairKey = getCriticalPairKey(nodeAttackerPC, nodeTarget);
+	if sPairKey ~= "" and sCritSeverity ~= "" then
+		aPendingCriticalSeverityByPair[sPairKey] = {
+			severity = sCritSeverity,
+			time = os.time() or 0,
+		};
+	end
+
+	local sSeverityToUse = sCritSeverity;
+	if sSeverityToUse == "" and sPairKey ~= "" then
+		local tPendingSeverity = aPendingCriticalSeverityByPair[sPairKey];
+		if tPendingSeverity then
+			local nNow = os.time() or 0;
+			if (nNow - (tonumber(tPendingSeverity.time) or 0)) <= 60 then
+				sSeverityToUse = normalizeText(tPendingSeverity.severity or "");
+			else
+				aPendingCriticalSeverityByPair[sPairKey] = nil;
+			end
+		end
+	end
+
+	if sSeverityToUse == "" then
 		tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
 		return;
 	end
 
-	local bIsCriticalResultApply = false;
-	if type(woundEffects) == "table" then
-		bIsCriticalResultApply = ((tonumber(woundEffects.CriticalApplyResultGrid) or 0) == 1);
+	local aCritOutcomes, bHasEffectEvidence = getCriticalOutcomes(nodeAttackerCT, nodeTarget, woundEffects, description, bWasAlive, bNowDead);
+	if not bHasEffectEvidence and sPairKey ~= "" and type(woundEffects) == "table" then
+		local bFromResultGrid = ((tonumber(woundEffects.CriticalApplyResultGrid) or 0) == 1);
+		if bFromResultGrid and aPendingCriticalSeverityByPair[sPairKey] then
+			bHasEffectEvidence = true;
+			aCritOutcomes = { "norm" };
+		end
 	end
-	if not bIsCriticalResultApply then
+	if not bHasEffectEvidence then
 		tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
 		return;
 	end
 
-	local sCritOutcome = getCriticalOutcome(nodeAttackerCT, nodeTarget, woundEffects, description, bWasAlive, bNowDead);
-	local sCritField = getCriticalFieldName(sCritSeverity, sCritOutcome);
-	if not nodeAttackerPC or sCritField == "" then
-		return;
-	end
-
-	if isSeverityProcessedRecently(nodeAttackerPC, sCritField, description) then
+	if not nodeAttackerPC or type(aCritOutcomes) ~= "table" or #aCritOutcomes == 0 then
 		tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
 		return;
 	end
 
-	addXPValue(nodeAttackerPC, sCritField, 1);
+	local bIncremented = false;
+	for _, sCritOutcome in ipairs(aCritOutcomes) do
+		local sCritField = getCriticalFieldName(sSeverityToUse, sCritOutcome);
+		if sCritField ~= "" and not isSeverityProcessedRecently(nodeAttackerPC, sCritField, description) then
+			addXPValue(nodeAttackerPC, sCritField, 1);
+			bIncremented = true;
+		end
+	end
+	if not bIncremented then
+		tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
+		return;
+	end
+
+	if sPairKey ~= "" then
+		aPendingCriticalSeverityByPair[sPairKey] = nil;
+	end
 	tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
+end
+
+function getCriticalPairKey(nodeAttackerPC, nodeTarget)
+	if not nodeAttackerPC or not nodeTarget then
+		return "";
+	end
+
+	local sAttackerPath = DB.getPath(nodeAttackerPC) or "";
+	local sTargetPath = DB.getPath(nodeTarget) or "";
+	if sAttackerPath == "" or sTargetPath == "" then
+		return "";
+	end
+
+	return sAttackerPath .. "|" .. sTargetPath;
 end
 
 function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
@@ -735,9 +784,25 @@ function getCriticalSeverity(woundEffects, sDescription)
 	return "";
 end
 
-function getCriticalOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive, bNowDead)
+function getCriticalOutcomes(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive, bNowDead)
+	local aOutcomes = {};
+	local bHasEvidence = false;
+
+	local function addOutcome(sOutcome)
+		if not sOutcome or sOutcome == "" then
+			return;
+		end
+		for _, sExisting in ipairs(aOutcomes) do
+			if sExisting == sOutcome then
+				return;
+			end
+		end
+		table.insert(aOutcomes, sOutcome);
+	end
+
 	if nodeAttackerCT and nodeTarget and (DB.getPath(nodeAttackerCT) == DB.getPath(nodeTarget)) then
-		return "self";
+		addOutcome("self");
+		bHasEvidence = true;
 	end
 
 	local sCritName = "";
@@ -746,28 +811,37 @@ function getCriticalOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescripti
 	end
 
 	if sCritName == "super-large" or sCritName == "super large" then
-		return "vlarge";
-	end
-	if sCritName == "large" then
-		return "large";
+		addOutcome("vlarge");
+		bHasEvidence = true;
+	elseif sCritName == "large" then
+		addOutcome("large");
+		bHasEvidence = true;
 	end
 
 	if bWasAlive and bNowDead then
-		return "solo";
+		addOutcome("solo");
+		bHasEvidence = true;
 	end
 
 	local sDesc = normalizeText(sDescription);
 	if hasWoundKey(woundEffects, "Unconscious") or hasWoundKey(woundEffects, "Dying") or hasAnyWoundText(woundEffects, { "unconscious", "dying" }) or sDesc:find("unconscious", 1, true) then
-		return "unc";
+		addOutcome("unc");
+		bHasEvidence = true;
 	end
 	if sDesc:find("down", 1, true) or sDesc:find("prone", 1, true) or sDesc:find("kneeling", 1, true) or hasAnyWoundText(woundEffects, { "down", "prone", "kneeling" }) then
-		return "down";
+		addOutcome("down");
+		bHasEvidence = true;
 	end
 	if hasWoundKey(woundEffects, "Stun") or hasWoundKey(woundEffects, "NoParry") or hasWoundKey(woundEffects, "MustParry") or hasAnyWoundText(woundEffects, { "stun", "no parry", "mustparry", "must parry" }) or sDesc:find("stun", 1, true) then
-		return "stun";
+		addOutcome("stun");
+		bHasEvidence = true;
 	end
 
-	return "norm";
+	if #aOutcomes == 0 then
+		addOutcome("norm");
+	end
+
+	return aOutcomes, bHasEvidence;
 end
 
 function hasAnyWoundText(woundEffects, aNeedles)
