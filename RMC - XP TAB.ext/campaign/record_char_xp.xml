@@ -9,6 +9,9 @@
 		  </size>
 		</placement>
 		<script>
+			local sFoeKillBonusWatchXPPath = "";
+			local sFoeKillBonusWatchCharPath = "";
+
 			function onInit()
 				if super and super.onInit then
 					super.onInit();
@@ -73,7 +76,13 @@
 					multiplierlabel.setVisible(false);
 					adventuretotallabel.setVisible(false);
 				end
+
+				registerFoeKillBonusHandlers();
 				refresh();
+			end
+
+			function onClose()
+				unregisterFoeKillBonusHandlers();
 			end
 
 			function isHostOrOwner()
@@ -135,7 +144,7 @@
 function refresh()
     local mantot;
     local sesstot;
-    mantot = (routine.getValue() * 1) + (easy.getValue() * 5) + (light.getValue() * 10) + (medium.getValue() * 50) + (hard.getValue() * 100) +
+    mantot = (routine.getValue() * 0) + (easy.getValue() * 5) + (light.getValue() * 10) + (medium.getValue() * 50) + (hard.getValue() * 100) +
              (veryhard.getValue() * 150) + (extremelyhard.getValue() * 200) + (sheerfolly.getValue() * 300) + (absurd.getValue() * 500);
     manuevertotal.setValue(mantot);
 
@@ -223,6 +232,52 @@ end
 				return nodeXP;
 			end
 
+			function onFoeKillBonusListChanged()
+				refreshFoeKillBonusCombo();
+			end
+
+			function unregisterFoeKillBonusHandlers()
+				if sFoeKillBonusWatchXPPath ~= "" then
+					DB.removeHandler(sFoeKillBonusWatchXPPath .. ".foekillbonuslist", "onChildAdded", onFoeKillBonusListChanged);
+					DB.removeHandler(sFoeKillBonusWatchXPPath .. ".foekillbonuslist", "onChildDeleted", onFoeKillBonusListChanged);
+					DB.removeHandler(sFoeKillBonusWatchXPPath .. ".foekillbonuslist.*", "onChildUpdate", onFoeKillBonusListChanged);
+					sFoeKillBonusWatchXPPath = "";
+				end
+
+				if sFoeKillBonusWatchCharPath ~= "" then
+					DB.removeHandler(sFoeKillBonusWatchCharPath .. ".foekillbonuslist", "onChildAdded", onFoeKillBonusListChanged);
+					DB.removeHandler(sFoeKillBonusWatchCharPath .. ".foekillbonuslist", "onChildDeleted", onFoeKillBonusListChanged);
+					DB.removeHandler(sFoeKillBonusWatchCharPath .. ".foekillbonuslist.*", "onChildUpdate", onFoeKillBonusListChanged);
+					sFoeKillBonusWatchCharPath = "";
+				end
+			end
+
+			function registerFoeKillBonusHandlers()
+				unregisterFoeKillBonusHandlers();
+
+				local nodeXP = getDatabaseNode();
+				if not nodeXP then
+					return;
+				end
+
+				sFoeKillBonusWatchXPPath = DB.getPath(nodeXP) or "";
+				if sFoeKillBonusWatchXPPath ~= "" then
+					DB.addHandler(sFoeKillBonusWatchXPPath .. ".foekillbonuslist", "onChildAdded", onFoeKillBonusListChanged);
+					DB.addHandler(sFoeKillBonusWatchXPPath .. ".foekillbonuslist", "onChildDeleted", onFoeKillBonusListChanged);
+					DB.addHandler(sFoeKillBonusWatchXPPath .. ".foekillbonuslist.*", "onChildUpdate", onFoeKillBonusListChanged);
+				end
+
+				local nodeChar = nodeXP.getParent and nodeXP.getParent();
+				if nodeChar then
+					sFoeKillBonusWatchCharPath = DB.getPath(nodeChar) or "";
+					if sFoeKillBonusWatchCharPath ~= "" and sFoeKillBonusWatchCharPath ~= sFoeKillBonusWatchXPPath then
+						DB.addHandler(sFoeKillBonusWatchCharPath .. ".foekillbonuslist", "onChildAdded", onFoeKillBonusListChanged);
+						DB.addHandler(sFoeKillBonusWatchCharPath .. ".foekillbonuslist", "onChildDeleted", onFoeKillBonusListChanged);
+						DB.addHandler(sFoeKillBonusWatchCharPath .. ".foekillbonuslist.*", "onChildUpdate", onFoeKillBonusListChanged);
+					end
+				end
+			end
+
 			function refreshFoeKillBonusCombo()
 				if not foekillbonuscombo then
 					return;
@@ -267,7 +322,15 @@ end
 					addEntriesFromNode(nodeChar);
 				end
 
-				table.sort(aEntries);
+				local function getFoeKillSortKey(sEntry)
+					sEntry = tostring(sEntry or "");
+					sEntry = sEntry:gsub("^%s*%d+%s*%-%s*", "");
+					return sEntry:lower();
+				end
+
+				table.sort(aEntries, function(a, b)
+					return getFoeKillSortKey(a) &lt; getFoeKillSortKey(b);
+				end);
 				for _, sEntry in ipairs(aEntries) do
 					foekillbonuscombo.add(sEntry, sEntry);
 				end
@@ -283,12 +346,19 @@ end
 			end
 
 			function clearFoeKillBonusEntries()
-				local nodeStorage = getFoeKillBonusStorageNode();
-				if not nodeStorage then
-					return;
+				local nodeXP = getDatabaseNode();
+				local nodeChar = nil;
+				if nodeXP and nodeXP.getParent then
+					nodeChar = nodeXP.getParent();
 				end
 
-				DB.deleteChildren(nodeStorage, "foekillbonuslist");
+				if nodeXP then
+					DB.deleteChildren(nodeXP, "foekillbonuslist");
+				end
+
+				if nodeChar and nodeChar ~= nodeXP then
+					DB.deleteChildren(nodeChar, "foekillbonuslist");
+				end
 			end
 
 
@@ -667,7 +737,7 @@ end
 			</number_boxed>
 
 			<combobox_labeled_RMC name="foekillbonuscombo">
-				<anchored to="foekilllabel" position="belowleft" offset="0,4" width="210" height="20" />
+				<anchored to="foekilllabel" position="belowleft" offset="0,4" width="400" height="20" />
 				<label>Foes Killed Bonus</label>
 				<listmaxsize>12</listmaxsize>
 				<readonly />
