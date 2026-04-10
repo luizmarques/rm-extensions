@@ -203,12 +203,12 @@ function getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDes
 		return "solo";
 	end
 
-	if hasTargetEffectOrCondition(nodeTarget, { "Unconscious", "Dying", "Dead" })
-		or isTargetInEffectState(nodeTarget, { "unconscious", "dying", "dead" })
+	if hasTargetEffectOrCondition(nodeTarget, { "Unconscious", "Unconcious", "Uncouncious", "Dying", "Dead" })
+		or isTargetInEffectState(nodeTarget, { "unconscious", "unconcious", "uncouncious", "dying", "dead" })
 		or isTargetUnconsciousByHealth(nodeTarget)
-		or hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Dying")
-		or hasAnyWoundText(woundEffects, { "unconscious", "dying" })
-		or sDesc:find("unconscious", 1, true) or sDesc:find("dying", 1, true) then
+		or hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Unconcious") or hasWoundFlag(woundEffects, "Uncouncious") or hasWoundFlag(woundEffects, "Dying")
+		or hasAnyWoundText(woundEffects, { "unconscious", "unconcious", "uncouncious", "dying" })
+		or sDesc:find("unconscious", 1, true) or sDesc:find("unconcious", 1, true) or sDesc:find("uncouncious", 1, true) or sDesc:find("dying", 1, true) then
 		return "unc";
 	end
 
@@ -303,7 +303,23 @@ function hasWoundFlag(woundEffects, sFlag)
 	if type(woundEffects) ~= "table" or sFlag == "" then
 		return false;
 	end
-	return woundEffects[sFlag] ~= nil or woundEffects["Conditional" .. sFlag] ~= nil;
+
+	local aKeys = {
+		sFlag,
+		"Conditional" .. sFlag,
+		sFlag:lower(),
+		"Conditional" .. sFlag:lower(),
+		sFlag:upper(),
+		"Conditional" .. sFlag:upper(),
+	};
+
+	for _, sKey in ipairs(aKeys) do
+		if woundEffects[sKey] ~= nil then
+			return true;
+		end
+	end
+
+	return false;
 end
 
 function hasAnyWoundText(woundEffects, aNeedles)
