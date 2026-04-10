@@ -16,7 +16,6 @@ function onInit()
 		return;
 	end
 
-	ActionsManager.registerPostRollHandler("attack", onAttackPostRoll);
 	ActionsManager.registerPostRollHandler("skill", onSkillPostRoll);
 	ActionsManager.registerPostRollHandler("basecasting", onBaseCastingPostRoll);
 
@@ -31,25 +30,8 @@ function onInit()
 	end
 end
 
-function onAttackPostRoll(rSource, rTarget, rRoll)
-	if not rRoll then
-		return;
-	end
-
-	local nodeAttackerPC = getPCNodeFromActor(rSource);
-	if nodeAttackerPC and rTarget then
-		local nodeTargetCT = ActorManager.getCTNode(rTarget);
-		updateCombatXPDescByOpponent(nodeAttackerPC, nodeTargetCT);
-	end
-
-	local nodeTargetPC = getPCNodeFromActor(rTarget);
-	if nodeTargetPC and rSource then
-		local nodeSourceCT = ActorManager.getCTNode(rSource);
-		updateCombatXPDescByOpponent(nodeTargetPC, nodeSourceCT);
-	end
-end
-
-function onSkillPostRoll(rSource, _, rRoll)
+function onSkillPostRoll(rSource, a2, a3)
+	local rRoll = a3 or a2;
 	if not rRoll then
 		return;
 	end
@@ -72,7 +54,8 @@ function onSkillPostRoll(rSource, _, rRoll)
 	addXPValue(nodeSourcePC, sSkillField, 1);
 end
 
-function onBaseCastingPostRoll(rSource, _, rRoll)
+function onBaseCastingPostRoll(rSource, a2, a3)
+	local rRoll = a3 or a2;
 	if not rRoll then
 		return;
 	end
