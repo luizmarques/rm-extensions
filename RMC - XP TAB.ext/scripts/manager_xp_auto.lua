@@ -282,11 +282,15 @@ function handleApplyDamageOOB(msgOOB)
 	end
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
-		addXPValue(nodeSourcePC, "foekill", 1);
 		local nFoeKillBonusBase, sFoeKillBonusCategory = getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType);
+		if sFoeKillBonusCategory == "" then
+			sFoeKillBonusCategory = "Unrecognized";
+		end
+		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase);
+
 		if nFoeKillBonusBase > 0 then
+			addXPValue(nodeSourcePC, "foekill", 1);
 			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
-			addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase);
 		end
 	end
 end
@@ -822,11 +826,15 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	end
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
-		addXPValue(nodeSourcePC, "foekill", 1);
 		local nFoeKillBonusBase, sFoeKillBonusCategory = getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType);
+		if sFoeKillBonusCategory == "" then
+			sFoeKillBonusCategory = "Unrecognized";
+		end
+		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase);
+
 		if nFoeKillBonusBase > 0 then
+			addXPValue(nodeSourcePC, "foekill", 1);
 			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
-			addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase);
 		end
 	end
 end
@@ -896,9 +904,6 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus)
 	end
 
 	nBonus = tonumber(nBonus or 0) or 0;
-	if nBonus <= 0 then
-		return;
-	end
 
 	local nodeList = DB.createChild(nodePC, "foekillbonuslist");
 	if not nodeList then
@@ -924,7 +929,12 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus)
 	end
 
 	local sEntryCategory = sCategory or "Bonus";
-	local sEntryText = string.format("%03d - %s: +%d (%s)", nOrder, sEntryCategory, nBonus, sFoeName);
+	local sEntryText = "";
+	if nBonus > 0 then
+		sEntryText = string.format("%03d - %s: +%d (%s)", nOrder, sEntryCategory, nBonus, sFoeName);
+	else
+		sEntryText = string.format("%03d - %s: +0 (%s)", nOrder, sEntryCategory, sFoeName);
+	end
 
 	DB.setValue(nodeEntry, "order", "number", nOrder);
 	DB.setValue(nodeEntry, "category", "string", sEntryCategory);
