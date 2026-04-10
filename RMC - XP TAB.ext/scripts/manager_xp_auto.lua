@@ -165,16 +165,6 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetP
 				end
 			end
 		end
-
-		if isFumbleFailureEvent(woundEffects, sDescription) then
-			local sAttackerSelfField = getCriticalFieldName(sSeverity, "self");
-			if sAttackerSelfField ~= "" then
-				local sAttackerSelfEventKey = getCriticalSelfEventKey(nodeAttackerPC, nodeAttackerCT, woundEffects, sDescription, sSeverity);
-				if not isCriticalSelfProcessedRecently(sAttackerSelfEventKey) then
-					addXPValue(nodeAttackerPC, sAttackerSelfField, 1);
-				end
-			end
-		end
 	end
 
 	if nodeTargetPC then
@@ -191,9 +181,8 @@ end
 function getCriticalSeverityFromEvent(woundEffects, sDescription)
 	if type(woundEffects) == "table" then
 		local sSeverity = normalizeText(tostring(woundEffects.CriticalSeverity or ""));
-		local sSeverityChar = sSeverity:match("^([abcde])");
-		if sSeverityChar then
-			return sSeverityChar;
+		if sSeverity:match("^[abcde]$") then
+			return sSeverity;
 		end
 
 		local sCode = tostring(woundEffects.CriticalCode or ""):upper();
@@ -207,9 +196,6 @@ function getCriticalSeverityFromEvent(woundEffects, sDescription)
 	local sDescSev = sDesc:match("%d+([ABCDE])[A-Z]");
 	if not sDescSev then
 		sDescSev = sDesc:match("([ABCDE])%s+CRITICAL");
-	end
-	if not sDescSev then
-		sDescSev = sDesc:match("^%s*([ABCDE])[%s%p]");
 	end
 	if sDescSev then
 		return sDescSev:lower();
@@ -363,26 +349,6 @@ function isTargetNowDead(nodeTarget)
 
 	local nDamage = tonumber(DB.getValue(nodeTarget, "damage", 0)) or 0;
 	return nDamage >= nHits;
-end
-
-function isFumbleFailureEvent(woundEffects, sDescription)
-	if type(woundEffects) == "table" then
-		local sName = normalizeText(tostring(woundEffects.CriticalName or ""));
-		local sCode = normalizeText(tostring(woundEffects.CriticalCode or ""));
-		if sName:find("fumble", 1, true) or sName:find("failure", 1, true) then
-			return true;
-		end
-		if sCode:find("fumble", 1, true) or sCode:find("failure", 1, true) then
-			return true;
-		end
-	end
-
-	local sDesc = normalizeText(sDescription or "");
-	if sDesc:find("fumble", 1, true) or sDesc:find("failure", 1, true) then
-		return true;
-	end
-
-	return false;
 end
 
 function isTargetUnconsciousByHealth(nodeTarget)
