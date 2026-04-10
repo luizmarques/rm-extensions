@@ -361,6 +361,65 @@ end
 				end
 			end
 
+			function addFoeKillBonusEntryFromShortcut(sClass, sRecord)
+				if type(sClass) ~= "string" or type(sRecord) ~= "string" or sRecord == "" then
+					return false;
+				end
+
+				if not StringManager.contains({ "npc", "charsheet", "reference_npc" }, sClass) then
+					return false;
+				end
+
+				local nodeRecord = DB.findNode(sRecord);
+				if not nodeRecord then
+					return false;
+				end
+
+				local nodeXP = getDatabaseNode();
+				if not nodeXP then
+					return false;
+				end
+
+				local nodeList = DB.createChild(nodeXP, "foekillbonuslist");
+				if not nodeList then
+					return false;
+				end
+
+				local nOrder = 1;
+				for _, _ in pairs(DB.getChildren(nodeList)) do
+					nOrder = nOrder + 1;
+				end
+
+				local sFoeName = DB.getValue(nodeRecord, "name", "Unknown");
+				if sFoeName == "" then
+					sFoeName = "Unknown";
+				end
+
+				local nHits = tonumber(DB.getValue(nodeRecord, "hits", 0)) or 0;
+				if nHits &lt;= 0 then
+					nHits = tonumber(DB.getValue(nodeRecord, "hits.max", 0)) or 0;
+				end
+
+				local nLevel = tonumber(DB.getValue(nodeRecord, "level", 0)) or 0;
+				local nBonus = nHits + (20 * nLevel);
+
+				local nodeEntry = DB.createChild(nodeList);
+				if not nodeEntry then
+					return false;
+				end
+
+				local sCategory = "Dropped Entry";
+				local sText = string.format("%03d - %s: +%d (%s)", nOrder, sCategory, nBonus, sFoeName);
+
+				DB.setValue(nodeEntry, "order", "number", nOrder);
+				DB.setValue(nodeEntry, "category", "string", sCategory);
+				DB.setValue(nodeEntry, "bonus", "number", nBonus);
+				DB.setValue(nodeEntry, "foe", "string", sFoeName);
+				DB.setValue(nodeEntry, "text", "string", sText);
+
+				return true;
+			end
+
 
 			 
 			function session2total()
@@ -749,6 +808,18 @@ end
 
 						setComboBoxReadOnly(true);
 						window.refreshFoeKillBonusCombo();
+					end
+
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("shortcut") then
+							local sClass, sRecord = draginfo.getShortcutData();
+							if window.addFoeKillBonusEntryFromShortcut(sClass, sRecord) then
+								window.refreshFoeKillBonusCombo();
+								return true;
+							end
+						end
+
+						return false;
 					end
 				</script>
 			</combobox_labeled_RMC>
