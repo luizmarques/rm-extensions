@@ -619,7 +619,6 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	end
 
 	local nHitsBefore, nWoundsBefore, nodeTarget, sTargetType = getTargetHealthState(rTarget);
-	local bWasKnockedOut = isHealthStateKnockedOut(nodeTarget, nHitsBefore, nWoundsBefore);
 	local bWasAlive = false;
 	if nHitsBefore > 0 then
 		bWasAlive = (nWoundsBefore < nHitsBefore);
@@ -632,9 +631,6 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	if nAppliedDamage <= 0 then
 		return;
 	end
-
-	local bNowKnockedOut = isHealthStateKnockedOut(nodeTarget, nHitsAfter, nWoundsAfter);
-	local bAppliedKnockout = (not bWasKnockedOut) and bNowKnockedOut;
 
 	local bNowDead = false;
 	if nHitsAfter > 0 then
@@ -659,14 +655,7 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	end
 
 	local nHitsTakenXP = nAppliedDamage;
-	if bNowKnockedOut then
-		nHitsTakenXP = nHitsTakenXP * 0.5;
-	end
-
 	local nHitsGivenXP = nAppliedDamage;
-	if bAppliedKnockout then
-		nHitsGivenXP = nHitsGivenXP * 2;
-	end
 
 	if nodeTargetPC and nHitsTakenXP > 0 and not isCombatEPProcessedRecently(nodeTargetPC, "hitstaken", nHitsTakenXP, bKill) then
 		addXPValue(nodeTargetPC, "hitstaken", nHitsTakenXP);
@@ -684,29 +673,6 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 			addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase);
 		end
 	end
-end
-
-function isHealthStateKnockedOut(nodeTarget, nHits, nWounds)
-	nHits = tonumber(nHits or 0) or 0;
-	nWounds = tonumber(nWounds or 0) or 0;
-
-	if nHits > 0 and nWounds >= nHits then
-		return true;
-	end
-
-	if not nodeTarget then
-		return false;
-	end
-
-	if hasTargetEffectOrCondition(nodeTarget, { "Unconscious", "Dying", "Dead" }) then
-		return true;
-	end
-
-	if isTargetInEffectState(nodeTarget, { "unconscious", "dying", "dead" }) then
-		return true;
-	end
-
-	return false;
 end
 
 function getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType)
