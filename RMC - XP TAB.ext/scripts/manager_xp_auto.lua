@@ -205,6 +205,7 @@ function getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDes
 
 	if hasTargetEffectOrCondition(nodeTarget, { "Unconscious", "Dying", "Dead" })
 		or isTargetInEffectState(nodeTarget, { "unconscious", "dying", "dead" })
+		or isTargetUnconsciousByHealth(nodeTarget)
 		or hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Dying")
 		or hasAnyWoundText(woundEffects, { "unconscious", "dying" })
 		or sDesc:find("unconscious", 1, true) or sDesc:find("dying", 1, true) then
@@ -335,6 +336,32 @@ function isTargetNowDead(nodeTarget)
 	end
 
 	local nDamage = tonumber(DB.getValue(nodeTarget, "damage", 0)) or 0;
+	return nDamage >= nHits;
+end
+
+function isTargetUnconsciousByHealth(nodeTarget)
+	if not nodeTarget then
+		return false;
+	end
+
+	local nHits = tonumber(DB.getValue(nodeTarget, "hits", 0)) or 0;
+	local nDamage = tonumber(DB.getValue(nodeTarget, "damage", 0)) or 0;
+
+	if nHits <= 0 then
+		local sClass, sRecord = DB.getValue(nodeTarget, "link", "", "");
+		if sClass == "charsheet" and sRecord ~= "" then
+			local nodeChar = DB.findNode(sRecord);
+			if nodeChar then
+				nHits = tonumber(DB.getValue(nodeChar, "hits.max", 0)) or 0;
+				nDamage = tonumber(DB.getValue(nodeChar, "hits.damage", 0)) or 0;
+			end
+		end
+	end
+
+	if nHits <= 0 then
+		return false;
+	end
+
 	return nDamage >= nHits;
 end
 
