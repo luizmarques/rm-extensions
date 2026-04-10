@@ -671,6 +671,100 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	end
 end
 
+function getFoeKillBonusFromTarget(nodeTarget, sTargetType)
+	local aBonusByType = {
+		["o.r - common man"] = 187.5,
+		["o.r - high man"] = 500,
+		["o.r - high man (dunedain)"] = 500,
+		["o.r - hobbit"] = 187.5,
+		["o.r - silvan elf"] = 250,
+		["o.r - sindar elf"] = 375,
+		["o.r - noldo elf"] = 500,
+		["o.r - dwarf"] = 375,
+		["o.r - half-elf"] = 375,
+		["common man"] = 150,
+		["high man"] = 400,
+		["high man (dunedain)"] = 400,
+		["hobbit"] = 150,
+		["silvan elf"] = 200,
+		["sindar elf"] = 300,
+		["noldo elf"] = 400,
+		["dwarf"] = 300,
+		["half-elf"] = 300,
+		["orc"] = 100,
+		["greater orc"] = 100,
+		["lesser orc"] = 100,
+		["uruk-hai"] = 500,
+		["warg"] = 200,
+		["lesser spider"] = 250,
+		["great spider"] = 400,
+		["hill troll"] = 500,
+		["ogre"] = 600,
+		["wolf"] = 200,
+		["wild dog"] = 100,
+		["horse (riding)"] = 100,
+		["warhorse"] = 400,
+		["boar (wild)"] = 300,
+		["bear (black)"] = 400,
+		["bear (grizzly)"] = 800,
+		["crow"] = 50,
+		["eagle"] = 1000,
+		["greater eagle"] = 3000,
+		["giant bat"] = 300,
+		["wyvern"] = 1500,
+		["young dragon"] = 5000,
+		["adult dragon"] = 10000,
+		["barrow-wight"] = 1000,
+		["nazgul"] = 12000,
+		["nazgul (ringwraith)"] = 12000,
+		["balrog"] = 25000,
+	};
+
+	for _, sCandidate in ipairs(getTargetTypeCandidates(nodeTarget, sTargetType)) do
+		local sKey = normalizeText(sCandidate);
+		if sKey ~= "" then
+			local nBonus = aBonusByType[sKey];
+			if nBonus and nBonus > 0 then
+				return nBonus;
+			end
+
+			sKey = sKey:gsub("^o%.r%s*%-%s*", "");
+			nBonus = aBonusByType[sKey];
+			if nBonus and nBonus > 0 then
+				return nBonus;
+			end
+		end
+	end
+
+	return 20;
+end
+
+function getTargetTypeCandidates(nodeTarget, sTargetType)
+	local aCandidates = {};
+
+	if nodeTarget then
+		table.insert(aCandidates, DB.getValue(nodeTarget, "race", ""));
+		table.insert(aCandidates, DB.getValue(nodeTarget, "type", ""));
+		table.insert(aCandidates, DB.getValue(nodeTarget, "name", ""));
+
+		local sClass, sRecord = DB.getValue(nodeTarget, "link", "", "");
+		if sRecord ~= "" then
+			local nodeLinked = DB.findNode(sRecord);
+			if nodeLinked then
+				table.insert(aCandidates, DB.getValue(nodeLinked, "race", ""));
+				table.insert(aCandidates, DB.getValue(nodeLinked, "type", ""));
+				table.insert(aCandidates, DB.getValue(nodeLinked, "name", ""));
+			end
+		end
+	end
+
+	if sTargetType == "charsheet" and nodeTarget then
+		table.insert(aCandidates, DB.getValue(nodeTarget, "race", ""));
+	end
+
+	return aCandidates;
+end
+
 
 function getTargetHealthState(rTarget)
 	local nHits = 0;
