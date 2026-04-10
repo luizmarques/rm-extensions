@@ -193,8 +193,11 @@ function getCriticalSeverityFromEvent(woundEffects, sDescription)
 end
 
 function getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive)
-	local sCritName = normalizeText(tostring(woundEffects.CriticalName or ""));
 	local sDesc = normalizeText(sDescription or "");
+	local sSizeOutcome = getTargetSizeOutcome(nodeTarget);
+	if sSizeOutcome ~= "" then
+		return sSizeOutcome;
+	end
 
 	if nodeAttackerCT and nodeTarget and DB.getPath(nodeAttackerCT) == DB.getPath(nodeTarget) then
 		return "self";
@@ -227,17 +230,28 @@ function getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDes
 		return "stun";
 	end
 
-	if sCritName:find("super-large", 1, true) or sCritName:find("super large", 1, true) or sCritName:find("superlarge", 1, true)
-		or sDesc:find("super-large", 1, true) or sDesc:find("super large", 1, true) then
+	return "norm";
+end
+
+function getTargetSizeOutcome(nodeTarget)
+	if not nodeTarget then
+		return "";
+	end
+
+	local sSize = normalizeText(DB.getValue(nodeTarget, "size", ""));
+	if sSize == "" then
+		return "";
+	end
+
+	if sSize == "5" or sSize == "huge" or sSize == "super large" or sSize == "super-large" or sSize == "superlarge" then
 		return "vlarge";
 	end
 
-	if sCritName:find("large", 1, true) or sCritName:find("lrg", 1, true)
-		or sDesc:find(" large ", 1, true) or sDesc:find(" lrg ", 1, true) then
+	if sSize == "4" or sSize == "large" then
 		return "large";
 	end
 
-	return "norm";
+	return "";
 end
 
 function isTargetInEffectState(nodeTarget, aNeedles)
