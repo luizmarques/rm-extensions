@@ -1152,7 +1152,7 @@ function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
 	end
 
 	local sNotesPath = sPCPath .. ".notes";
-	local sCurrentNotes = DB.getValue(sNotesPath, "", "") or "";
+	local sCurrentNotes = DB.getValue(nodePC, "notes", "") or "";
 	local sNewNotes = "";
 	if sCurrentNotes == "" then
 		sNewNotes = sEntryText;
@@ -1160,7 +1160,12 @@ function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
 		sNewNotes = sCurrentNotes .. "\n\n" .. sEntryText;
 	end
 
-	DB.setValue(sNotesPath, "", "formattedtext", sNewNotes);
+	local sNotesType = DB.getType(sNotesPath) or "";
+	if sNotesType ~= "string" and sNotesType ~= "formattedtext" then
+		sNotesType = "string";
+	end
+
+	DB.setValue(nodePC, "notes", sNotesType, sNewNotes);
 
 	if sEventKey ~= "" then
 		aLoggedFoeKillNotesKeys[sEventKey] = os.time() or 0;
