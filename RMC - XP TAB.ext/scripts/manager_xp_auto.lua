@@ -11,12 +11,14 @@ local OOB_MSGTYPE_XPAUTO_WOUNDEFFECTS = "xpautowoundeffects";
 local OOB_MSGTYPE_XPAUTO_APPLYDAMAGE = "xpautoapplydamage";
 local aPendingAttackerPCByTarget = {};
 local aProcessedCombatEPKeys = {};
+local aProcessedCombatEventKeys = {};
 local aProcessedSeverityKeys = {};
 local aProcessedCriticalMatrixKeys = {};
 local aProcessedCriticalSelfKeys = {};
 local aProcessedSkillEPKeys = {};
 local aProcessedSpellEPKeys = {};
 local aPendingSkillRollByActor = {};
+local aLoggedFoeKillNotesKeys = {};
 
 function onInit()
 	ActionsManager.registerPostRollHandler("skill", onSkillPostRoll);
@@ -177,7 +179,7 @@ function notifyWoundEffectsOOB(nodeAttackerCT, nodeAttackerPC, nodeTarget, nodeT
 	Comm.deliverOOBMessage(msgOOB, "");
 end
 
-function notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill)
+function notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill, sEventKey)
 	local msgOOB = {};
 	msgOOB.type = OOB_MSGTYPE_XPAUTO_APPLYDAMAGE;
 	msgOOB.nodeSourcePCPath = nodeSourcePC and (DB.getPath(nodeSourcePC) or "") or "";
@@ -186,6 +188,7 @@ function notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetTyp
 	msgOOB.sTargetType = tostring(sTargetType or "");
 	msgOOB.nAppliedDamage = tonumber(nAppliedDamage or 0) or 0;
 	msgOOB.bKill = bKill and 1 or 0;
+	msgOOB.sEventKey = tostring(sEventKey or "");
 
 	Comm.deliverOOBMessage(msgOOB, "");
 end
@@ -268,8 +271,16 @@ function handleApplyDamageOOB(msgOOB)
 	local sTargetType = tostring(msgOOB.sTargetType or "");
 	local nAppliedDamage = tonumber(msgOOB.nAppliedDamage or 0) or 0;
 	local bKill = tonumber(msgOOB.bKill or 0) == 1;
+	local sEventKey = tostring(msgOOB.sEventKey or "");
+	if sEventKey == "" then
+		sEventKey = buildCombatApplyEventKey(nodeSourcePC, nodeTargetPC, nodeTarget, nAppliedDamage, bKill);
+	end
 
 	if nAppliedDamage <= 0 then
+		return;
+	end
+
+	if isCombatEventProcessedRecently(sEventKey) then
 		return;
 	end
 
@@ -282,11 +293,11 @@ function handleApplyDamageOOB(msgOOB)
 	end
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
-		local nFoeKillBonusBase, sFoeKillBonusCategory = getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType);
+		local nFoeKillBonusBase, sFoeKillBonusCategory, nKillBasePoints, nKillCategoryBonus = getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType);
 		if sFoeKillBonusCategory == "" then
 			sFoeKillBonusCategory = "Unrecognized";
 		end
-		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase);
+		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase, sEventKey, nKillBasePoints, nKillCategoryBonus);
 
 		if nFoeKillBonusBase > 0 then
 			addXPValue(nodeSourcePC, "foekill", 1);
@@ -809,11 +820,17 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 		end
 	end
 
+	local sEventKey = buildCombatApplyEventKey(nodeSourcePC, nodeTargetPC, nodeTarget, nAppliedDamage, bKill);
+
 	local nHitsTakenXP = nAppliedDamage;
 	local nHitsGivenXP = nAppliedDamage;
 
 	if not Session.IsHost then
-		notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill);
+		notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill, sEventKey);
+		return;
+	end
+
+	if isCombatEventProcessedRecently(sEventKey) then
 		return;
 	end
 
@@ -826,11 +843,11 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	end
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
-		local nFoeKillBonusBase, sFoeKillBonusCategory = getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType);
+		local nFoeKillBonusBase, sFoeKillBonusCategory, nKillBasePoints, nKillCategoryBonus = getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType);
 		if sFoeKillBonusCategory == "" then
 			sFoeKillBonusCategory = "Unrecognized";
 		end
-		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase);
+		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase, sEventKey, nKillBasePoints, nKillCategoryBonus);
 
 		if nFoeKillBonusBase > 0 then
 			addXPValue(nodeSourcePC, "foekill", 1);
@@ -843,6 +860,53 @@ function getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType)
 	local aCandidates = getTargetTypeCandidates(nodeTarget, sTargetType);
 	local sTargetText = normalizeText(table.concat(aCandidates, " "));
 
+	local nAttackerLevel = 1;
+	if nodeSourcePC then
+		nAttackerLevel = tonumber(DB.getValue(nodeSourcePC, "level", 1)) or 1;
+	end
+	if nAttackerLevel < 1 then
+		nAttackerLevel = 1;
+	end
+
+	local nOpponentLevel = getTargetLevelForKillPoints(nodeTarget, sTargetType);
+	if nOpponentLevel < 0 then
+		nOpponentLevel = 0;
+	end
+
+	local nKillBasePoints = 0;
+	local sBaseLabel = "";
+
+	local nKillPointsTable = getKillPointsFromTable0904(nOpponentLevel, nAttackerLevel);
+	if nKillPointsTable > 0 then
+		nKillBasePoints = nKillPointsTable;
+		sBaseLabel = "Table 09-04";
+	else
+		local nFallbackKillPoints = getFallbackKillPointsFromTarget(nodeTarget, sTargetType);
+		if nFallbackKillPoints > 0 then
+			nKillBasePoints = nFallbackKillPoints;
+			sBaseLabel = "Fallback (Hits + 20xLevel)";
+		end
+	end
+
+	local nKillCategoryBonus, sKillCategoryLabel = getFoeKillCategoryBonus(nodeSourcePC, aCandidates, sTargetText);
+	local nKillTotal = nKillBasePoints + nKillCategoryBonus;
+
+	if nKillTotal <= 0 then
+		return 0, "Unrecognized", nKillBasePoints, nKillCategoryBonus;
+	end
+
+	local sCombinedLabel = sBaseLabel;
+	if sCombinedLabel == "" then
+		sCombinedLabel = "Kill Points";
+	end
+	if sKillCategoryLabel ~= "" then
+		sCombinedLabel = sCombinedLabel .. " + " .. sKillCategoryLabel;
+	end
+
+	return nKillTotal, sCombinedLabel, nKillBasePoints, nKillCategoryBonus;
+end
+
+function getFoeKillCategoryBonus(nodeSourcePC, aCandidates, sTargetText)
 	if isFoeOwnRace(nodeSourcePC, aCandidates) then
 		return 150, "Own Race";
 	end
@@ -870,10 +934,10 @@ function getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType)
 		end
 
 		local nBonus = (nTypeOrPale * nTypeOrPale) * 50;
-		local sLabel = "Demons (Type " .. tostring(nTypeOrPale) .. ")";
+		local sLabel = "Demons";
 		if sTargetText:find("demon of might", 1, true) or sTargetText:find("beyond pale", 1, true) then
 			nBonus = nBonus + 5000;
-			sLabel = sLabel .. " + Beyond Pale";
+			sLabel = "Demons + Beyond Pale";
 		end
 
 		return nBonus, sLabel;
@@ -884,7 +948,7 @@ function getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType)
 	end
 
 	if isAnyFoeCategory(aCandidates, { "eagle" }) then
-		return 2000, "Eagle";
+		return 200, "Eagle";
 	end
 
 	if isAnyFoeCategory(aCandidates, { "orc", "uruk", "uruk-hai" }) then
@@ -895,12 +959,82 @@ function getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType)
 		return 200, "Troll";
 	end
 
-	local nFallbackKillPoints = getFallbackKillPointsFromTarget(nodeTarget, sTargetType);
-	if nFallbackKillPoints > 0 then
-		return nFallbackKillPoints, "Base Formula (Hits + 20xLevel)";
+	return 0, "";
+end
+
+function getKillPointsFromTable0904(nOpponentLevel, nAttackerLevel)
+	nOpponentLevel = tonumber(nOpponentLevel or 0) or 0;
+	nAttackerLevel = tonumber(nAttackerLevel or 1) or 1;
+
+	if nAttackerLevel < 1 then
+		nAttackerLevel = 1;
+	elseif nAttackerLevel > 10 then
+		nAttackerLevel = 10;
+
 	end
 
-	return 0, "";
+	local aTable = {
+		[0] =  { 50, 45, 40, 35, 30, 25, 20, 15, 10, 5 },
+		[1] =  { 200, 150, 130, 110, 100, 90, 80, 70, 60, 50 },
+		[2] =  { 250, 200, 150, 130, 110, 100, 90, 80, 70, 60 },
+		[3] =  { 300, 250, 200, 150, 130, 110, 100, 90, 80, 70 },
+		[4] =  { 350, 300, 250, 200, 150, 130, 110, 100, 90, 80 },
+		[5] =  { 400, 350, 300, 250, 200, 150, 130, 110, 100, 90 },
+		[6] =  { 450, 400, 350, 300, 250, 200, 150, 130, 110, 100 },
+		[7] =  { 500, 450, 400, 350, 300, 250, 200, 150, 130, 110 },
+		[8] =  { 550, 500, 450, 400, 350, 300, 250, 200, 150, 130 },
+		[9] =  { 600, 550, 500, 450, 400, 350, 300, 250, 200, 150 },
+		[10] = { 650, 600, 550, 500, 450, 400, 350, 300, 250, 200 },
+	};
+
+	local nColumn = nAttackerLevel;
+	local nOpponentClamped = nOpponentLevel;
+	if nOpponentClamped < 0 then
+		nOpponentClamped = 0;
+	elseif nOpponentClamped > 10 then
+		nOpponentClamped = 10;
+	end
+
+	local aRow = aTable[nOpponentClamped];
+	if not aRow then
+		return 0;
+	end
+
+
+	local nBase = tonumber(aRow[nColumn] or 0) or 0;
+	if nOpponentLevel > 10 then
+		nBase = nBase + ((nOpponentLevel - 10) * 50);
+	end
+
+	return nBase;
+end
+
+function getTargetLevelForKillPoints(nodeTarget, sTargetType)
+	if not nodeTarget then
+		return 0;
+	end
+
+	local nLevel = tonumber(DB.getValue(nodeTarget, "level", 0)) or 0;
+	if nLevel > 0 then
+		return nLevel;
+	end
+
+	if sTargetType == "charsheet" then
+		return nLevel;
+	end
+
+	local _, sRecord = DB.getValue(nodeTarget, "link", "", "");
+	if sRecord ~= "" then
+		local nodeLinked = DB.findNode(sRecord);
+		if nodeLinked then
+			nLevel = tonumber(DB.getValue(nodeLinked, "level", 0)) or 0;
+			if nLevel > 0 then
+				return nLevel;
+			end
+		end
+	end
+
+	return nLevel;
 end
 
 function getFallbackKillPointsFromTarget(nodeTarget, sTargetType)
@@ -949,12 +1083,14 @@ function getFallbackKillPointsFromTarget(nodeTarget, sTargetType)
 	return nHits + (20 * nLevel);
 end
 
-function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus)
+function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, nBasePoints, nCategoryBonus)
 	if not nodePC then
 		return;
 	end
 
 	nBonus = tonumber(nBonus or 0) or 0;
+	nBasePoints = tonumber(nBasePoints or 0) or 0;
+	nCategoryBonus = tonumber(nCategoryBonus or 0) or 0;
 
 	local nodeList = DB.createChild(nodePC, "foekillbonuslist");
 	if not nodeList then
@@ -982,7 +1118,11 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus)
 	local sEntryCategory = sCategory or "Bonus";
 	local sEntryText = "";
 	if nBonus > 0 then
-		sEntryText = string.format("%03d - %s: +%d (%s)", nOrder, sEntryCategory, nBonus, sFoeName);
+		if nBasePoints > 0 or nCategoryBonus > 0 then
+			sEntryText = string.format("%03d - %s: Base %d + Bonus %d = +%d (%s)", nOrder, sEntryCategory, nBasePoints, nCategoryBonus, nBonus, sFoeName);
+		else
+			sEntryText = string.format("%03d - %s: +%d (%s)", nOrder, sEntryCategory, nBonus, sFoeName);
+		end
 	else
 		sEntryText = string.format("%03d - %s: +0 (%s)", nOrder, sEntryCategory, sFoeName);
 	end
@@ -992,6 +1132,83 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus)
 	DB.setValue(nodeEntry, "bonus", "number", nBonus);
 	DB.setValue(nodeEntry, "foe", "string", sFoeName);
 	DB.setValue(nodeEntry, "text", "string", sEntryText);
+
+	appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey);
+end
+
+function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
+	if not Session.IsHost or not nodePC or sEntryText == "" then
+		return;
+	end
+
+	sEventKey = tostring(sEventKey or "");
+	if sEventKey ~= "" and aLoggedFoeKillNotesKeys[sEventKey] then
+		return;
+	end
+
+	local sPCPath = DB.getPath(nodePC) or "";
+	if sPCPath == "" then
+		return;
+	end
+
+	local sNotesPath = sPCPath .. ".notes";
+	local sCurrentNotes = DB.getValue(sNotesPath, "", "") or "";
+	local sNewNotes = "";
+	if sCurrentNotes == "" then
+		sNewNotes = sEntryText;
+	else
+		sNewNotes = sCurrentNotes .. "\n\n" .. sEntryText;
+	end
+
+	DB.setValue(sNotesPath, "", "formattedtext", sNewNotes);
+
+	if sEventKey ~= "" then
+		aLoggedFoeKillNotesKeys[sEventKey] = os.time() or 0;
+	end
+end
+
+function buildCombatApplyEventKey(nodeSourcePC, nodeTargetPC, nodeTarget, nAppliedDamage, bKill)
+	local sSource = nodeSourcePC and (DB.getPath(nodeSourcePC) or "") or "";
+	local sTargetPC = nodeTargetPC and (DB.getPath(nodeTargetPC) or "") or "";
+	local sTarget = nodeTarget and (DB.getPath(nodeTarget) or "") or "";
+	local nTargetDamage = 0;
+	if nodeTarget then
+		nTargetDamage = tonumber(DB.getValue(nodeTarget, "damage", 0)) or 0;
+		if nTargetDamage <= 0 then
+			nTargetDamage = tonumber(DB.getValue(nodeTarget, "hits.damage", 0)) or 0;
+		end
+	end
+
+	return table.concat({
+		sSource,
+		sTargetPC,
+		sTarget,
+		tostring(tonumber(nAppliedDamage or 0) or 0),
+		tostring(nTargetDamage),
+		bKill and "1" or "0",
+	}, "|");
+end
+
+function isCombatEventProcessedRecently(sEventKey)
+	sEventKey = tostring(sEventKey or "");
+	if sEventKey == "" then
+		return false;
+	end
+
+	local nNow = os.time() or 0;
+	for sKey, nTimestamp in pairs(aProcessedCombatEventKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedCombatEventKeys[sKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedCombatEventKeys[sEventKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedCombatEventKeys[sEventKey] = nNow;
+	return false;
 end
 
 function isAnyFoeCategory(aCandidates, aNeedles)
