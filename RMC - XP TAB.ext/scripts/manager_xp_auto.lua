@@ -460,11 +460,14 @@ function getSkillDifficultyField(rRoll)
 	if sDifficulty == "" then
 		sDifficulty = extractDifficultyFromText(rRoll.sDesc or "");
 	end
+	if sDifficulty == "" then
+		sDifficulty = extractDifficultyFromModifierTable(rRoll.modifiers);
+	end
 	if sDifficulty == "" and type(rRoll.modifiers) == "string" then
 		sDifficulty = extractDifficultyFromText(rRoll.modifiers);
 	end
 	if sDifficulty == "" then
-		return "medium";
+		return "";
 	end
 
 	if sDifficulty:find("sheer folly", 1, true) or sDifficulty:find("sheerfolly", 1, true) then
@@ -491,8 +494,11 @@ function getSkillDifficultyField(rRoll)
 	if sDifficulty:find("absurd", 1, true) then
 		return "absurd";
 	end
+	if sDifficulty:find("medium", 1, true) then
+		return "medium";
+	end
 
-	return "medium";
+	return "";
 end
 
 function extractDifficultyFromText(sText)
@@ -527,6 +533,30 @@ function extractDifficultyFromText(sText)
 	end
 	if sNormalized:find("medium", 1, true) then
 		return "medium";
+	end
+
+	return "";
+end
+
+function extractDifficultyFromModifierTable(vModifiers)
+	if not Utilities or not Utilities.modifiersStringToTable or type(vModifiers) ~= "string" or vModifiers == "" then
+		return "";
+	end
+
+	local aModifiers = Utilities.modifiersStringToTable(vModifiers);
+	if type(aModifiers) ~= "table" then
+		return "";
+	end
+
+	for _, rMod in ipairs(aModifiers) do
+		local sDesc = "";
+		if type(rMod) == "table" then
+			sDesc = normalizeText(rMod.description or "");
+		end
+		local sFound = extractDifficultyFromText(sDesc);
+		if sFound ~= "" then
+			return sFound;
+		end
 	end
 
 	return "";
