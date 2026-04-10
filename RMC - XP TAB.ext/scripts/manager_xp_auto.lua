@@ -194,10 +194,6 @@ end
 
 function getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive)
 	local sDesc = normalizeText(sDescription or "");
-	local sSizeOutcome = getTargetSizeOutcome(nodeTarget);
-	if sSizeOutcome ~= "" then
-		return sSizeOutcome;
-	end
 
 	if nodeAttackerCT and nodeTarget and DB.getPath(nodeAttackerCT) == DB.getPath(nodeTarget) then
 		return "self";
@@ -228,6 +224,11 @@ function getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDes
 		or hasAnyWoundText(woundEffects, { "stun", "no parry", "must parry", "mustparry" })
 		or sDesc:find("stun", 1, true) or sDesc:find("no parry", 1, true) or sDesc:find("must parry", 1, true) then
 		return "stun";
+	end
+
+	local sSizeOutcome = getTargetSizeOutcome(nodeTarget);
+	if sSizeOutcome ~= "" then
+		return sSizeOutcome;
 	end
 
 	return "norm";
