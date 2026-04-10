@@ -240,7 +240,7 @@ end
 						local sText = DB.getValue(nodeEntry, "text", "");
 						if sText == "" then
 							local nOrder = tonumber(DB.getValue(nodeEntry, "order", 0)) or 0;
-							if nOrder < 1 then
+							if nOrder &lt; 1 then
 								nOrder = #aEntries + 1;
 							end
 

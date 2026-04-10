@@ -897,7 +897,7 @@ function getFoeKillBonusFromTarget(nodeSourcePC, nodeTarget, sTargetType)
 
 	local nFallbackKillPoints = getFallbackKillPointsFromTarget(nodeTarget, sTargetType);
 	if nFallbackKillPoints > 0 then
-		return nFallbackKillPoints, "Base Formula (Hits + 20xLevel)";
+		return nFallbackKillPoints, "Base Formula (20xLevel)";
 	end
 
 	return 0, "";
