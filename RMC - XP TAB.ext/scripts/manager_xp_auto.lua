@@ -10,6 +10,7 @@ local aProcessedCombatEPKeys = {};
 local aProcessedSeverityKeys = {};
 local aProcessedSkillEPKeys = {};
 local aProcessedSpellEPKeys = {};
+local aPendingSkillRollByActor = {};
 
 function onInit()
 	if not Session.IsHost then
@@ -46,12 +47,7 @@ function onSkillPostRoll(rSource, a2, a3)
 		return;
 	end
 
-	local nDieResult = getRollPrimaryDieResult(rRoll);
-	if isSkillEPProcessedRecently(nodeSourcePC, sSkillField, rRoll.skillName, nDieResult, rRoll.sDesc) then
-		return;
-	end
-
-	addXPValue(nodeSourcePC, sSkillField, 1);
+	setPendingSkillRoll(nodeSourcePC, sSkillField, rRoll.skillName, rRoll.sDesc);
 end
 
 function onBaseCastingPostRoll(rSource, a2, a3)
@@ -133,6 +129,7 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 	end
 
 	if not bIsApplyTrigger then
+		tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
 		return;
 	end
 
@@ -144,6 +141,7 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 
 	local sCritSeverity = getCriticalSeverity(woundEffects, description);
 	if sCritSeverity == "" then
+		tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
 		return;
 	end
 
@@ -154,10 +152,12 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 	end
 
 	if isSeverityProcessedRecently(nodeAttackerPC, sCritField, description) then
+		tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
 		return;
 	end
 
 	addXPValue(nodeAttackerPC, sCritField, 1);
+	tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, description);
 end
 
 function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
@@ -458,7 +458,13 @@ function getSkillDifficultyField(rRoll)
 
 	local sDifficulty = normalizeText(rRoll.columnTitle or rRoll.difficultyName or "");
 	if sDifficulty == "" then
-		sDifficulty = "medium";
+		sDifficulty = extractDifficultyFromText(rRoll.sDesc or "");
+	end
+	if sDifficulty == "" and type(rRoll.modifiers) == "string" then
+		sDifficulty = extractDifficultyFromText(rRoll.modifiers);
+	end
+	if sDifficulty == "" then
+		return "medium";
 	end
 
 	if sDifficulty:find("sheer folly", 1, true) or sDifficulty:find("sheerfolly", 1, true) then
@@ -487,6 +493,128 @@ function getSkillDifficultyField(rRoll)
 	end
 
 	return "medium";
+end
+
+function extractDifficultyFromText(sText)
+	local sNormalized = normalizeText(sText or "");
+	if sNormalized == "" then
+		return "";
+	end
+
+	if sNormalized:find("sheer folly", 1, true) or sNormalized:find("sheerfolly", 1, true) then
+		return "sheerfolly";
+	end
+	if sNormalized:find("extremely hard", 1, true) or sNormalized:find("extremelyhard", 1, true) then
+		return "extremelyhard";
+	end
+	if sNormalized:find("very hard", 1, true) or sNormalized:find("veryhard", 1, true) then
+		return "veryhard";
+	end
+	if sNormalized:find("routine", 1, true) then
+		return "routine";
+	end
+	if sNormalized:find("easy", 1, true) then
+		return "easy";
+	end
+	if sNormalized:find("light", 1, true) then
+		return "light";
+	end
+	if sNormalized:find("absurd", 1, true) then
+		return "absurd";
+	end
+	if sNormalized:find("hard", 1, true) then
+		return "hard";
+	end
+	if sNormalized:find("medium", 1, true) then
+		return "medium";
+	end
+
+	return "";
+end
+
+function setPendingSkillRoll(nodePC, sSkillField, sSkillName, sDescription)
+	if not nodePC or sSkillField == "" then
+		return;
+	end
+
+	local sActorPath = DB.getPath(nodePC) or "";
+	if sActorPath == "" then
+		return;
+	end
+
+	aPendingSkillRollByActor[sActorPath] = {
+		field = sSkillField,
+		skill = normalizeText(sSkillName or ""),
+		desc = normalizeText(sDescription or ""),
+		time = os.time() or 0,
+	};
+end
+
+function tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, sDescription)
+	if not nodeAttackerCT or not nodeTarget then
+		return;
+	end
+
+	local sAttackerPath = DB.getPath(nodeAttackerCT) or "";
+	local sTargetPath = DB.getPath(nodeTarget) or "";
+	if sAttackerPath == "" or sTargetPath == "" or sAttackerPath ~= sTargetPath then
+		return;
+	end
+
+	local nodeAttackerPC = getPCNodeFromCT(nodeAttackerCT);
+	if not nodeAttackerPC then
+		return;
+	end
+
+	local sActorPath = DB.getPath(nodeAttackerPC) or "";
+	local tPending = aPendingSkillRollByActor[sActorPath];
+	if not tPending then
+		return;
+	end
+
+	local nNow = os.time() or 0;
+	if (nNow - (tonumber(tPending.time) or 0)) > 30 then
+		aPendingSkillRollByActor[sActorPath] = nil;
+		return;
+	end
+
+	if not isSkillResolutionSuccessful(sDescription) then
+		aPendingSkillRollByActor[sActorPath] = nil;
+		return;
+	end
+
+	if isSkillEPProcessedRecently(nodeAttackerPC, tPending.field, tPending.skill, 0, sDescription or "") then
+		aPendingSkillRollByActor[sActorPath] = nil;
+		return;
+	end
+
+	addXPValue(nodeAttackerPC, tPending.field, 1);
+	aPendingSkillRollByActor[sActorPath] = nil;
+end
+
+function isSkillResolutionSuccessful(sDescription)
+	local sText = normalizeText(sDescription or "");
+	if sText == "" then
+		return false;
+	end
+
+	if sText:find("failure", 1, true) or sText:find("fail", 1, true) or sText:find("fumble", 1, true) then
+		return false;
+	end
+
+	if sText:find("partial success", 1, true) then
+		return false;
+	end
+
+	if sText:find("total success", 1, true) or sText:find("absolute success", 1, true) then
+		return true;
+	end
+
+	if sText:find("success", 1, true) then
+		return true;
+	end
+
+	return false;
 end
 
 function getSpellLevelFieldName(nSpellLevel)
