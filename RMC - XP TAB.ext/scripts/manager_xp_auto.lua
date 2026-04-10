@@ -456,18 +456,19 @@ function getSkillDifficultyField(rRoll)
 		return "";
 	end
 
-	local sDifficulty = normalizeText(rRoll.columnTitle or rRoll.difficultyName or "");
+	-- Priority: explicit difficulty modifier chosen by actor, then roll fields, then text fallback.
+	local sDifficulty = extractDifficultyFromModifierTable(rRoll.modifiers);
 	if sDifficulty == "" then
-		sDifficulty = extractDifficultyFromText(rRoll.sDesc or "");
+		sDifficulty = normalizeText(rRoll.difficultyName or rRoll.columnTitle or "");
 	end
 	if sDifficulty == "" then
-		sDifficulty = extractDifficultyFromModifierTable(rRoll.modifiers);
+		sDifficulty = extractDifficultyFromText(rRoll.sDesc or "");
 	end
 	if sDifficulty == "" and type(rRoll.modifiers) == "string" then
 		sDifficulty = extractDifficultyFromText(rRoll.modifiers);
 	end
 	if sDifficulty == "" then
-		return "";
+		return "medium";
 	end
 
 	if sDifficulty:find("sheer folly", 1, true) or sDifficulty:find("sheerfolly", 1, true) then
