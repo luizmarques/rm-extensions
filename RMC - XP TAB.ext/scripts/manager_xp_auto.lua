@@ -204,20 +204,23 @@ function getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDes
 		return "solo";
 	end
 
-	if isTargetInEffectState(nodeTarget, { "unconscious", "dying" })
+	if hasTargetEffectOrCondition(nodeTarget, { "Unconscious", "Dying", "Dead" })
+		or isTargetInEffectState(nodeTarget, { "unconscious", "dying", "dead" })
 		or hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Dying")
 		or hasAnyWoundText(woundEffects, { "unconscious", "dying" })
 		or sDesc:find("unconscious", 1, true) or sDesc:find("dying", 1, true) then
 		return "unc";
 	end
 
-	if isTargetInEffectState(nodeTarget, { "prone", "kneeling", "down" })
+	if hasTargetEffectOrCondition(nodeTarget, { "Prone", "Kneeling" })
+		or isTargetInEffectState(nodeTarget, { "prone", "kneeling", "down" })
 		or hasAnyWoundText(woundEffects, { "down", "prone", "kneeling" })
-		or sDesc:find(" down", 1, true) or sDesc:find("prone", 1, true) or sDesc:find("kneeling", 1, true) then
+		or sDesc:find("down", 1, true) or sDesc:find("prone", 1, true) or sDesc:find("kneeling", 1, true) then
 		return "down";
 	end
 
-	if isTargetInEffectState(nodeTarget, { "stun", "no parry", "must parry" })
+	if hasTargetEffectOrCondition(nodeTarget, { "Stun", "Stunned", "NoParry", "MustParry" })
+		or isTargetInEffectState(nodeTarget, { "stun", "no parry", "must parry", "mustparry" })
 		or hasWoundFlag(woundEffects, "Stun") or hasWoundFlag(woundEffects, "NoParry") or hasWoundFlag(woundEffects, "MustParry")
 		or hasAnyWoundText(woundEffects, { "stun", "no parry", "must parry", "mustparry" })
 		or sDesc:find("stun", 1, true) or sDesc:find("no parry", 1, true) or sDesc:find("must parry", 1, true) then
@@ -249,6 +252,30 @@ function isTargetInEffectState(nodeTarget, aNeedles)
 				if sLabel:find(sNeedle, 1, true) then
 					return true;
 				end
+			end
+		end
+	end
+
+	return false;
+end
+
+function hasTargetEffectOrCondition(nodeTarget, aNames)
+	if not nodeTarget or type(aNames) ~= "table" then
+		return false;
+	end
+
+	local rTarget = ActorManager.resolveActor(nodeTarget);
+	if not rTarget then
+		return false;
+	end
+
+	for _, sName in ipairs(aNames) do
+		if type(sName) == "string" and sName ~= "" then
+			if EffectManagerRMC and EffectManagerRMC.hasEffect and EffectManagerRMC.hasEffect(rTarget, sName) then
+				return true;
+			end
+			if EffectManager and EffectManager.hasCondition and EffectManager.hasCondition(rTarget, sName) then
+				return true;
 			end
 		end
 	end
