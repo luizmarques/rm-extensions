@@ -56,6 +56,10 @@ function onBaseCastingPostRoll(rSource, a2, a3)
 		return;
 	end
 
+	if not isBaseCastingSuccess(rRoll) then
+		return;
+	end
+
 	local nodeSourcePC = getPCNodeFromRoll(rSource, rRoll);
 	if not nodeSourcePC then
 		return;
@@ -449,6 +453,24 @@ function getRollPrimaryDieResult(rRoll)
 	end
 
 	return 0;
+end
+
+function isBaseCastingSuccess(rRoll)
+	if type(rRoll) ~= "table" then
+		return false;
+	end
+
+	local nFailure = tonumber(rRoll.nFailure);
+	if not nFailure then
+		return false;
+	end
+
+	if not (rRoll.aDice and rRoll.aDice[1] and rRoll.aDice[1].result) then
+		return false;
+	end
+
+	local nFirstDie = tonumber(rRoll.aDice[1].result) or 0;
+	return nFirstDie > nFailure;
 end
 
 function getSkillDifficultyField(rRoll)
