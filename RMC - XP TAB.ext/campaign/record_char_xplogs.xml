@@ -7,7 +7,7 @@
 			<anchor_content_bottom />
 
 			<area_content_framed_groupbox_top name="xplogsframe">
-				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="140" />
+				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="180" />
 			</area_content_framed_groupbox_top>
 			<label name="xplogslabel">
 				<anchored to="xplogsframe" position="insidetop" />
@@ -26,7 +26,7 @@
 			</scrollbar_content_base>
 
 			<area_content_framed_groupbox name="xpspelllogsframe">
-				<anchored to="xplogsframe" position="belowleft" offset="0,0" height="140" />
+				<anchored to="xplogsframe" position="belowleft" offset="0,10" height="180" />
 			</area_content_framed_groupbox>
 			<label name="xpspelllogslabel">
 				<anchored to="xpspelllogsframe" position="insidetop" />
@@ -45,7 +45,7 @@
 			</scrollbar_content_base>
 
 			<area_content_framed_groupbox name="xpmaneuverlogsframe">
-				<anchored to="xpspelllogsframe" position="belowleft" offset="0,0" height="140" />
+				<anchored to="xpspelllogsframe" position="belowleft" offset="0,10" height="180" />
 			</area_content_framed_groupbox>
 			<label name="xpmaneuverlogslabel">
 				<anchored to="xpmaneuverlogsframe" position="insidetop" />
@@ -64,7 +64,7 @@
 			</scrollbar_content_base>
 
 			<area_content_framed_groupbox_bottom name="xpcombatlogsframe">
-				<anchored to="xpmaneuverlogsframe" position="belowleft" offset="0,0" height="140" />
+				<anchored to="xpmaneuverlogsframe" position="belowleft" offset="0,10" height="180" />
 			</area_content_framed_groupbox_bottom>
 			<label name="xpcombatlogslabel">
 				<anchored to="xpcombatlogsframe" position="insidetop" />
