@@ -2,16 +2,31 @@
 
 <root>
 	<windowclass name="charsheet_xplogs">
+		<script>
+			function onInit()
+				if super and super.onInit then
+					super.onInit();
+				end
+				if Session.IsHost then
+					--[[ GM view, include GM notes ]]
+					notesframe.setAnchor("bottom", "", "bottom", "absolute", -220);
+				else
+					--[[ Player view, exclude GM notes ]]
+					notesframe.setAnchor("bottom", "", "bottom", "absolute", -10);
+				end
+			end
+		</script>
 		<sheetdata>
 			<anchor_content_top />
 			<anchor_content_bottom />
 
+			<!-- Foes Killed Bonus -->
 			<area_content_framed_groupbox_top name="xplogsframe">
-				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="140" />
+				<anchored  height="75"/>
 			</area_content_framed_groupbox_top>
 			<label name="xplogslabel">
 				<anchored to="xplogsframe" position="insidetop" />
-				<static>Foes Killed Bonus</static>
+				<static textres="char_heading_appearance_description">Foes Killed Bonus</static>
 				<center />
 			</label>
 			<stringu name="xplogs">
@@ -25,62 +40,67 @@
 				<target>xplogs</target>
 			</scrollbar_content_base>
 
-			<area_content_framed_groupbox name="xpspelllogsframe">
-				<anchored to="xplogsframe" position="belowleft" offset="0,0" height="140" />
-			</area_content_framed_groupbox>
-			<label name="xpspelllogslabel">
-				<anchored to="xpspelllogsframe" position="insidetop" />
+			<!-- Spell Levels EPs -->
+			<area_content_framed_groupbox_top name="spelllvleps">
+				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="140" />
+			</area_content_framed_groupbox_top>
+			<label name="spelllvleps">
+				<anchored to="spelllvleps" position="insidetop" />
 				<static>Spell Levels EPs</static>
 				<center />
 			</label>
-			<stringu name="xpspelllogs">
-				<anchored to="xpspelllogsframe" position="insidetop" offset="0,20">
+			<stringu name="spelllvleps">
+				<anchored to="spelllvleps" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
 				<multilinespacing>20</multilinespacing>
 			</stringu>
 			<scrollbar_content_base>
-				<anchored to="xpspelllogs" />
-				<target>xpspelllogs</target>
+				<anchored to="spelllvleps" />
+				<target>spelllvleps</target>
 			</scrollbar_content_base>
 
-			<area_content_framed_groupbox name="xpmaneuverlogsframe">
-				<anchored to="xpspelllogsframe" position="belowleft" offset="0,0" height="140" />
-			</area_content_framed_groupbox>
-			<label name="xpmaneuverlogslabel">
-				<anchored to="xpmaneuverlogsframe" position="insidetop" />
-				<static>Successful Maneuvers EPs</static>
+			<!-- Successful Maneuvers Eps -->
+			<area_content_framed_groupbox_top name="successfulmaneuverseps">
+				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="140" />
+			</area_content_framed_groupbox_top>
+			<label name="successfulmaneuverseps">
+				<anchored to="successfulmaneuverseps" position="insidetop" />
+				<static>Successful Maneuvers Eps</static>
 				<center />
 			</label>
-			<stringu name="xpmaneuverlogs">
-				<anchored to="xpmaneuverlogsframe" position="insidetop" offset="0,20">
+			<stringu name="successfulmaneuverseps">
+				<anchored to="successfulmaneuverseps" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
 				<multilinespacing>20</multilinespacing>
 			</stringu>
 			<scrollbar_content_base>
-				<anchored to="xpmaneuverlogs" />
-				<target>xpmaneuverlogs</target>
+				<anchored to="successfulmaneuverseps" />
+				<target>successfulmaneuverseps</target>
 			</scrollbar_content_base>
 
-			<area_content_framed_groupbox_bottom name="xpcombatlogsframe">
-				<anchored to="xpmaneuverlogsframe" position="belowleft" offset="0,0" height="140" />
-			</area_content_framed_groupbox_bottom>
-			<label name="xpcombatlogslabel">
-				<anchored to="xpcombatlogsframe" position="insidetop" />
-				<static>Combat EPs</static>
+			<!-- Combat Eps -->
+			<area_content_framed_groupbox_top name="combateps">
+				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="140" />
+			</area_content_framed_groupbox_top>
+			<label name="combateps">
+				<anchored to="combateps" position="insidetop" />
+				<static>Combat Eps</static>
 				<center />
 			</label>
-			<stringu name="xpcombatlogs">
-				<anchored to="xpcombatlogsframe" position="insidetop" offset="0,20">
+			<stringu name="combateps">
+				<anchored to="combateps" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
 				<multilinespacing>20</multilinespacing>
 			</stringu>
 			<scrollbar_content_base>
-				<anchored to="xpcombatlogs" />
-				<target>xpcombatlogs</target>
+				<anchored to="combateps" />
+				<target>combateps</target>
 			</scrollbar_content_base>
+
+
 		</sheetdata>
 	</windowclass>
 </root>
