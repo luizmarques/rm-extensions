@@ -118,6 +118,7 @@ function processBaseCastingPostRollHost(rSource, rRoll)
 	end
 
 	addXPValue(nodeSourcePC, sSpellField, 1);
+	appendGeneralXPLog(nodeSourcePC, "Spell Levels EPs", sSpellField, 1, "Base Casting Success");
 end
 
 function notifySkillPostRollOOB(rSource, rRoll)
@@ -1821,7 +1822,41 @@ function tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, sDescription)
 	end
 
 	addXPValue(nodeAttackerPC, tPending.field, 1);
+	appendGeneralXPLog(nodeAttackerPC, "Successful Maneuvers EPs", tPending.field, 1, "Skill Resolution Success");
 	aPendingSkillRollByActor[sActorPath] = nil;
+end
+
+function appendGeneralXPLog(nodePC, sCategory, sField, nDelta, sOrigin)
+	if not Session.IsHost or not nodePC then
+		return;
+	end
+
+	local sPCPath = DB.getPath(nodePC) or "";
+	if sPCPath == "" then
+		return;
+	end
+
+	sCategory = tostring(sCategory or "General");
+	sField = tostring(sField or "unknown");
+	nDelta = tonumber(nDelta or 0) or 0;
+	sOrigin = tostring(sOrigin or "Auto");
+
+	local sEntryText = string.format("[%s] %s %+d (%s)", sCategory, sField, nDelta, sOrigin);
+	local sPath = sPCPath .. ".xpgenlogs";
+	local sCurrent = DB.getValue(nodePC, "xpgenlogs", "") or "";
+	local sNew = "";
+	if sCurrent == "" then
+		sNew = sEntryText;
+	else
+		sNew = sCurrent .. "\n\n" .. sEntryText;
+	end
+
+	local sType = DB.getType(sPath) or "";
+	if sType ~= "string" and sType ~= "formattedtext" then
+		sType = "string";
+	end
+
+	DB.setValue(nodePC, "xpgenlogs", sType, sNew);
 end
 
 function isSkillResolutionSuccessful(sDescription)
