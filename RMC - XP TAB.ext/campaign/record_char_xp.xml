@@ -1256,120 +1256,9 @@ end
 				<static>Kill Points</static>
 			</row_heading>
 
-			<genericcontrol name="foekillbonusarea">
-				<anchored>
-					<top>
-						<parent>comframe</parent>
-						<anchor>bottom</anchor>
-						<relation>relative</relation>
-						<offset>0</offset>
-					</top>
-					<left>
-						<parent>comframe</parent>
-						<anchor>left</anchor>
-						<relation>relative</relation>
-						<offset>0</offset>
-					</left>
-					<right>
-						<parent>comframe</parent>
-						<anchor>right</anchor>
-						<relation>relative</relation>
-						<offset>0</offset>
-					</right>
-					<size>
-						<height>120</height>
-					</size>
-				</anchored>
-				<frame name="groupbox" />
-			</genericcontrol>
-
-			<stringcontrolX name="foekillbonusdivider">
-				<anchored>
-					<top>
-						<parent>foekillbonusarea</parent>
-						<anchor>top</anchor>
-						<relation>relative</relation>
-						<offset>8</offset>
-					</top>
-					<left>
-						<parent>foekillbonusarea</parent>
-						<anchor>left</anchor>
-						<relation>relative</relation>
-						<offset>8</offset>
-					</left>
-					<right>
-						<parent>foekillbonusarea</parent>
-						<anchor>right</anchor>
-						<relation>relative</relation>
-						<offset>-8</offset>
-					</right>
-					<size>
-						<height>14</height>
-					</size>
-				</anchored>
-				<font>sheetlabelsmall</font>
-				<static>--------------------------------------------------</static>
-			</stringcontrolX>
-
-			<row_heading name="foekillbonusheader">
-				<anchored to="foekillbonusarea" position="insidetopleft" offset="10,26" width="140" />
-				<static>Foes Kill Bonus</static>
-			</row_heading>
-
-			<combobox_labeled_RMC name="foekillbonuscombo">
-				<anchored>
-					<top>
-						<parent>foekillbonusheader</parent>
-						<anchor>bottom</anchor>
-						<relation>relative</relation>
-						<offset>8</offset>
-					</top>
-					<left>
-						<parent>foekillbonusarea</parent>
-						<anchor>left</anchor>
-						<relation>relative</relation>
-						<offset>8</offset>
-					</left>
-					<right>
-						<parent>foekillbonusarea</parent>
-						<anchor>right</anchor>
-						<relation>relative</relation>
-						<offset>-8</offset>
-					</right>
-					<size>
-						<height>20</height>
-					</size>
-				</anchored>
-				<label>Foes Kill Bonus</label>
-				<listmaxsize>12</listmaxsize>
-				<readonly />
-				<script>
-					function onInit()
-						if super and super.onInit then
-							super.onInit();
-						end
-
-						setComboBoxReadOnly(true);
-						window.refreshFoeKillBonusCombo();
-					end
-
-					function onDrop(x, y, draginfo)
-						if draginfo.isType("shortcut") then
-							local sClass, sRecord = draginfo.getShortcutData();
-							if window.addFoeKillBonusEntryFromShortcut(sClass, sRecord) then
-								window.refreshFoeKillBonusCombo();
-								return true;
-							end
-						end
-
-						return false;
-					end
-				</script>
-			</combobox_labeled_RMC>
-			
 			<genericcontrol name="spellframe"> <!-- Spell XP Frame -->
 			<bounds>20,355,-40,120</bounds>
-				<anchored to="foekillbonusarea" position="belowleft" offset="0,0" width="540" height="120" />
+				<anchored to="comframe" position="belowleft" offset="0,0" width="540" height="120" />
 				<frame name="groupbox" />
 			</genericcontrol>
 			
@@ -1913,6 +1802,117 @@ end
 				</anchored>
 				<static>Total</static>
 			</stringcontrolX>
+
+			<genericcontrol name="foekillbonusarea">
+				<anchored>
+					<top>
+						<parent>totalframe</parent>
+						<anchor>bottom</anchor>
+						<relation>relative</relation>
+						<offset>10</offset>
+					</top>
+					<left>
+						<parent>manframe</parent>
+						<anchor>left</anchor>
+						<relation>relative</relation>
+						<offset>0</offset>
+					</left>
+					<right>
+						<parent>manframe</parent>
+						<anchor>right</anchor>
+						<relation>relative</relation>
+						<offset>0</offset>
+					</right>
+					<size>
+						<height>400</height>
+					</size>
+				</anchored>
+				<frame name="groupbox" />
+			</genericcontrol>
+
+			<stringcontrolX name="foekillbonusdivider">
+				<anchored>
+					<top>
+						<parent>foekillbonusarea</parent>
+						<anchor>top</anchor>
+						<relation>relative</relation>
+						<offset>8</offset>
+					</top>
+					<left>
+						<parent>foekillbonusarea</parent>
+						<anchor>left</anchor>
+						<relation>relative</relation>
+						<offset>8</offset>
+					</left>
+					<right>
+						<parent>foekillbonusarea</parent>
+						<anchor>right</anchor>
+						<relation>relative</relation>
+						<offset>-8</offset>
+					</right>
+					<size>
+						<height>14</height>
+					</size>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>--------------------------------------------------</static>
+			</stringcontrolX>
+
+			<row_heading name="foekillbonusheader">
+				<anchored to="foekillbonusarea" position="insidetopleft" offset="10,26" width="140" />
+				<static>Foes Kill Bonus</static>
+			</row_heading>
+
+			<combobox_labeled_RMC name="foekillbonuscombo">
+				<anchored>
+					<top>
+						<parent>foekillbonusheader</parent>
+						<anchor>bottom</anchor>
+						<relation>relative</relation>
+						<offset>8</offset>
+					</top>
+					<left>
+						<parent>foekillbonusarea</parent>
+						<anchor>left</anchor>
+						<relation>relative</relation>
+						<offset>8</offset>
+					</left>
+					<right>
+						<parent>foekillbonusarea</parent>
+						<anchor>right</anchor>
+						<relation>relative</relation>
+						<offset>-8</offset>
+					</right>
+					<size>
+						<height>20</height>
+					</size>
+				</anchored>
+				<label>Foes Kill Bonus</label>
+				<listmaxsize>12</listmaxsize>
+				<readonly />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+
+						setComboBoxReadOnly(true);
+						window.refreshFoeKillBonusCombo();
+					end
+
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("shortcut") then
+							local sClass, sRecord = draginfo.getShortcutData();
+							if window.addFoeKillBonusEntryFromShortcut(sClass, sRecord) then
+								window.refreshFoeKillBonusCombo();
+								return true;
+							end
+						end
+
+						return false;
+					end
+				</script>
+			</combobox_labeled_RMC>
 			
 		</sheetdata>
 	</windowclass>
