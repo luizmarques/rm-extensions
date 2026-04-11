@@ -235,8 +235,11 @@ function handleWoundEffectsOOB(msgOOB)
 					normalizeText(sDescription)
 				}, "|");
 				if not isCriticalMatrixProcessedRecently(sEventKey) then
+					local nCriticalBefore = getCombatCriticalEquationXP(nodeAttackerPC);
 					addXPValue(nodeAttackerPC, sField, 1);
-					appendXPLogCombat(nodeAttackerPC, sField, 1, "Critical Matrix " .. sSeverity .. "/" .. sOutcome, nodeTarget);
+					local nCriticalAfter = getCombatCriticalEquationXP(nodeAttackerPC);
+					local nCriticalDelta = nCriticalAfter - nCriticalBefore;
+					appendXPLogCombat(nodeAttackerPC, sField, nCriticalDelta, "Critical Matrix " .. sSeverity .. "/" .. sOutcome, nodeTarget);
 				end
 			end
 		end
@@ -253,8 +256,11 @@ function handleWoundEffectsOOB(msgOOB)
 					normalizeText(sDescription)
 				}, "|");
 				if not isCriticalSelfProcessedRecently(sSelfEventKey) then
+					local nCriticalBefore = getCombatCriticalEquationXP(nodeTargetPC);
 					addXPValue(nodeTargetPC, sSelfField, 1);
-					appendXPLogCombat(nodeTargetPC, sSelfField, 1, "Critical Self " .. sSeverity, nodeTarget);
+					local nCriticalAfter = getCombatCriticalEquationXP(nodeTargetPC);
+					local nCriticalDelta = nCriticalAfter - nCriticalBefore;
+					appendXPLogCombat(nodeTargetPC, sSelfField, nCriticalDelta, "Critical Self " .. sSeverity, nodeTarget);
 				end
 			end
 		end
@@ -306,9 +312,7 @@ function handleApplyDamageOOB(msgOOB)
 
 		if nFoeKillBonusBase > 0 then
 			addXPValue(nodeSourcePC, "foekill", 1);
-			appendXPLogCombat(nodeSourcePC, "foekill", 1, "Kill Confirmed " .. sFoeKillBonusCategory, nodeTarget);
 			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
-			appendXPLogCombat(nodeSourcePC, "foekillbase", nFoeKillBonusBase, "Kill Bonus " .. sFoeKillBonusCategory, nodeTarget);
 		end
 	end
 end
@@ -492,8 +496,11 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetP
 			if not isCriticalMatrixProcessedRecently(sEventKey) then
 				local sField = getCriticalFieldName(sSeverity, sOutcome);
 				if sField ~= "" then
+					local nCriticalBefore = getCombatCriticalEquationXP(nodeAttackerPC);
 					addXPValue(nodeAttackerPC, sField, 1);
-						appendXPLogCombat(nodeAttackerPC, sField, 1, "Critical Matrix " .. sSeverity .. "/" .. sOutcome, nodeTarget);
+					local nCriticalAfter = getCombatCriticalEquationXP(nodeAttackerPC);
+					local nCriticalDelta = nCriticalAfter - nCriticalBefore;
+					appendXPLogCombat(nodeAttackerPC, sField, nCriticalDelta, "Critical Matrix " .. sSeverity .. "/" .. sOutcome, nodeTarget);
 				end
 			end
 		end
@@ -504,8 +511,11 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetP
 		if sSelfField ~= "" then
 			local sSelfEventKey = getCriticalSelfEventKey(nodeTargetPC, nodeTarget, woundEffects, sDescription, sSeverity);
 			if not isCriticalSelfProcessedRecently(sSelfEventKey) then
+				local nCriticalBefore = getCombatCriticalEquationXP(nodeTargetPC);
 				addXPValue(nodeTargetPC, sSelfField, 1);
-				appendXPLogCombat(nodeTargetPC, sSelfField, 1, "Critical Self " .. sSeverity, nodeTarget);
+				local nCriticalAfter = getCombatCriticalEquationXP(nodeTargetPC);
+				local nCriticalDelta = nCriticalAfter - nCriticalBefore;
+				appendXPLogCombat(nodeTargetPC, sSelfField, nCriticalDelta, "Critical Self " .. sSeverity, nodeTarget);
 			end
 		end
 	end
@@ -862,9 +872,7 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 
 		if nFoeKillBonusBase > 0 then
 			addXPValue(nodeSourcePC, "foekill", 1);
-			appendXPLogCombat(nodeSourcePC, "foekill", 1, "Kill Confirmed " .. sFoeKillBonusCategory, nodeTarget);
 			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
-			appendXPLogCombat(nodeSourcePC, "foekillbase", nFoeKillBonusBase, "Kill Bonus " .. sFoeKillBonusCategory, nodeTarget);
 		end
 	end
 end
@@ -2003,8 +2011,27 @@ function appendXPLogCombat(nodePC, sField, nDelta, sOrigin, nodeTarget)
 		return;
 	end
 
+	if not shouldAppendCombatLogEntry(sField, sOrigin) then
+		return;
+	end
+
 	local sEntryText = buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget);
 	appendXPLogLine(nodePC, "combateps", sEntryText);
+end
+
+function shouldAppendCombatLogEntry(sField, sOrigin)
+	sField = tostring(sField or "");
+	local sOriginNorm = normalizeText(sOrigin or "");
+
+	if sField == "hitsgiven" or sField == "hitstaken" then
+		return true;
+	end
+
+	if sOriginNorm:find("critical matrix ", 1, true) == 1 or sOriginNorm:find("critical self ", 1, true) == 1 then
+		return true;
+	end
+
+	return false;
 end
 
 function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget)
@@ -2014,22 +2041,22 @@ function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget)
 
 	local sOriginNorm = normalizeText(sOrigin);
 	local sXPText = string.format("%+d", nDelta);
+	local sTargetName = getCombatTargetName(nodeTarget);
 
 	if sOriginNorm:find("critical matrix ", 1, true) == 1 then
 		local sSeverity, sOutcome = sOriginNorm:match("critical matrix ([abcde])/([%a]+)");
 		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
 		local sOutcomeLabel = getCriticalOutcomeLabel(sOutcome);
-		return string.format("Critical: %s %s | XP: %s", sOutcomeLabel, sSeverityLabel, sXPText);
+		return string.format("Critical: %s %s | (%s) | XP: %s", sOutcomeLabel, sSeverityLabel, sTargetName, sXPText);
 	end
 
 	if sOriginNorm:find("critical self ", 1, true) == 1 then
 		local sSeverity = sOriginNorm:match("critical self ([abcde])");
 		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
-		return string.format("Critical: Self %s | XP: %s", sSeverityLabel, sXPText);
+		return string.format("Critical: Self %s | (%s) | XP: %s", sSeverityLabel, sTargetName, sXPText);
 	end
 
 	if sField == "hitsgiven" then
-		local sTargetName = getCombatTargetName(nodeTarget);
 		return string.format("%s | Hits Given: XP: %s", sTargetName, sXPText);
 	end
 
@@ -2039,18 +2066,41 @@ function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget)
 	end
 
 	if sField == "foekill" then
-		local sTargetName = getCombatTargetName(nodeTarget);
 		return string.format("%s | Foes Killed: XP: %s", sTargetName, sXPText);
 	end
 
 	if sField == "foekillbase" then
-		local sTargetName = getCombatTargetName(nodeTarget);
 		return string.format("%s | Foe Kill Bonus: XP: %s", sTargetName, sXPText);
 	end
 
 	local sFieldLabel = getCombatFieldLabel(sField);
-	local sTargetName = getCombatTargetName(nodeTarget);
 	return string.format("%s | %s: XP: %s", sTargetName, sFieldLabel, sXPText);
+end
+
+function getCombatCriticalEquationXP(nodePC)
+	if not nodePC then
+		return 0;
+	end
+
+	local nMultiplier = tonumber(DB.getValue(nodePC, "combatxpdesc", 1)) or 1;
+	if nMultiplier == 0 then
+		nMultiplier = 1;
+	end
+
+	local function getFieldValue(sName)
+		return tonumber(DB.getValue(nodePC, sName, 0)) or 0;
+	end
+
+	local nCritBase = 0;
+	nCritBase = nCritBase + (getFieldValue("norma") + (getFieldValue("unca") * 0.1) + (getFieldValue("downa") * 0.2) + (getFieldValue("stuna") * 0.5) + (getFieldValue("soloa") * 2) + (getFieldValue("largea") * 1.5) + (getFieldValue("vlargea") * 2)) * 5;
+	nCritBase = nCritBase + (getFieldValue("normb") + (getFieldValue("uncb") * 0.1) + (getFieldValue("downb") * 0.2) + (getFieldValue("stunb") * 0.5) + (getFieldValue("solob") * 2) + (getFieldValue("largeb") * 1.5) + (getFieldValue("vlargeb") * 2)) * 10;
+	nCritBase = nCritBase + (getFieldValue("normc") + (getFieldValue("uncc") * 0.1) + (getFieldValue("downc") * 0.2) + (getFieldValue("stunc") * 0.5) + (getFieldValue("soloc") * 2) + (getFieldValue("largec") * 1.5) + (getFieldValue("vlargec") * 2)) * 15;
+	nCritBase = nCritBase + (getFieldValue("normd") + (getFieldValue("uncd") * 0.1) + (getFieldValue("downd") * 0.2) + (getFieldValue("stund") * 0.5) + (getFieldValue("solod") * 2) + (getFieldValue("larged") * 1.5) + (getFieldValue("vlarged") * 2)) * 20;
+	nCritBase = nCritBase + (getFieldValue("norme") + (getFieldValue("unce") * 0.1) + (getFieldValue("downe") * 0.2) + (getFieldValue("stune") * 0.5) + (getFieldValue("soloe") * 2) + (getFieldValue("largee") * 1.5) + (getFieldValue("vlargee") * 2)) * 25;
+	nCritBase = nCritBase + ((getFieldValue("selfa") * 100) / nMultiplier) + ((getFieldValue("selfb") * 200) / nMultiplier) + ((getFieldValue("selfc") * 300) / nMultiplier) + ((getFieldValue("selfd") * 400) / nMultiplier) + ((getFieldValue("selfe") * 500) / nMultiplier);
+
+	nCritBase = math.floor(nCritBase);
+	return math.floor(nCritBase * nMultiplier);
 end
 
 function getCriticalOutcomeLabel(sOutcome)
