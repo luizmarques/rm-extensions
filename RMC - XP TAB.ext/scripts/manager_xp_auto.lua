@@ -1126,26 +1126,6 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, 
 	DB.setValue(nodeEntry, "text", "string", sEntryText);
 
 	appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey);
-
-	-- Ensure the combo is refreshed
-	local sPCPath = DB.getPath(nodePC) or "";
-	local wndXP = Interface.findWindow("charsheet_xp", sPCPath);
-	if wndXP and wndXP.refreshFoeKillBonusCombo then
-		wndXP.refreshFoeKillBonusCombo();
-	end
-
-	if nodePC.getParent then
-		local nodeParent = nodePC.getParent();
-		if nodeParent then
-			local sParentPath = DB.getPath(nodeParent) or "";
-			if sParentPath ~= "" then
-				local wndParentXP = Interface.findWindow("charsheet_xp", sParentPath);
-				if wndParentXP and wndParentXP.refreshFoeKillBonusCombo then
-					wndParentXP.refreshFoeKillBonusCombo();
-				end
-			end
-		end
-	end
 end
 
 function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
@@ -1169,7 +1149,7 @@ function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
 	if sCurrentNotes == "" then
 		sNewNotes = sEntryText;
 	else
-		sNewNotes = sCurrentNotes .. "\n" .. sEntryText;
+		sNewNotes = sCurrentNotes .. "\n\n" .. sEntryText;
 	end
 
 	local sNotesType = DB.getType(sNotesPath) or "";
@@ -1181,27 +1161,6 @@ function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
 
 	if sEventKey ~= "" then
 		aLoggedFoeKillNotesKeys[sEventKey] = os.time() or 0;
-	end
-
-	local sPCPath = DB.getPath(nodePC) or "";
-	if sPCPath ~= "" then
-		local wndXP = Interface.findWindow("charsheet_xp", sPCPath);
-		if wndXP and wndXP.refreshFoeKillBonusCombo then
-			wndXP.refreshFoeKillBonusCombo();
-		end
-	end
-
-	if nodePC.getParent then
-		local nodeParent = nodePC.getParent();
-		if nodeParent then
-			local sParentPath = DB.getPath(nodeParent) or "";
-			if sParentPath ~= "" then
-				local wndParentXP = Interface.findWindow("charsheet_xp", sParentPath);
-				if wndParentXP and wndParentXP.refreshFoeKillBonusCombo then
-					wndParentXP.refreshFoeKillBonusCombo();
-				end
-			end
-		end
 	end
 end
 

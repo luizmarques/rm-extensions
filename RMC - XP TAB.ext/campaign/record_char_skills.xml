@@ -62,10 +62,7 @@
 					nTotal = nRankBonus + nStatBonus + nLevelBonus + nItemBonus + nSpecialBonus + nMiscBonus;
 				end
 				
-				local nCurrent = getValue();
-				if nCurrent ~= nTotal then
-					setValue(nTotal);
-				end
+				setValue(nTotal);
 			end
 
 			function onValueChanged()
