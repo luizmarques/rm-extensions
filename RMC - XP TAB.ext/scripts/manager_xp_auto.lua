@@ -118,7 +118,7 @@ function processBaseCastingPostRollHost(rSource, rRoll)
 	end
 
 	addXPValue(nodeSourcePC, sSpellField, 1);
-	appendXPLogDetailed(nodeSourcePC, "spelllvleps", "Spell Levels EPs", sSpellField, 1, buildSpellLogOrigin(rRoll, nSpellLevel));
+	appendSpellXPLog(nodeSourcePC, rRoll, nSpellLevel);
 end
 
 function notifySkillPostRollOOB(rSource, rRoll)
@@ -1774,7 +1774,9 @@ function setPendingSkillRoll(nodePC, sSkillField, sSkillName, sDescription)
 	aPendingSkillRollByActor[sActorPath] = {
 		field = sSkillField,
 		skill = normalizeText(sSkillName or ""),
+		skillraw = tostring(sSkillName or ""),
 		desc = normalizeText(sDescription or ""),
+		descraw = tostring(sDescription or ""),
 		time = os.time() or 0,
 	};
 end
@@ -1818,8 +1820,148 @@ function tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, sDescription)
 	end
 
 	addXPValue(nodeAttackerPC, tPending.field, 1);
-	appendXPLogDetailed(nodeAttackerPC, "successfulmaneuverseps", "Successful Maneuvers EPs", tPending.field, 1, buildManeuverLogOrigin(tPending.skill, tPending.desc, sDescription));
+	appendManeuverXPLog(nodeAttackerPC, tPending.field, tPending.skillraw, tPending.descraw, sDescription);
 	aPendingSkillRollByActor[sActorPath] = nil;
+end
+
+function appendXPLogLine(nodePC, sLogField, sEntryText)
+	if not Session.IsHost or not nodePC then
+		return;
+	end
+
+	sLogField = tostring(sLogField or "");
+	sEntryText = tostring(sEntryText or "");
+	if sLogField == "" or sEntryText == "" then
+		return;
+	end
+
+	local sPCPath = DB.getPath(nodePC) or "";
+	if sPCPath == "" then
+		return;
+	end
+
+	local sPath = sPCPath .. "." .. sLogField;
+	local sCurrent = DB.getValue(nodePC, sLogField, "") or "";
+	local sNew = "";
+	if sCurrent == "" then
+		sNew = sEntryText;
+	else
+		sNew = sCurrent .. "\n" .. sEntryText;
+	end
+
+	local sType = DB.getType(sPath) or "";
+	if sType ~= "string" and sType ~= "formattedtext" then
+		sType = "string";
+	end
+
+	DB.setValue(nodePC, sLogField, sType, sNew);
+end
+
+function getSpellXPValue(nodePC, nSpellLevel)
+	nSpellLevel = tonumber(nSpellLevel or 0) or 0;
+	local nPCLevel = tonumber(DB.getValue(nodePC, "level", 0)) or 0;
+	local nSpellXP = math.floor(100 - ((nPCLevel - nSpellLevel) * 10));
+	if nSpellXP > 200 then
+		nSpellXP = 200;
+	end
+	return nSpellXP;
+end
+
+function getSpellDisplayName(rRoll)
+	if type(rRoll) ~= "table" then
+		return "Unknown Spell";
+	end
+
+	local sSpellName = tostring(rRoll.sSpellName or "");
+	if normalizeText(sSpellName) ~= "" then
+		return sSpellName;
+	end
+
+	local sSpellNodeName = tostring(rRoll.sSpellNodeName or "");
+	if sSpellNodeName ~= "" then
+		local nodeSpell = DB.findNode(sSpellNodeName);
+		if nodeSpell then
+			sSpellName = DB.getValue(nodeSpell, "name", "");
+			if normalizeText(sSpellName) ~= "" then
+				return sSpellName;
+			end
+		end
+	end
+
+	sSpellName = tostring(rRoll.skillName or "");
+	if normalizeText(sSpellName) ~= "" then
+		return sSpellName;
+	end
+
+	return "Unknown Spell";
+end
+
+function appendSpellXPLog(nodePC, rRoll, nSpellLevel)
+	if not nodePC then
+		return;
+	end
+
+	nSpellLevel = tonumber(nSpellLevel or 0) or 0;
+	local sSpellName = getSpellDisplayName(rRoll);
+	local nSpellXP = getSpellXPValue(nodePC, nSpellLevel);
+	local sEntryText = string.format("Cast Level %d %s | XP: (XP %+d)", nSpellLevel, sSpellName, nSpellXP);
+	appendXPLogLine(nodePC, "spelllvleps", sEntryText);
+end
+
+function getManeuverDifficultyXPValue(sField)
+	local aXPByField = {
+		routine = 0,
+		easy = 5,
+		light = 10,
+		medium = 50,
+		hard = 100,
+		veryhard = 150,
+		extremelyhard = 200,
+		sheerfolly = 300,
+		absurd = 500,
+	};
+
+	return tonumber(aXPByField[tostring(sField or "")] or 0) or 0;
+end
+
+function getManeuverDifficultyLabel(sField)
+	local aLabelByField = {
+		routine = "Routine",
+		easy = "Easy",
+		light = "Light",
+		medium = "Medium",
+		hard = "Hard",
+		veryhard = "Very Hard",
+		extremelyhard = "Extremely Hard",
+		sheerfolly = "Sheer Folly",
+		absurd = "Absurd",
+	};
+
+	return aLabelByField[tostring(sField or "")] or "Unknown";
+end
+
+function appendManeuverXPLog(nodePC, sField, sSkillName, sPendingDesc, sResolutionDesc)
+	if not nodePC then
+		return;
+	end
+
+	local sSkill = tostring(sSkillName or "");
+	if normalizeText(sSkill) == "" then
+		sSkill = "Unknown Skill";
+	end
+
+	local sDetail = tostring(sResolutionDesc or "");
+	if normalizeText(sDetail) == "" then
+		sDetail = tostring(sPendingDesc or "");
+	end
+	if normalizeText(sDetail) == "" then
+		sDetail = "Resolution";
+	end
+
+	local sDifficulty = getManeuverDifficultyLabel(sField);
+	local nXP = getManeuverDifficultyXPValue(sField);
+	local sEntryText = string.format("%s: %s | Difficult: %s | XP: (XP %+d)", sSkill, sDetail, sDifficulty, nXP);
+	appendXPLogLine(nodePC, "successfulmaneuverseps", sEntryText);
 end
 
 function appendXPLogDetailed(nodePC, sLogField, sCategory, sField, nDelta, sOrigin)
@@ -1841,21 +1983,7 @@ function appendXPLogDetailed(nodePC, sLogField, sCategory, sField, nDelta, sOrig
 	local sTime = getLogTimestamp();
 
 	local sEntryText = string.format("[%s] [%s] %s | %s %+d => %d", sTime, sCategory, sOrigin, sField, nDelta, nTotal);
-	local sPath = sPCPath .. "." .. sLogField;
-	local sCurrent = DB.getValue(nodePC, sLogField, "") or "";
-	local sNew = "";
-	if sCurrent == "" then
-		sNew = sEntryText;
-	else
-		sNew = sCurrent .. "\n" .. sEntryText;
-	end
-
-	local sType = DB.getType(sPath) or "";
-	if sType ~= "string" and sType ~= "formattedtext" then
-		sType = "string";
-	end
-
-	DB.setValue(nodePC, sLogField, sType, sNew);
+	appendXPLogLine(nodePC, sLogField, sEntryText);
 end
 
 function appendXPLogCombat(nodePC, sField, nDelta, sOrigin, nodeTarget)
