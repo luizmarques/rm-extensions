@@ -8,7 +8,7 @@
 
 			<!-- Foes Killed Bonus -->
 			<area_content_framed_groupbox_top name="xplogsframe">
-				<anchored  height="75"/>
+				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="140" />
 			</area_content_framed_groupbox_top>
 			<label name="xplogslabel">
 				<anchored to="xplogsframe" position="insidetop" />

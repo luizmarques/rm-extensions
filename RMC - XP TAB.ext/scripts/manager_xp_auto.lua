@@ -118,7 +118,7 @@ function processBaseCastingPostRollHost(rSource, rRoll)
 	end
 
 	addXPValue(nodeSourcePC, sSpellField, 1);
-	appendXPLogDetailed(nodeSourcePC, "xpspelllogs", "Spell Levels EPs", sSpellField, 1, buildSpellLogOrigin(rRoll, nSpellLevel));
+	appendXPLogDetailed(nodeSourcePC, "spelllvleps", "Spell Levels EPs", sSpellField, 1, buildSpellLogOrigin(rRoll, nSpellLevel));
 end
 
 function notifySkillPostRollOOB(rSource, rRoll)
@@ -1818,7 +1818,7 @@ function tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, sDescription)
 	end
 
 	addXPValue(nodeAttackerPC, tPending.field, 1);
-	appendXPLogDetailed(nodeAttackerPC, "xpmaneuverlogs", "Successful Maneuvers EPs", tPending.field, 1, buildManeuverLogOrigin(tPending.skill, tPending.desc, sDescription));
+	appendXPLogDetailed(nodeAttackerPC, "successfulmaneuverseps", "Successful Maneuvers EPs", tPending.field, 1, buildManeuverLogOrigin(tPending.skill, tPending.desc, sDescription));
 	aPendingSkillRollByActor[sActorPath] = nil;
 end
 
@@ -1832,7 +1832,7 @@ function appendXPLogDetailed(nodePC, sLogField, sCategory, sField, nDelta, sOrig
 		return;
 	end
 
-	sLogField = tostring(sLogField or "xpcombatlogs");
+	sLogField = tostring(sLogField or "combateps");
 	sCategory = tostring(sCategory or "General");
 	sField = tostring(sField or "unknown");
 	nDelta = tonumber(nDelta or 0) or 0;
@@ -1860,7 +1860,7 @@ end
 
 function appendXPLogCombat(nodePC, sField, nDelta, sOrigin, nodeTarget)
 	local sTargetName = getCombatTargetName(nodeTarget);
-	appendXPLogDetailed(nodePC, "xpcombatlogs", "Combat EPs", sField, nDelta, sOrigin .. " | " .. sTargetName);
+	appendXPLogDetailed(nodePC, "combateps", "Combat EPs", sField, nDelta, sOrigin .. " | " .. sTargetName);
 end
 
 function getCombatTargetName(nodeTarget)
