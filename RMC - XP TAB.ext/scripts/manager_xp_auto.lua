@@ -1117,7 +1117,7 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, 
 
 	local sEntryCategory = sCategory or "Bonus";
 	local sEntryText = "";
-	sEntryText = string.format("%03d - %s", nOrder, sFoeName);
+	sEntryText = string.format("%s - (XP + %d)", sFoeName, nBonus);
 
 	DB.setValue(nodeEntry, "order", "number", nOrder);
 	DB.setValue(nodeEntry, "category", "string", sEntryCategory);

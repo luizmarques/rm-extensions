@@ -159,7 +159,9 @@ function refresh()
 
 	local combatMultiplier = combatxpdesc.getValue() or 1;
 	local foeValue = foekillbase.getValue() or 0;
-    combatkills.setValue(foeValue); -- Atualiza combatkills com o valor correto
+	if combatkills.getValue() ~= foeValue then
+		combatkills.setValue(foeValue);
+	end
 
     local critValue = crit() * combatMultiplier;
 
@@ -294,15 +296,9 @@ end
 					for _, nodeEntry in pairs(DB.getChildren(nodeStorage, "foekillbonuslist")) do
 						local sText = DB.getValue(nodeEntry, "text", "");
 						if sText == "" then
-							local nOrder = tonumber(DB.getValue(nodeEntry, "order", 0)) or 0;
-							if nOrder &lt; 1 then
-								nOrder = #aEntries + 1;
-							end
-
-							local sCategory = DB.getValue(nodeEntry, "category", "Unrecognized");
 							local nBonus = tonumber(DB.getValue(nodeEntry, "bonus", 0)) or 0;
 							local sFoe = DB.getValue(nodeEntry, "foe", "Unknown");
-							sText = string.format("%03d - %s: +%d (%s)", nOrder, sCategory, nBonus, sFoe);
+							sText = string.format("%s - (XP + %d)", sFoe, nBonus);
 						end
 
 						if sText ~= "" then
@@ -409,7 +405,7 @@ end
 				end
 
 				local sCategory = "Dropped Entry";
-				local sText = string.format("%03d - %s: +%d (%s)", nOrder, sCategory, nBonus, sFoeName);
+				local sText = string.format("%s - (XP + %d)", sFoeName, nBonus);
 
 				DB.setValue(nodeEntry, "order", "number", nOrder);
 				DB.setValue(nodeEntry, "category", "string", sCategory);
@@ -675,7 +671,7 @@ end
 			<!-- Main border frame for the combat xp -->
 			<genericcontrol name="comframe">
 			<bounds>20,115,-40,240</bounds>
-				<anchored to="manframe" position="belowleft" offset="0,0" width="540" height="240" />
+				<anchored to="manframe" position="belowleft" offset="0,0" width="540" height="650" />
 				<frame name="groupbox" />
 			</genericcontrol>
 			
@@ -794,36 +790,6 @@ end
 					end
 				</script>
 			</number_boxed>
-
-			<combobox_labeled_RMC name="foekillbonuscombo">
-				<anchored to="foekilllabel" position="belowleft" offset="0,4" width="250" height="20" />
-				<label>Foes Killed Bonus</label>
-				<listmaxsize>12</listmaxsize>
-				<readonly />
-				<script>
-					function onInit()
-						if super and super.onInit then
-							super.onInit();
-						end
-
-						setComboBoxReadOnly(true);
-						window.refreshFoeKillBonusCombo();
-					end
-
-					function onDrop(x, y, draginfo)
-						if draginfo.isType("shortcut") then
-							local sClass, sRecord = draginfo.getShortcutData();
-							if window.addFoeKillBonusEntryFromShortcut(sClass, sRecord) then
-								window.refreshFoeKillBonusCombo();
-								return true;
-							end
-						end
-
-						return false;
-					end
-				</script>
-			</combobox_labeled_RMC>
-
 
 			<row_heading name="combatxplabel">  <!-- Heading -->
 				<anchored to="comframe" position="insidetopleft" offset="15,55" width="75" />	
@@ -1282,11 +1248,6 @@ end
 			
 			<number_boxed name="combatkills">
 				<anchored to="comframe" position="insidetopleft" offset="220,210" width="65" />	
-				<script>															
-					function onValueChanged()
-						window.refresh();
-					end
-				</script>
 				<readonly/>
 			</number_boxed>
 			
@@ -1294,6 +1255,117 @@ end
 				<anchored to="comframe" position="insidetopleft" offset="150,209" width="80" />
 				<static>Kill Points</static>
 			</row_heading>
+
+			<genericcontrol name="foekillbonusarea">
+				<anchored>
+					<top>
+						<parent>combatkills</parent>
+						<anchor>bottom</anchor>
+						<relation>relative</relation>
+						<offset>10</offset>
+					</top>
+					<left>
+						<parent>comframe</parent>
+						<anchor>left</anchor>
+						<relation>relative</relation>
+						<offset>150</offset>
+					</left>
+					<right>
+						<parent>comframe</parent>
+						<anchor>right</anchor>
+						<relation>relative</relation>
+						<offset>-90</offset>
+					</right>
+					<size>
+						<height>400</height>
+					</size>
+				</anchored>
+				<frame name="groupbox" />
+			</genericcontrol>
+
+			<stringcontrolX name="foekillbonusdivider">
+				<anchored>
+					<top>
+						<parent>foekillbonusarea</parent>
+						<anchor>top</anchor>
+						<relation>relative</relation>
+						<offset>8</offset>
+					</top>
+					<left>
+						<parent>foekillbonusarea</parent>
+						<anchor>left</anchor>
+						<relation>relative</relation>
+						<offset>8</offset>
+					</left>
+					<right>
+						<parent>foekillbonusarea</parent>
+						<anchor>right</anchor>
+						<relation>relative</relation>
+						<offset>-8</offset>
+					</right>
+					<size>
+						<height>14</height>
+					</size>
+				</anchored>
+				<font>sheetlabelsmall</font>
+				<static>--------------------------------------------------</static>
+			</stringcontrolX>
+
+			<row_heading name="foekillbonusheader">
+				<anchored to="foekillbonusarea" position="insidetopleft" offset="10,26" width="140" />
+				<static>Foes Kill Bonus</static>
+			</row_heading>
+
+			<combobox_labeled_RMC name="foekillbonuscombo">
+				<anchored>
+					<top>
+						<parent>foekillbonusheader</parent>
+						<anchor>bottom</anchor>
+						<relation>relative</relation>
+						<offset>8</offset>
+					</top>
+					<left>
+						<parent>foekillbonusarea</parent>
+						<anchor>left</anchor>
+						<relation>relative</relation>
+						<offset>8</offset>
+					</left>
+					<right>
+						<parent>foekillbonusarea</parent>
+						<anchor>right</anchor>
+						<relation>relative</relation>
+						<offset>-8</offset>
+					</right>
+					<size>
+						<height>20</height>
+					</size>
+				</anchored>
+				<label>Foes Kill Bonus</label>
+				<listmaxsize>12</listmaxsize>
+				<readonly />
+				<script>
+					function onInit()
+						if super and super.onInit then
+							super.onInit();
+						end
+
+						setComboBoxReadOnly(true);
+						window.refreshFoeKillBonusCombo();
+					end
+
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("shortcut") then
+							local sClass, sRecord = draginfo.getShortcutData();
+							if window.addFoeKillBonusEntryFromShortcut(sClass, sRecord) then
+								window.refreshFoeKillBonusCombo();
+								return true;
+							end
+						end
+
+						return false;
+					end
+				</script>
+			</combobox_labeled_RMC>
 			
 			<genericcontrol name="spellframe"> <!-- Spell XP Frame -->
 			<bounds>20,355,-40,120</bounds>
