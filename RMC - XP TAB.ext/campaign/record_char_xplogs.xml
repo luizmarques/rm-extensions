@@ -6,10 +6,9 @@
 			<anchor_content_top />
 			<anchor_content_bottom />
 
-			<genericcontrol name="xplogsframe">
-				<anchored to="contentanchor" position="insidetopleft" offset="0,0" width="540" height="165" />
-				<frame name="groupbox" />
-			</genericcontrol>
+			<area_content_framed_groupbox_top name="xplogsframe">
+				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="140" />
+			</area_content_framed_groupbox_top>
 			<label name="xplogslabel">
 				<anchored to="xplogsframe" position="insidetop" />
 				<static>Foes Killed Bonus</static>
@@ -26,10 +25,9 @@
 				<target>xplogs</target>
 			</scrollbar_content_base>
 
-			<genericcontrol name="xpspelllogsframe">
-				<anchored to="xplogsframe" position="belowleft" offset="0,10" width="540" height="165" />
-				<frame name="groupbox" />
-			</genericcontrol>
+			<area_content_framed_groupbox name="xpspelllogsframe">
+				<anchored to="xplogsframe" position="belowleft" offset="0,0" height="140" />
+			</area_content_framed_groupbox>
 			<label name="xpspelllogslabel">
 				<anchored to="xpspelllogsframe" position="insidetop" />
 				<static>Spell Levels EPs</static>
@@ -46,10 +44,9 @@
 				<target>xpspelllogs</target>
 			</scrollbar_content_base>
 
-			<genericcontrol name="xpmaneuverlogsframe">
-				<anchored to="xpspelllogsframe" position="belowleft" offset="0,10" width="540" height="165" />
-				<frame name="groupbox" />
-			</genericcontrol>
+			<area_content_framed_groupbox name="xpmaneuverlogsframe">
+				<anchored to="xpspelllogsframe" position="belowleft" offset="0,0" height="140" />
+			</area_content_framed_groupbox>
 			<label name="xpmaneuverlogslabel">
 				<anchored to="xpmaneuverlogsframe" position="insidetop" />
 				<static>Successful Maneuvers EPs</static>
@@ -66,10 +63,9 @@
 				<target>xpmaneuverlogs</target>
 			</scrollbar_content_base>
 
-			<genericcontrol name="xpcombatlogsframe">
-				<anchored to="xpmaneuverlogsframe" position="belowleft" offset="0,10" width="540" height="165" />
-				<frame name="groupbox" />
-			</genericcontrol>
+			<area_content_framed_groupbox_bottom name="xpcombatlogsframe">
+				<anchored to="xpmaneuverlogsframe" position="belowleft" offset="0,0" height="140" />
+			</area_content_framed_groupbox_bottom>
 			<label name="xpcombatlogslabel">
 				<anchored to="xpcombatlogsframe" position="insidetop" />
 				<static>Combat EPs</static>
