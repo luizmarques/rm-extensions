@@ -7,11 +7,7 @@
 			<anchor_content_bottom />
 
 			<area_content_framed_groupbox_top name="xplogsframe">
-<<<<<<< HEAD
 				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="140" />
-=======
-				<anchored height="220" />
->>>>>>> parent of b4eefbd (xplogs fix)
 			</area_content_framed_groupbox_top>
 			<label name="xplogslabel">
 				<anchored to="xplogsframe" position="insidetop" />
@@ -29,7 +25,6 @@
 				<target>xplogs</target>
 			</scrollbar_content_base>
 
-<<<<<<< HEAD
 			<area_content_framed_groupbox name="xpspelllogsframe">
 				<anchored to="xplogsframe" position="belowleft" offset="0,0" height="140" />
 			</area_content_framed_groupbox>
@@ -78,25 +73,13 @@
 			</label>
 			<stringu name="xpcombatlogs">
 				<anchored to="xpcombatlogsframe" position="insidetop" offset="0,15">
-=======
-			<area_content_framed_groupbox_bottom name="xpgenlogsframe">
-				<anchored height="220" />
-			</area_content_framed_groupbox_bottom>
-			<label name="xpgenlogslabel">
-				<anchored to="xpgenlogsframe" position="insidetop" />
-				<static>General Logs</static>
-				<center />
-			</label>
-			<stringu name="xpgenlogs">
-				<anchored to="xpgenlogsframe" position="insidetop" offset="0,20">
->>>>>>> parent of b4eefbd (xplogs fix)
 					<bottom />
 				</anchored>
 				<multilinespacing>20</multilinespacing>
 			</stringu>
 			<scrollbar_content_base>
-				<anchored to="xpgenlogs" />
-				<target>xpgenlogs</target>
+				<anchored to="xpcombatlogs" />
+				<target>xpcombatlogs</target>
 			</scrollbar_content_base>
 		</sheetdata>
 	</windowclass>
