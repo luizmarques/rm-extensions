@@ -118,7 +118,7 @@ function processBaseCastingPostRollHost(rSource, rRoll)
 	end
 
 	addXPValue(nodeSourcePC, sSpellField, 1);
-	appendXPLogDetailed(nodeSourcePC, "xpspelllogs", "Spell Levels EPs", sSpellField, 1, "Base Casting Success");
+	appendGeneralXPLog(nodeSourcePC, "Spell Levels EPs", sSpellField, 1, "Base Casting Success");
 end
 
 function notifySkillPostRollOOB(rSource, rRoll)
@@ -236,7 +236,6 @@ function handleWoundEffectsOOB(msgOOB)
 				}, "|");
 				if not isCriticalMatrixProcessedRecently(sEventKey) then
 					addXPValue(nodeAttackerPC, sField, 1);
-					appendXPLogCombat(nodeAttackerPC, sField, 1, "Critical Matrix", nodeTarget);
 				end
 			end
 		end
@@ -254,7 +253,6 @@ function handleWoundEffectsOOB(msgOOB)
 				}, "|");
 				if not isCriticalSelfProcessedRecently(sSelfEventKey) then
 					addXPValue(nodeTargetPC, sSelfField, 1);
-					appendXPLogCombat(nodeTargetPC, sSelfField, 1, "Critical Self", nodeTarget);
 				end
 			end
 		end
@@ -289,12 +287,10 @@ function handleApplyDamageOOB(msgOOB)
 
 	if nodeTargetPC and not isCombatEPProcessedRecently(nodeTargetPC, "hitstaken", nAppliedDamage, bKill) then
 		addXPValue(nodeTargetPC, "hitstaken", nAppliedDamage);
-		appendXPLogCombat(nodeTargetPC, "hitstaken", nAppliedDamage, "Apply Damage", nodeTarget);
 	end
 
 	if nodeSourcePC and not isCombatEPProcessedRecently(nodeSourcePC, "hitsgiven", nAppliedDamage, bKill) then
 		addXPValue(nodeSourcePC, "hitsgiven", nAppliedDamage);
-		appendXPLogCombat(nodeSourcePC, "hitsgiven", nAppliedDamage, "Apply Damage", nodeTarget);
 	end
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
@@ -307,8 +303,6 @@ function handleApplyDamageOOB(msgOOB)
 		if nFoeKillBonusBase > 0 then
 			addXPValue(nodeSourcePC, "foekill", 1);
 			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
-			appendXPLogCombat(nodeSourcePC, "foekill", 1, "Kill Confirmed", nodeTarget);
-			appendXPLogCombat(nodeSourcePC, "foekillbase", nFoeKillBonusBase, "Kill Confirmed", nodeTarget);
 		end
 	end
 end
@@ -493,7 +487,6 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetP
 				local sField = getCriticalFieldName(sSeverity, sOutcome);
 				if sField ~= "" then
 					addXPValue(nodeAttackerPC, sField, 1);
-					appendXPLogCombat(nodeAttackerPC, sField, 1, "Critical Matrix", nodeTarget);
 				end
 			end
 		end
@@ -505,7 +498,6 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetP
 			local sSelfEventKey = getCriticalSelfEventKey(nodeTargetPC, nodeTarget, woundEffects, sDescription, sSeverity);
 			if not isCriticalSelfProcessedRecently(sSelfEventKey) then
 				addXPValue(nodeTargetPC, sSelfField, 1);
-				appendXPLogCombat(nodeTargetPC, sSelfField, 1, "Critical Self", nodeTarget);
 			end
 		end
 	end
@@ -845,12 +837,10 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 
 	if nodeTargetPC and nHitsTakenXP > 0 and not isCombatEPProcessedRecently(nodeTargetPC, "hitstaken", nHitsTakenXP, bKill) then
 		addXPValue(nodeTargetPC, "hitstaken", nHitsTakenXP);
-		appendXPLogCombat(nodeTargetPC, "hitstaken", nHitsTakenXP, "Apply Damage", nodeTarget);
 	end
 
 	if nodeSourcePC and nHitsGivenXP > 0 and not isCombatEPProcessedRecently(nodeSourcePC, "hitsgiven", nHitsGivenXP, bKill) then
 		addXPValue(nodeSourcePC, "hitsgiven", nHitsGivenXP);
-		appendXPLogCombat(nodeSourcePC, "hitsgiven", nHitsGivenXP, "Apply Damage", nodeTarget);
 	end
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
@@ -863,8 +853,6 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 		if nFoeKillBonusBase > 0 then
 			addXPValue(nodeSourcePC, "foekill", 1);
 			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
-			appendXPLogCombat(nodeSourcePC, "foekill", 1, "Kill Confirmed", nodeTarget);
-			appendXPLogCombat(nodeSourcePC, "foekillbase", nFoeKillBonusBase, "Kill Confirmed", nodeTarget);
 		end
 	end
 end
@@ -1834,11 +1822,11 @@ function tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, sDescription)
 	end
 
 	addXPValue(nodeAttackerPC, tPending.field, 1);
-	appendXPLogDetailed(nodeAttackerPC, "xpmaneuverlogs", "Successful Maneuvers EPs", tPending.field, 1, "Skill Resolution Success");
+	appendGeneralXPLog(nodeAttackerPC, "Successful Maneuvers EPs", tPending.field, 1, "Skill Resolution Success");
 	aPendingSkillRollByActor[sActorPath] = nil;
 end
 
-function appendXPLogDetailed(nodePC, sLogField, sCategory, sField, nDelta, sOrigin)
+function appendGeneralXPLog(nodePC, sCategory, sField, nDelta, sOrigin)
 	if not Session.IsHost or not nodePC then
 		return;
 	end
@@ -1848,16 +1836,14 @@ function appendXPLogDetailed(nodePC, sLogField, sCategory, sField, nDelta, sOrig
 		return;
 	end
 
-	sLogField = tostring(sLogField or "xpcombatlogs");
 	sCategory = tostring(sCategory or "General");
 	sField = tostring(sField or "unknown");
 	nDelta = tonumber(nDelta or 0) or 0;
 	sOrigin = tostring(sOrigin or "Auto");
-	local nTotal = tonumber(DB.getValue(nodePC, sField, 0)) or 0;
 
-	local sEntryText = string.format("[%s] %s %+d => %d (%s)", sCategory, sField, nDelta, nTotal, sOrigin);
-	local sPath = sPCPath .. "." .. sLogField;
-	local sCurrent = DB.getValue(nodePC, sLogField, "") or "";
+	local sEntryText = string.format("[%s] %s %+d (%s)", sCategory, sField, nDelta, sOrigin);
+	local sPath = sPCPath .. ".xpgenlogs";
+	local sCurrent = DB.getValue(nodePC, "xpgenlogs", "") or "";
 	local sNew = "";
 	if sCurrent == "" then
 		sNew = sEntryText;
@@ -1870,18 +1856,7 @@ function appendXPLogDetailed(nodePC, sLogField, sCategory, sField, nDelta, sOrig
 		sType = "string";
 	end
 
-	DB.setValue(nodePC, sLogField, sType, sNew);
-end
-
-function appendXPLogCombat(nodePC, sField, nDelta, sOrigin, nodeTarget)
-	local sTargetName = "Unknown";
-	if nodeTarget then
-		sTargetName = DB.getValue(nodeTarget, "name", "Unknown");
-		if sTargetName == "" then
-			sTargetName = "Unknown";
-		end
-	end
-	appendXPLogDetailed(nodePC, "xpcombatlogs", "Combat EPs", sField, nDelta, sOrigin .. " | " .. sTargetName);
+	DB.setValue(nodePC, "xpgenlogs", sType, sNew);
 end
 
 function isSkillResolutionSuccessful(sDescription)
