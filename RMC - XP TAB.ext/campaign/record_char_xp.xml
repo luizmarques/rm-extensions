@@ -147,13 +147,6 @@ function refresh()
     manuevertotal.setValue(mantot);
 
     local comtot;
-    local nHpgiv = 0;
-    local nHptak = 0;
-
-    nHpgiv = addhitsgiven.getValue() + hitsgiven.getValue();
-    nHptak = addhitstaken.getValue() + hitstaken.getValue();
-    hitsgiven.setValue(nHpgiv);
-    hitstaken.setValue(nHptak);
 
 	local combatMultiplier = combatxpdesc.getValue() or 1;
 	local foeValue = foekillbase.getValue() or 0;
@@ -165,9 +158,6 @@ function refresh()
 
     comtot = hitsgiven.getValue() + hitstaken.getValue() + critValue + foeValue; -- Usa o valor atualizado de combatkills
     combattotal.setValue(comtot);
-
-    addhitsgiven.setValue(0);
-    addhitstaken.setValue(0);
 
     local spelltot;
     spelltot = spellcalc(1) * spellone.getValue() + spellcalc(2) * spelltwo.getValue() + spellcalc(3) * spellthree.getValue() +
@@ -687,44 +677,6 @@ end
 				<anchored to="comframe" position="insidetopleft" offset="95,38" width="35" />
 				<readonly/>
 			</number_boxed>
-			
-			<number_boxed name="addhitsgiven">
-				<anchored to="comframe" position="insidetopleft" offset="95,15" width="35" />						
-				<script>
-					function onInit()
-						if super and super.onInit then
-							super.onInit();
-						end	
-					end
-						
-					function onDrop(x, y, draginfo)
-						setValue(draginfo.getNumberData());
-						return true;
-					end
-				</script>
-			</number_boxed>	
-			
-			<buttoncontrol name="addhitsgiven_butt">
-				<bounds>153,127,23,22</bounds>
-				<icon>
-				  <normal>button_arrowdown</normal>
-				  <pressed>button_arrowdown_down</pressed>
-				</icon>
-				<script>
-				  function onInit()
-					if User.isHost() then
-					  setVisible(true);
-					end
-				  end
-				  
-				  function onButtonPress()
-					window.refresh();
-				  end
-				</script>
-				<tooltip>
-					<text>Add Hits Given to total</text>
-				</tooltip>
-			</buttoncontrol>
 				
 			<row_heading name="hitstakenlabel">
 				<anchored to="hitsgivenlabel" position="righthigh" offset="30" width="75" />
@@ -737,46 +689,8 @@ end
 				<readonly/>
 			</number_boxed>
 			
-			<number_boxed name="addhitstaken">
-				<anchored to="addhitsgiven" position="right" offset="70" width="35" />						
-				<script>
-					function onInit()
-						if super and super.onInit then
-							super.onInit();
-						end	
-					end
-						
-					function onDrop(x, y, draginfo)
-						setValue(draginfo.getNumberData());
-						return true;
-					end
-				</script>	
-			</number_boxed>
-			
-			<buttoncontrol name="addhitstaken_butt">
-				<bounds>259,127,23,22</bounds>
-				<icon>
-				  <normal>button_arrowdown</normal>
-				  <pressed>button_arrowdown_down</pressed>
-				</icon>
-				<script>
-				  function onInit()
-					if User.isHost() then
-					  setVisible(true);
-					end
-				  end
-				  
-				  function onButtonPress()
-					window.refresh();
-				  end
-				</script>
-				<tooltip>
-					<text>Add Hits Taken to total</text>
-				</tooltip>
-			</buttoncontrol>
-			
 			<row_heading name="foekilllabel">
-				<anchored to="addhitstaken_butt" position="righthigh" offset="25" width="75" />		
+				<anchored to="hitstakenlabel" position="righthigh" offset="40" width="75" />		
 				<static>Foes Killed</static>
 			</row_heading>
 			

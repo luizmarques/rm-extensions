@@ -1162,7 +1162,7 @@ function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
 	if sCurrentNotes == "" then
 		sNewNotes = sEntryText;
 	else
-		sNewNotes = sCurrentNotes .. "\n\n" .. sEntryText;
+		sNewNotes = sCurrentNotes .. "\n" .. sEntryText;
 	end
 
 	local sXPLogsPath = sPCPath .. ".xplogs";
@@ -1171,7 +1171,7 @@ function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
 	if sCurrentXPLogs == "" then
 		sNewXPLogs = sEntryText;
 	else
-		sNewXPLogs = sCurrentXPLogs .. "\n\n" .. sEntryText;
+		sNewXPLogs = sCurrentXPLogs .. "\n" .. sEntryText;
 	end
 
 	local sNotesType = DB.getType(sNotesPath) or "";
@@ -1862,7 +1862,7 @@ function appendXPLogDetailed(nodePC, sLogField, sCategory, sField, nDelta, sOrig
 	if sCurrent == "" then
 		sNew = sEntryText;
 	else
-		sNew = sCurrent .. "\n\n" .. sEntryText;
+		sNew = sCurrent .. "\n" .. sEntryText;
 	end
 
 	local sType = DB.getType(sPath) or "";
