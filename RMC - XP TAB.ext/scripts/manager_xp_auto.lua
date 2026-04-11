@@ -118,7 +118,6 @@ function processBaseCastingPostRollHost(rSource, rRoll)
 	end
 
 	addXPValue(nodeSourcePC, sSpellField, 1);
-	appendGeneralXPLog(nodeSourcePC, "Spell Levels EPs", sSpellField, 1, "Base Casting Success");
 end
 
 function notifySkillPostRollOOB(rSource, rRoll)
@@ -1822,7 +1821,6 @@ function tryProcessPendingSkillEP(nodeAttackerCT, nodeTarget, sDescription)
 	end
 
 	addXPValue(nodeAttackerPC, tPending.field, 1);
-	appendGeneralXPLog(nodeAttackerPC, "Successful Maneuvers EPs", tPending.field, 1, "Skill Resolution Success");
 	aPendingSkillRollByActor[sActorPath] = nil;
 end
 
@@ -1848,7 +1846,7 @@ function appendGeneralXPLog(nodePC, sCategory, sField, nDelta, sOrigin)
 	if sCurrent == "" then
 		sNew = sEntryText;
 	else
-		sNew = sCurrent .. "\n" .. sEntryText;
+		sNew = sCurrent .. "\n\n" .. sEntryText;
 	end
 
 	local sType = DB.getType(sPath) or "";
