@@ -22,25 +22,6 @@
 				<anchored to="xplogs" />
 				<target>xplogs</target>
 			</scrollbar_content_base>
-
-			<area_content_framed_groupbox_bottom name="xpgenlogsframe">
-				<anchored height="220" />
-			</area_content_framed_groupbox_bottom>
-			<label name="xpgenlogslabel">
-				<anchored to="xpgenlogsframe" position="insidetop" />
-				<static>General Logs</static>
-				<center />
-			</label>
-			<stringu name="xpgenlogs">
-				<anchored to="xpgenlogsframe" position="insidetop" offset="0,20">
-					<bottom />
-				</anchored>
-				<multilinespacing>20</multilinespacing>
-			</stringu>
-			<scrollbar_content_base>
-				<anchored to="xpgenlogs" />
-				<target>xpgenlogs</target>
-			</scrollbar_content_base>
 		</sheetdata>
 	</windowclass>
 </root>
