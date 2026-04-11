@@ -671,7 +671,7 @@ end
 			<!-- Main border frame for the combat xp -->
 			<genericcontrol name="comframe">
 			<bounds>20,115,-40,240</bounds>
-				<anchored to="manframe" position="belowleft" offset="0,0" width="540" height="650" />
+				<anchored to="manframe" position="belowleft" offset="0,0" width="540" height="240" />
 				<frame name="groupbox" />
 			</genericcontrol>
 			
@@ -1259,25 +1259,25 @@ end
 			<genericcontrol name="foekillbonusarea">
 				<anchored>
 					<top>
-						<parent>combatkills</parent>
+						<parent>comframe</parent>
 						<anchor>bottom</anchor>
 						<relation>relative</relation>
-						<offset>10</offset>
+						<offset>0</offset>
 					</top>
 					<left>
 						<parent>comframe</parent>
 						<anchor>left</anchor>
 						<relation>relative</relation>
-						<offset>150</offset>
+						<offset>0</offset>
 					</left>
 					<right>
 						<parent>comframe</parent>
 						<anchor>right</anchor>
 						<relation>relative</relation>
-						<offset>-90</offset>
+						<offset>0</offset>
 					</right>
 					<size>
-						<height>400</height>
+						<height>120</height>
 					</size>
 				</anchored>
 				<frame name="groupbox" />
@@ -1369,7 +1369,7 @@ end
 			
 			<genericcontrol name="spellframe"> <!-- Spell XP Frame -->
 			<bounds>20,355,-40,120</bounds>
-				<anchored to="comframe" position="belowleft" offset="0,0" width="540" height="120" />
+				<anchored to="foekillbonusarea" position="belowleft" offset="0,0" width="540" height="120" />
 				<frame name="groupbox" />
 			</genericcontrol>
 			
