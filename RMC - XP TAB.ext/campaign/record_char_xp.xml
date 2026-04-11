@@ -568,6 +568,7 @@ end
 			</stringcontrolX>
 			
 			<number_boxed name="routine">
+				<readonly/>
 				<anchored to="manframe" position="insidetopleft" offset="115,35" width="30" height="18" />
 				<script>															
 					function onValueChanged()
@@ -577,6 +578,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="easy">
+				<readonly/>
 				<anchored to="routine" position="right" offset="5" width="30" />
 				<script>															
 					function onValueChanged()
@@ -585,6 +587,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="light">
+				<readonly/>
 				<anchored to="easy" position="right" offset="5" width="30" />
 				<script>															
 					function onValueChanged()
@@ -594,6 +597,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="medium">
+				<readonly/>
 				<anchored to="light" position="right" offset="5" width="30" />	
 				<script>															
 					function onValueChanged()
@@ -603,6 +607,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="hard">
+				<readonly/>
 				<anchored to="medium" position="right" offset="5" width="30" />
 				<script>															
 					function onValueChanged()
@@ -612,6 +617,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="veryhard">
+				<readonly/>
 				<anchored to="hard" position="right" offset="5" width="30" />
 				<script>															
 					function onValueChanged()
@@ -621,6 +627,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="extremelyhard">
+				<readonly/>
 				<anchored to="veryhard" position="right" offset="5" width="30" />
 				<script>															
 					function onValueChanged()
@@ -630,6 +637,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="sheerfolly">
+				<readonly/>
 				<anchored to="extremelyhard" position="right" offset="5" width="30" />
 				<script>															
 					function onValueChanged()
@@ -639,6 +647,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="absurd">
+				<readonly/>
 				<anchored to="sheerfolly" position="right" offset="5" width="30" />
 				<script>															
 					function onValueChanged()
@@ -697,6 +706,7 @@ end
 			</row_heading>
 			
 			<number_boxed name="foekill">
+				<readonly/>
 				<anchored to="foekilllabel" position="right" offset="0" width="35" />
 			    <script>
 					function onValueChanged()
@@ -717,6 +727,7 @@ end
 			</stringcontrolX>
 			
 <number_boxed name="combatxpdesc">
+				<readonly/>
     <anchored to="comframe" position="insidetopleft" offset="135,60" width="35" />
     <script>
         function onInit()
@@ -826,6 +837,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="unca">
+				<readonly/>
 				<anchored to="norma" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -835,6 +847,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="downa">
+				<readonly/>
 				<anchored to="unca" position="right" offset="25" width="30" />
 				<script>															
 					function onValueChanged()
@@ -844,6 +857,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="stuna">
+				<readonly/>
 				<anchored to="downa" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -853,6 +867,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="soloa">
+				<readonly/>
 				<anchored to="stuna" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -862,6 +877,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="largea">
+				<readonly/>
 				<anchored to="soloa" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -871,6 +887,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="vlargea">
+				<readonly/>
 				<anchored to="largea" position="right" offset="30" width="30" />
 				<script>															
 					function onValueChanged()
@@ -880,6 +897,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="selfa">
+				<readonly/>
 				<anchored to="vlargea" position="right" offset="18" width="30" />
 				<script>															
 					function onValueChanged()
@@ -898,6 +916,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="uncb">
+				<readonly/>
 				<anchored to="normb" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -906,6 +925,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="downb">
+				<readonly/>
 				<anchored to="uncb" position="right" offset="25" width="30" />
 				<script>															
 					function onValueChanged()
@@ -914,6 +934,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="stunb">
+				<readonly/>
 				<anchored to="downb" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -922,6 +943,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="solob">
+				<readonly/>
 				<anchored to="stunb" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -930,6 +952,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="largeb">
+				<readonly/>
 				<anchored to="solob" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -938,6 +961,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="vlargeb">
+				<readonly/>
 				<anchored to="largeb" position="right" offset="30" width="30" />
 				<script>															
 					function onValueChanged()
@@ -946,6 +970,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="selfb">
+				<readonly/>
 				<anchored to="vlargeb" position="right" offset="18" width="30" />
 				<script>															
 					function onValueChanged()
@@ -963,6 +988,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="uncc">
+				<readonly/>
 				<anchored to="normc" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -971,6 +997,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="downc">
+				<readonly/>
 				<anchored to="uncc" position="right" offset="25" width="30" />
 				<script>															
 					function onValueChanged()
@@ -979,6 +1006,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="stunc">
+				<readonly/>
 				<anchored to="downc" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -987,6 +1015,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="soloc">
+				<readonly/>
 				<anchored to="stunc" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -995,6 +1024,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="largec">
+				<readonly/>
 				<anchored to="soloc" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1003,6 +1033,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="vlargec">
+				<readonly/>
 				<anchored to="largec" position="right" offset="30" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1011,6 +1042,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="selfc">
+				<readonly/>
 				<anchored to="vlargec" position="right" offset="18" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1028,6 +1060,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="uncd">
+				<readonly/>
 				<anchored to="normd" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1036,6 +1069,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="downd">
+				<readonly/>
 				<anchored to="uncd" position="right" offset="25" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1044,6 +1078,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="stund">
+				<readonly/>
 				<anchored to="downd" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1052,6 +1087,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="solod">
+				<readonly/>
 				<anchored to="stund" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1060,6 +1096,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="larged">
+				<readonly/>
 				<anchored to="solod" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1068,6 +1105,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="vlarged">
+				<readonly/>
 				<anchored to="larged" position="right" offset="30" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1076,6 +1114,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="selfd">
+				<readonly/>
 				<anchored to="vlarged" position="right" offset="18" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1094,6 +1133,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="unce">
+				<readonly/>
 				<anchored to="norme" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1102,6 +1142,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="downe">
+				<readonly/>
 				<anchored to="unce" position="right" offset="25" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1110,6 +1151,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="stune">
+				<readonly/>
 				<anchored to="downe" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1118,6 +1160,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="soloe">
+				<readonly/>
 				<anchored to="stune" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1126,6 +1169,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="largee">
+				<readonly/>
 				<anchored to="soloe" position="right" offset="20" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1134,6 +1178,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="vlargee">
+				<readonly/>
 				<anchored to="largee" position="right" offset="30" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1142,6 +1187,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="selfe">
+				<readonly/>
 				<anchored to="vlargee" position="right" offset="18" width="30" />
 				<script>															
 					function onValueChanged()
@@ -1295,6 +1341,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spelltwo">
+				<readonly/>
 				<anchored>
 					<to>spellone</to>
 					<position>right</position>
@@ -1308,6 +1355,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spellthree">
+				<readonly/>
 				<anchored>
 					<to>spelltwo</to>
 					<position>right</position>
@@ -1321,6 +1369,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spellfour">
+				<readonly/>
 				<anchored>
 					<to>spellthree</to>
 					<position>right</position>
@@ -1334,6 +1383,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spellfive">
+				<readonly/>
 				<anchored>
 					<to>spellfour</to>
 					<position>right</position>
@@ -1347,6 +1397,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spellsix">
+				<readonly/>
 				<anchored>
 					<to>spellfive</to>
 					<position>right</position>
@@ -1360,6 +1411,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spellseven">
+				<readonly/>
 				<anchored>
 					<to>spellsix</to>
 					<position>right</position>
@@ -1373,6 +1425,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spelleight">
+				<readonly/>
 				<anchored>
 					<to>spellseven</to>
 					<position>right</position>
@@ -1388,6 +1441,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spellnine">
+				<readonly/>
 				<anchored>
 					<to>spelleight</to>
 					<position>right</position>
@@ -1403,6 +1457,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spellten">
+				<readonly/>
 				<anchored>
 					<to>spellnine</to>
 					<position>right</position>
@@ -1418,6 +1473,7 @@ end
 				</script>
 			</number_boxed>
 			<number_boxed name="spelleleven">
+				<readonly/>
 				<anchored>
 					<to>spellten</to>
 					<position>right</position>
