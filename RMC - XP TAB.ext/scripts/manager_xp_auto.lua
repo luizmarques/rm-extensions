@@ -1987,8 +1987,97 @@ function appendXPLogDetailed(nodePC, sLogField, sCategory, sField, nDelta, sOrig
 end
 
 function appendXPLogCombat(nodePC, sField, nDelta, sOrigin, nodeTarget)
+	if not Session.IsHost or not nodePC then
+		return;
+	end
+
+	local sEntryText = buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget);
+	appendXPLogLine(nodePC, "combateps", sEntryText);
+end
+
+function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget)
+	sField = tostring(sField or "");
+	nDelta = tonumber(nDelta or 0) or 0;
+	sOrigin = tostring(sOrigin or "");
+
+	local sOriginNorm = normalizeText(sOrigin);
+	local sXPText = string.format("(XP %+d)", nDelta);
+
+	if sOriginNorm:find("critical matrix ", 1, true) == 1 then
+		local sSeverity, sOutcome = sOriginNorm:match("critical matrix ([abcde])/([%a]+)");
+		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
+		local sOutcomeLabel = getCriticalOutcomeLabel(sOutcome);
+		return string.format("Critical: %s %s | XP: %s", sOutcomeLabel, sSeverityLabel, sXPText);
+	end
+
+	if sOriginNorm:find("critical self ", 1, true) == 1 then
+		local sSeverity = sOriginNorm:match("critical self ([abcde])");
+		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
+		return string.format("Critical: Self %s | XP: %s", sSeverityLabel, sXPText);
+	end
+
+	if sField == "hitsgiven" then
+		local sTargetName = getCombatTargetName(nodeTarget);
+		return string.format("%s | Hits Given: XP: %s", sTargetName, sXPText);
+	end
+
+	if sField == "hitstaken" then
+		local sReceiverName = getCombatActorName(nodePC);
+		return string.format("%s | Hits Taken: XP: %s", sReceiverName, sXPText);
+	end
+
+	if sField == "foekill" then
+		local sTargetName = getCombatTargetName(nodeTarget);
+		return string.format("%s | Foes Killed: XP: %s", sTargetName, sXPText);
+	end
+
+	if sField == "foekillbase" then
+		local sTargetName = getCombatTargetName(nodeTarget);
+		return string.format("%s | Foe Kill Bonus: XP: %s", sTargetName, sXPText);
+	end
+
+	local sFieldLabel = getCombatFieldLabel(sField);
 	local sTargetName = getCombatTargetName(nodeTarget);
-	appendXPLogDetailed(nodePC, "combateps", "Combat EPs", sField, nDelta, sOrigin .. " | " .. sTargetName);
+	return string.format("%s | %s: XP: %s", sTargetName, sFieldLabel, sXPText);
+end
+
+function getCriticalOutcomeLabel(sOutcome)
+	sOutcome = normalizeText(tostring(sOutcome or ""));
+	local aOutcomeLabel = {
+		norm = "Normal",
+		unc = "Unc",
+		down = "Down",
+		stun = "Stun",
+		solo = "Solo",
+		large = "Large",
+		vlarge = "VLarge",
+	};
+
+	return aOutcomeLabel[sOutcome] or "Critical";
+end
+
+function getCombatActorName(nodePC)
+	if not nodePC then
+		return "Unknown";
+	end
+
+	local sActorName = DB.getValue(nodePC, "name", "Unknown");
+	if normalizeText(sActorName) == "" then
+		sActorName = "Unknown";
+	end
+
+	return sActorName;
+end
+
+function getCombatFieldLabel(sField)
+	local aFieldLabel = {
+		hitsgiven = "Hits Given",
+		hitstaken = "Hits Taken",
+		foekill = "Foes Killed",
+		foekillbase = "Foe Kill Bonus",
+	};
+
+	return aFieldLabel[tostring(sField or "")] or tostring(sField or "XP");
 end
 
 function getCombatTargetName(nodeTarget)
