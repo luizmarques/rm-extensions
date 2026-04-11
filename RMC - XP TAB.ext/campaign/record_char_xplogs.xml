@@ -6,16 +6,17 @@
 			<anchor_content_top />
 			<anchor_content_bottom />
 
-			<area_content_framed_groupbox_top name="xplogsframe">
-				<anchored to="contentanchor" position="insidetopleft" offset="0,0" height="180" />
-			</area_content_framed_groupbox_top>
+			<genericcontrol name="xplogsframe">
+				<anchored to="contentanchor" position="insidetopleft" offset="0,0" width="540" height="165" />
+				<frame name="groupbox" />
+			</genericcontrol>
 			<label name="xplogslabel">
 				<anchored to="xplogsframe" position="insidetop" />
 				<static>Foes Killed Bonus</static>
 				<center />
 			</label>
 			<stringu name="xplogs">
-				<anchored to="xplogsframe" position="insidetop" offset="0,15">
+				<anchored to="xplogsframe" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
 				<multilinespacing>20</multilinespacing>
@@ -25,16 +26,17 @@
 				<target>xplogs</target>
 			</scrollbar_content_base>
 
-			<area_content_framed_groupbox name="xpspelllogsframe">
-				<anchored to="xplogsframe" position="belowleft" offset="0,10" height="180" />
-			</area_content_framed_groupbox>
+			<genericcontrol name="xpspelllogsframe">
+				<anchored to="xplogsframe" position="belowleft" offset="0,10" width="540" height="165" />
+				<frame name="groupbox" />
+			</genericcontrol>
 			<label name="xpspelllogslabel">
 				<anchored to="xpspelllogsframe" position="insidetop" />
 				<static>Spell Levels EPs</static>
 				<center />
 			</label>
 			<stringu name="xpspelllogs">
-				<anchored to="xpspelllogsframe" position="insidetop" offset="0,15">
+				<anchored to="xpspelllogsframe" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
 				<multilinespacing>20</multilinespacing>
@@ -44,16 +46,17 @@
 				<target>xpspelllogs</target>
 			</scrollbar_content_base>
 
-			<area_content_framed_groupbox name="xpmaneuverlogsframe">
-				<anchored to="xpspelllogsframe" position="belowleft" offset="0,10" height="180" />
-			</area_content_framed_groupbox>
+			<genericcontrol name="xpmaneuverlogsframe">
+				<anchored to="xpspelllogsframe" position="belowleft" offset="0,10" width="540" height="165" />
+				<frame name="groupbox" />
+			</genericcontrol>
 			<label name="xpmaneuverlogslabel">
 				<anchored to="xpmaneuverlogsframe" position="insidetop" />
 				<static>Successful Maneuvers EPs</static>
 				<center />
 			</label>
 			<stringu name="xpmaneuverlogs">
-				<anchored to="xpmaneuverlogsframe" position="insidetop" offset="0,15">
+				<anchored to="xpmaneuverlogsframe" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
 				<multilinespacing>20</multilinespacing>
@@ -63,16 +66,17 @@
 				<target>xpmaneuverlogs</target>
 			</scrollbar_content_base>
 
-			<area_content_framed_groupbox_bottom name="xpcombatlogsframe">
-				<anchored to="xpmaneuverlogsframe" position="belowleft" offset="0,10" height="180" />
-			</area_content_framed_groupbox_bottom>
+			<genericcontrol name="xpcombatlogsframe">
+				<anchored to="xpmaneuverlogsframe" position="belowleft" offset="0,10" width="540" height="165" />
+				<frame name="groupbox" />
+			</genericcontrol>
 			<label name="xpcombatlogslabel">
 				<anchored to="xpcombatlogsframe" position="insidetop" />
 				<static>Combat EPs</static>
 				<center />
 			</label>
 			<stringu name="xpcombatlogs">
-				<anchored to="xpcombatlogsframe" position="insidetop" offset="0,15">
+				<anchored to="xpcombatlogsframe" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
 				<multilinespacing>20</multilinespacing>
