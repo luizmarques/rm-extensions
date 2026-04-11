@@ -235,11 +235,9 @@ function handleWoundEffectsOOB(msgOOB)
 					normalizeText(sDescription)
 				}, "|");
 				if not isCriticalMatrixProcessedRecently(sEventKey) then
-					local nCriticalBefore = getCombatCriticalEquationXP(nodeAttackerPC);
 					addXPValue(nodeAttackerPC, sField, 1);
 					local nCriticalAfter = getCombatCriticalEquationXP(nodeAttackerPC);
-					local nCriticalDelta = nCriticalAfter - nCriticalBefore;
-					appendXPLogCombat(nodeAttackerPC, sField, nCriticalDelta, "Critical Matrix " .. sSeverity .. "/" .. sOutcome, nodeTarget);
+					appendXPLogCombat(nodeAttackerPC, sField, nCriticalAfter, "Critical Matrix " .. sSeverity .. "/" .. sOutcome, nodeTarget);
 				end
 			end
 		end
@@ -256,11 +254,9 @@ function handleWoundEffectsOOB(msgOOB)
 					normalizeText(sDescription)
 				}, "|");
 				if not isCriticalSelfProcessedRecently(sSelfEventKey) then
-					local nCriticalBefore = getCombatCriticalEquationXP(nodeTargetPC);
 					addXPValue(nodeTargetPC, sSelfField, 1);
 					local nCriticalAfter = getCombatCriticalEquationXP(nodeTargetPC);
-					local nCriticalDelta = nCriticalAfter - nCriticalBefore;
-					appendXPLogCombat(nodeTargetPC, sSelfField, nCriticalDelta, "Critical Self " .. sSeverity, nodeTarget);
+					appendXPLogCombat(nodeTargetPC, sSelfField, nCriticalAfter, "Critical Self " .. sSeverity, nodeTarget);
 				end
 			end
 		end
@@ -496,11 +492,9 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetP
 			if not isCriticalMatrixProcessedRecently(sEventKey) then
 				local sField = getCriticalFieldName(sSeverity, sOutcome);
 				if sField ~= "" then
-					local nCriticalBefore = getCombatCriticalEquationXP(nodeAttackerPC);
 					addXPValue(nodeAttackerPC, sField, 1);
 					local nCriticalAfter = getCombatCriticalEquationXP(nodeAttackerPC);
-					local nCriticalDelta = nCriticalAfter - nCriticalBefore;
-					appendXPLogCombat(nodeAttackerPC, sField, nCriticalDelta, "Critical Matrix " .. sSeverity .. "/" .. sOutcome, nodeTarget);
+					appendXPLogCombat(nodeAttackerPC, sField, nCriticalAfter, "Critical Matrix " .. sSeverity .. "/" .. sOutcome, nodeTarget);
 				end
 			end
 		end
@@ -511,11 +505,9 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetP
 		if sSelfField ~= "" then
 			local sSelfEventKey = getCriticalSelfEventKey(nodeTargetPC, nodeTarget, woundEffects, sDescription, sSeverity);
 			if not isCriticalSelfProcessedRecently(sSelfEventKey) then
-				local nCriticalBefore = getCombatCriticalEquationXP(nodeTargetPC);
 				addXPValue(nodeTargetPC, sSelfField, 1);
 				local nCriticalAfter = getCombatCriticalEquationXP(nodeTargetPC);
-				local nCriticalDelta = nCriticalAfter - nCriticalBefore;
-				appendXPLogCombat(nodeTargetPC, sSelfField, nCriticalDelta, "Critical Self " .. sSeverity, nodeTarget);
+				appendXPLogCombat(nodeTargetPC, sSelfField, nCriticalAfter, "Critical Self " .. sSeverity, nodeTarget);
 			end
 		end
 	end
