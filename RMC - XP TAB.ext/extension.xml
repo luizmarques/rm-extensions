@@ -17,6 +17,7 @@
 	<includefile source="campaign/record_char.xml" />
 	<includefile source="campaign/record_char_skills.xml" />
 	<includefile source="campaign/record_char_xp.xml" />
+	<includefile source="campaign/record_char_xplogs.xml" />
 
 	<!-- Graphics -->
 	<includefile source="graphics/graphics_icons.xml" />
@@ -25,6 +26,7 @@
 	<!-- Icons -->
 	<icon name="RMC-Logo" file="graphics/icons/RMC-Logo.png" />	
 	<icon name="tab_xp" file="tab_xp.png" />
+	<icon name="tab_xplogs" file="tab_xp.png" />
 
 	<!--High Level Script -->
 	<script name="CombatManager2" file="scripts/manager_combat2.lua" />

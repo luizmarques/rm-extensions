@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<root>
+	<windowclass name="charsheet_xplogs">
+		<sheetdata>
+			<anchor_content_top />
+			<anchor_content_bottom />
+
+			<area_content_framed_groupbox name="xplogsframe" />
+			<label name="xplogslabel">
+				<anchored to="xplogsframe" position="insidetop" />
+				<static>Foes Killed Bonus</static>
+				<center />
+			</label>
+			<stringu name="xplogs">
+				<anchored to="xplogsframe" position="insidetop" offset="0,20">
+					<bottom />
+				</anchored>
+				<multilinespacing>20</multilinespacing>
+			</stringu>
+			<scrollbar_content_base>
+				<anchored to="xplogs" />
+				<target>xplogs</target>
+			</scrollbar_content_base>
+		</sheetdata>
+	</windowclass>
+</root>

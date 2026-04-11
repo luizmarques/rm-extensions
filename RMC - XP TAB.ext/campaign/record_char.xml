@@ -47,6 +47,11 @@
 			<resource>tab_xp</resource>
 			<class>charsheet_xp</class>
 		</tab>
+		<tab merge="add">
+			<name>xplogs</name>
+			<resource>tab_xplogs</resource>
+			<class>charsheet_xplogs</class>
+		</tab>
 		<script file="campaign/scripts/charsheet.lua" />
 	</windowclass>
 	<windowclass name="charsheet_overview" copy="charsheet_overview_base">
