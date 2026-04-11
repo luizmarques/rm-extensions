@@ -1130,7 +1130,7 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, 
 
 	local sEntryCategory = sCategory or "Bonus";
 	local sEntryText = "";
-	sEntryText = string.format("%s - (XP + %d)", sFoeName, nBonus);
+	sEntryText = string.format("%s | XP: +%d", sFoeName, nBonus);
 
 	DB.setValue(nodeEntry, "order", "number", nOrder);
 	DB.setValue(nodeEntry, "category", "string", sEntryCategory);
@@ -1904,7 +1904,7 @@ function appendSpellXPLog(nodePC, rRoll, nSpellLevel)
 	nSpellLevel = tonumber(nSpellLevel or 0) or 0;
 	local sSpellName = getSpellDisplayName(rRoll);
 	local nSpellXP = getSpellXPValue(nodePC, nSpellLevel);
-	local sEntryText = string.format("Cast Level %d %s | XP: (XP %+d)", nSpellLevel, sSpellName, nSpellXP);
+	local sEntryText = string.format("Cast Level %d Spell | %s | XP: %+d", nSpellLevel, sSpellName, nSpellXP);
 	appendXPLogLine(nodePC, "spelllvleps", sEntryText);
 end
 
@@ -1940,6 +1940,25 @@ function getManeuverDifficultyLabel(sField)
 	return aLabelByField[tostring(sField or "")] or "Unknown";
 end
 
+function getManeuverDetailText(sPendingDesc, sResolutionDesc)
+	local sDetail = tostring(sResolutionDesc or "");
+	if normalizeText(sDetail) == "" then
+		sDetail = tostring(sPendingDesc or "");
+	end
+
+	sDetail = sDetail:gsub("SUCCESS:%s*Your static action is successful%.?%s*", "");
+	sDetail = sDetail:gsub("[\r\n]+", " ");
+	sDetail = sDetail:gsub("%s+", " ");
+	sDetail = sDetail:gsub("^%s+", "");
+	sDetail = sDetail:gsub("%s+$", "");
+
+	if normalizeText(sDetail) == "" then
+		sDetail = "Resolution";
+	end
+
+	return sDetail;
+end
+
 function appendManeuverXPLog(nodePC, sField, sSkillName, sPendingDesc, sResolutionDesc)
 	if not nodePC then
 		return;
@@ -1950,17 +1969,10 @@ function appendManeuverXPLog(nodePC, sField, sSkillName, sPendingDesc, sResoluti
 		sSkill = "Unknown Skill";
 	end
 
-	local sDetail = tostring(sResolutionDesc or "");
-	if normalizeText(sDetail) == "" then
-		sDetail = tostring(sPendingDesc or "");
-	end
-	if normalizeText(sDetail) == "" then
-		sDetail = "Resolution";
-	end
-
+	local sDetail = getManeuverDetailText(sPendingDesc, sResolutionDesc);
 	local sDifficulty = getManeuverDifficultyLabel(sField);
 	local nXP = getManeuverDifficultyXPValue(sField);
-	local sEntryText = string.format("%s: %s | Difficult: %s | XP: (XP %+d)", sSkill, sDetail, sDifficulty, nXP);
+	local sEntryText = string.format("%s: %s | Difficult: %s | XP: %+d", sSkill, sDetail, sDifficulty, nXP);
 	appendXPLogLine(nodePC, "successfulmaneuverseps", sEntryText);
 end
 
@@ -2001,7 +2013,7 @@ function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget)
 	sOrigin = tostring(sOrigin or "");
 
 	local sOriginNorm = normalizeText(sOrigin);
-	local sXPText = string.format("(XP %+d)", nDelta);
+	local sXPText = string.format("%+d", nDelta);
 
 	if sOriginNorm:find("critical matrix ", 1, true) == 1 then
 		local sSeverity, sOutcome = sOriginNorm:match("critical matrix ([abcde])/([%a]+)");
