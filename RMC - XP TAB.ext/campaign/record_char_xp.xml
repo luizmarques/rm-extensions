@@ -796,7 +796,7 @@ end
 			</number_boxed>
 
 			<combobox_labeled_RMC name="foekillbonuscombo">
-				<anchored to="foekilllabel" position="belowleft" offset="0,4" width="400" height="20" />
+				<anchored to="foekilllabel" position="belowleft" offset="0,4" width="250" height="20" />
 				<label>Foes Killed Bonus</label>
 				<listmaxsize>12</listmaxsize>
 				<readonly />

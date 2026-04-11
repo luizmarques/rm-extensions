@@ -388,7 +388,11 @@
 						if nTotal &gt; 150 then
 							local nAmountOver = nTotal - 150;
 						end
-						setValue(nTotal);
+						
+						local nCurrent = getValue();
+						if nCurrent ~= nTotal then
+							setValue(nTotal);
+						end
 						--[[ update the attack grid highlighting ]]
 						if window.attackgrid and (nOldTotal ~= nTotal or nOldUnmodified ~= nUnmodified) then
 							nOldTotal = nTotal;
