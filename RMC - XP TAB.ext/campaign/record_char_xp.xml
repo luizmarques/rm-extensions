@@ -1124,7 +1124,7 @@ end
 			</number_boxed>
 			
 			<number_boxed name="norme">  <!-- E Criticals Number fields -->
-				<anchored to="normd" position="below" offset="0,5" width="30" />
+				<anchored to="normd" position="belowleft" offset="0,5" width="30" />
 				<script>															
 					function onValueChanged()
 						window.refresh();
