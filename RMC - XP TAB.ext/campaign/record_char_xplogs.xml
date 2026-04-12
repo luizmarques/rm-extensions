@@ -16,6 +16,7 @@
 				<center />
 			</label>
 			<stringu name="xplogs">
+				<gmeditonly />
 				
 				<anchored to="xplogsframe" position="insidetop" offset="0,20">
 					<bottom />
@@ -37,6 +38,7 @@
 				<center />
 			</label>
 			<stringu name="spelllvleps">
+				<gmeditonly />
 				
 				<anchored to="spelllvleps" position="insidetop" offset="0,20">
 					<bottom />
@@ -58,6 +60,7 @@
 				<center />
 			</label>
 			<stringu name="successfulmaneuverseps">
+				<gmeditonly />
 				
 				<anchored to="successfulmaneuverseps" position="insidetop" offset="0,20">
 					<bottom />
@@ -79,6 +82,7 @@
 				<center />
 			</label>
 			<stringu name="combateps">
+				<gmeditonly />
 				
 				<anchored to="combateps" position="insidetop" offset="0,20">
 					<bottom />
