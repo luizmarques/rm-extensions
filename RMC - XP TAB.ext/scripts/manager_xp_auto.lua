@@ -2394,6 +2394,11 @@ function getCombatSourceNameFromActor(rSource, nodeSourcePC)
 	end
 
 	if rSource then
+		local sActorDisplayName = tostring(rSource.sName or "");
+		if normalizeText(sActorDisplayName) ~= "" and normalizeText(sActorDisplayName) ~= "unknown" then
+			return sActorDisplayName;
+		end
+
 		local nodeSource = ActorManager.getCreatureNode(rSource);
 		if nodeSource then
 			local sSourceName = DB.getValue(nodeSource, "name", "");

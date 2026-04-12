@@ -19,6 +19,10 @@ end
 
 function handleApplyDamage(msgOOB)
 	local rSource = ActorManager.resolveActor(msgOOB.sSourceNode);
+	local sSourceName = tostring(msgOOB.sSourceName or "");
+	if rSource and sSourceName ~= "" then
+		rSource.sName = sSourceName;
+	end
 	local rTarget = ActorManager.resolveActor(msgOOB.sTargetNode);
 	if rTarget then
 		rTarget.nOrder = msgOOB.nTargetOrder;
@@ -47,8 +51,30 @@ function notifyApplyDamage(rSource, rTarget, bSecret, sDesc, nTotal)
 	msgOOB.sSourceNode = ActorManager.getCreatureNodeName(rSource);
 	msgOOB.sTargetNode = ActorManager.getCreatureNodeName(rTarget);
 	msgOOB.nTargetOrder = rTarget.nOrder;
+	msgOOB.sSourceName = getApplyDamageSourceName(rSource);
 
 	Comm.deliverOOBMessage(msgOOB, "");
+end
+
+function getApplyDamageSourceName(rSource)
+	if not rSource then
+		return "";
+	end
+
+	local sName = ActorManager.getDisplayName(rSource);
+	if tostring(sName or "") ~= "" then
+		return sName;
+	end
+
+	local nodeSource = ActorManager.getCreatureNode(rSource);
+	if nodeSource then
+		sName = DB.getValue(nodeSource, "name", "");
+		if tostring(sName or "") ~= "" then
+			return sName;
+		end
+	end
+
+	return "";
 end
 
 function getRoll(rActor, rAction)
