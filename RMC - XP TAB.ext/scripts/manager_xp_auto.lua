@@ -40,6 +40,10 @@ function onInit()
 		fOriginalApplyDamage = ActionDamage.applyDamage;
 		ActionDamage.applyDamage = onApplyDamageWithXP;
 	end
+
+	if Session.IsHost then
+		initializeFoeKillCounters();
+	end
 end
 
 function onSkillPostRoll(rSource, a2, a3)
@@ -1142,7 +1146,12 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, 
 end
 
 function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
-	if not Session.IsHost or not nodePC or sEntryText == "" then
+	if not Session.IsHost or not nodePC then
+		return;
+	end
+
+	sEntryText = tostring(sEntryText or "");
+	if sEntryText == "" then
 		return;
 	end
 
@@ -1158,12 +1167,7 @@ function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
 
 	local sXPLogsPath = sPCPath .. ".xplogs";
 	local sCurrentXPLogs = DB.getValue(nodePC, "xplogs", "") or "";
-	local sNewXPLogs = "";
-	if sCurrentXPLogs == "" then
-		sNewXPLogs = sEntryText;
-	else
-		sNewXPLogs = sCurrentXPLogs .. "\n" .. sEntryText;
-	end
+	local sNewXPLogs = buildFoeKillXPLogText(nodePC, sCurrentXPLogs, sEntryText);
 
 	local sXPLogsType = DB.getType(sXPLogsPath) or "";
 	if sXPLogsType ~= "string" and sXPLogsType ~= "formattedtext" then
@@ -1175,6 +1179,80 @@ function appendFoeKillBonusToNotes(nodePC, sEntryText, sEventKey)
 	if sEventKey ~= "" then
 		aLoggedFoeKillNotesKeys[sEventKey] = os.time() or 0;
 	end
+end
+
+function initializeFoeKillCounters()
+	for _, nodePC in pairs(DB.getChildren("charsheet")) do
+		ensureFoeKillCounterInXPLog(nodePC);
+	end
+end
+
+function ensureFoeKillCounterInXPLog(nodePC)
+	if not Session.IsHost or not nodePC then
+		return;
+	end
+
+	local sPCPath = DB.getPath(nodePC) or "";
+	if sPCPath == "" then
+		return;
+	end
+
+	local sXPLogsPath = sPCPath .. ".xplogs";
+	local sCurrentXPLogs = DB.getValue(nodePC, "xplogs", "") or "";
+	local sNewXPLogs = buildFoeKillXPLogText(nodePC, sCurrentXPLogs, "");
+	if sNewXPLogs == sCurrentXPLogs then
+		return;
+	end
+
+	local sXPLogsType = DB.getType(sXPLogsPath) or "";
+	if sXPLogsType ~= "string" and sXPLogsType ~= "formattedtext" then
+		sXPLogsType = "string";
+	end
+
+	DB.setValue(nodePC, "xplogs", sXPLogsType, sNewXPLogs);
+end
+
+function buildFoeKillXPLogText(nodePC, sCurrentXPLogs, sEntryText)
+	local aLogLines = {};
+	for sLine in tostring(sCurrentXPLogs or ""):gmatch("[^\r\n]+") do
+		if not isFoeKillCounterLine(sLine) then
+			table.insert(aLogLines, sLine);
+		end
+	end
+
+	sEntryText = tostring(sEntryText or "");
+	if sEntryText ~= "" then
+		table.insert(aLogLines, sEntryText);
+	end
+
+	table.insert(aLogLines, 1, getFoeKillCounterLine(nodePC));
+	return table.concat(aLogLines, "\n");
+end
+
+function getFoeKillCounterLine(nodePC)
+	local nFoesKilled = 0;
+	if nodePC then
+		nFoesKilled = tonumber(DB.getValue(nodePC, "foekill", 0)) or 0;
+	end
+
+	if nFoesKilled < 0 then
+		nFoesKilled = 0;
+	end
+
+	return string.format("Foes Killed = %d", nFoesKilled);
+end
+
+function isFoeKillCounterLine(sLine)
+	local sNormalized = normalizeText(sLine or "");
+	if sNormalized:find("foes killed =", 1, true) == 1 then
+		return true;
+	end
+
+	if sNormalized:find("foes killed total =", 1, true) == 1 then
+		return true;
+	end
+
+	return false;
 end
 
 function buildCombatApplyEventKey(nodeSourcePC, nodeTargetPC, nodeTarget, nAppliedDamage, bKill)
