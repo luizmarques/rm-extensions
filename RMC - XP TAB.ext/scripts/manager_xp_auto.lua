@@ -15,6 +15,7 @@ local aProcessedCombatEventKeys = {};
 local aProcessedSeverityKeys = {};
 local aProcessedCriticalMatrixKeys = {};
 local aProcessedCriticalSelfKeys = {};
+local aProcessedStatusKillKeys = {};
 local aProcessedSkillEPKeys = {};
 local aProcessedSpellEPKeys = {};
 local aPendingSkillRollByActor = {};
@@ -220,6 +221,14 @@ function handleWoundEffectsOOB(msgOOB)
 	end
 	if nodeTargetPC and nodeAttackerCT then
 		updateCombatXPDescByOpponent(nodeTargetPC, nodeAttackerCT);
+	end
+
+	if nodeAttackerPC then
+		local tWoundSummary = {
+			CriticalCode = sCriticalCode,
+			CriticalName = sCriticalName,
+		};
+		tryGrantStatusFoeKill(nodeAttackerPC, nodeTarget, tWoundSummary, sDescription, sOutcome);
 	end
 
 	if sSeverity:match("^[abcde]$") then
@@ -487,12 +496,18 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetP
 	end
 
 	local sSeverity = getCriticalSeverityFromEvent(woundEffects, sDescription);
+	local sOutcome = "";
+
+	if nodeAttackerPC then
+		sOutcome = getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive);
+		tryGrantStatusFoeKill(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sOutcome);
+	end
+
 	if sSeverity == "" then
 		return;
 	end
 
 	if nodeAttackerPC then
-		local sOutcome = getCriticalMatrixOutcome(nodeAttackerCT, nodeTarget, woundEffects, sDescription, bWasAlive);
 		if sOutcome ~= "" then
 			local sEventKey = getCriticalMatrixEventKey(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sSeverity, sOutcome);
 			if not isCriticalMatrixProcessedRecently(sEventKey) then
@@ -517,6 +532,126 @@ function processCombatCriticalMatrix(nodeAttackerCT, nodeAttackerPC, nodeTargetP
 			end
 		end
 	end
+end
+
+function tryGrantStatusFoeKill(nodeAttackerPC, nodeTarget, woundEffects, sDescription, sOutcome)
+	if not nodeAttackerPC then
+		return;
+	end
+
+	if not isStatusKillByEffect(nodeTarget, woundEffects, sDescription, sOutcome) then
+		return;
+	end
+
+	if isCombatEPProcessedRecently(nodeAttackerPC, "foekill", 1, true) then
+		return;
+	end
+
+	local sStatusEventKey = buildStatusKillEventKey(nodeAttackerPC, nodeTarget, sOutcome, sDescription);
+	if isStatusKillProcessedRecently(sStatusEventKey) then
+		return;
+	end
+
+	local nFoeKillBonusBase, sFoeKillBonusCategory, nKillBasePoints, nKillCategoryBonus = getFoeKillBonusFromTarget(nodeAttackerPC, nodeTarget, "");
+	if sFoeKillBonusCategory == "" then
+		sFoeKillBonusCategory = "Unrecognized";
+	end
+
+	local sStatusKillLabel = getStatusKillLabel(nodeTarget, woundEffects, sDescription, sOutcome);
+	addFoeKillBonusEntry(nodeAttackerPC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase, sStatusEventKey, nKillBasePoints, nKillCategoryBonus, sStatusKillLabel);
+
+	if nFoeKillBonusBase > 0 then
+		addXPValue(nodeAttackerPC, "foekill", 1);
+		addXPValue(nodeAttackerPC, "foekillbase", nFoeKillBonusBase);
+	end
+end
+
+function getStatusKillLabel(nodeTarget, woundEffects, sDescription, sOutcome)
+	local sDesc = normalizeText(sDescription or "");
+	local sOutcomeNorm = normalizeText(sOutcome or "");
+
+	local function hasStatus(sLabelUpper, sLabelLower)
+		if hasTargetEffectOrCondition(nodeTarget, { sLabelUpper })
+			or isTargetInEffectState(nodeTarget, { sLabelLower })
+			or hasWoundFlag(woundEffects, sLabelUpper)
+			or hasAnyWoundText(woundEffects, { sLabelLower })
+			or sDesc:find(sLabelLower, 1, true) then
+			return true;
+		end
+
+		return false;
+	end
+
+	if hasStatus("Dead", "dead") then
+		return "Dead";
+	end
+
+	if hasStatus("Dying", "dying") then
+		return "Dying";
+	end
+
+	if hasStatus("Unconscious", "unconscious") or sOutcomeNorm == "unc" then
+		return "Unconscious";
+	end
+
+	return "Status";
+end
+
+function isStatusKillByEffect(nodeTarget, woundEffects, sDescription, sOutcome)
+	local sOutcomeNorm = normalizeText(sOutcome or "");
+	if sOutcomeNorm == "unc" then
+		return true;
+	end
+
+	if hasTargetEffectOrCondition(nodeTarget, { "Unconscious", "Dying", "Dead" })
+		or isTargetInEffectState(nodeTarget, { "unconscious", "dying", "dead" }) then
+		return true;
+	end
+
+	if hasWoundFlag(woundEffects, "Unconscious") or hasWoundFlag(woundEffects, "Dying") or hasWoundFlag(woundEffects, "Dead") then
+		return true;
+	end
+
+	if hasAnyWoundText(woundEffects, { "unconscious", "dying", "dead" }) then
+		return true;
+	end
+
+	local sDesc = normalizeText(sDescription or "");
+	if sDesc:find("unconscious", 1, true) or sDesc:find("dying", 1, true) or sDesc:find("dead", 1, true) then
+		return true;
+	end
+
+	return false;
+end
+
+function buildStatusKillEventKey(nodeAttackerPC, nodeTarget, sOutcome, sDescription)
+	local sAttackerPath = nodeAttackerPC and (DB.getPath(nodeAttackerPC) or "") or "";
+	local sTargetPath = nodeTarget and (DB.getPath(nodeTarget) or "") or "";
+	local sOutcomeNorm = normalizeText(sOutcome or "");
+	local sDescNorm = normalizeText(sDescription or "");
+	return table.concat({ sAttackerPath, sTargetPath, "statuskill", sOutcomeNorm, sDescNorm }, "|");
+end
+
+function isStatusKillProcessedRecently(sEventKey)
+	sEventKey = tostring(sEventKey or "");
+	if sEventKey == "" then
+		return false;
+	end
+
+	local nNow = os.time() or 0;
+	for sKey, nTimestamp in pairs(aProcessedStatusKillKeys) do
+		if (nNow - (tonumber(nTimestamp) or 0)) > 5 then
+			aProcessedStatusKillKeys[sKey] = nil;
+		end
+	end
+
+	local nLast = tonumber(aProcessedStatusKillKeys[sEventKey]) or 0;
+	if nLast > 0 and (nNow - nLast) <= 5 then
+		return true;
+	end
+
+	aProcessedStatusKillKeys[sEventKey] = nNow;
+	return false;
 end
 
 function getCriticalSeverityFromEvent(woundEffects, sDescription)
@@ -1105,7 +1240,7 @@ function getFallbackKillPointsFromTarget(nodeTarget, sTargetType)
 	return nHits + (20 * nLevel);
 end
 
-function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, nBasePoints, nCategoryBonus)
+function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, nBasePoints, nCategoryBonus, vStatusKill)
 	if not nodePC then
 		return;
 	end
@@ -1113,6 +1248,12 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, 
 	nBonus = tonumber(nBonus or 0) or 0;
 	nBasePoints = tonumber(nBasePoints or 0) or 0;
 	nCategoryBonus = tonumber(nCategoryBonus or 0) or 0;
+	local sStatusKillLabel = "";
+	if type(vStatusKill) == "string" then
+		sStatusKillLabel = tostring(vStatusKill or "");
+	elseif vStatusKill then
+		sStatusKillLabel = "Status";
+	end
 
 	local nodeList = DB.createChild(nodePC, "foekillbonuslist");
 	if not nodeList then
@@ -1145,6 +1286,9 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, 
 	end
 	local sEntryText = "";
 	sEntryText = string.format("%s | %s | %+d XP", sFoeName, sLevelText, nBonus);
+	if normalizeText(sStatusKillLabel) ~= "" then
+		sEntryText = sEntryText .. string.format(" | %s Kill", sStatusKillLabel);
+	end
 
 	DB.setValue(nodeEntry, "order", "number", nOrder);
 	DB.setValue(nodeEntry, "category", "string", sEntryCategory);

@@ -16,7 +16,7 @@
 				<center />
 			</label>
 			<stringu name="xplogs">
-				<readonly/>
+				
 				<anchored to="xplogsframe" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
@@ -37,7 +37,7 @@
 				<center />
 			</label>
 			<stringu name="spelllvleps">
-				<readonly/>
+				
 				<anchored to="spelllvleps" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
@@ -58,7 +58,7 @@
 				<center />
 			</label>
 			<stringu name="successfulmaneuverseps">
-				<readonly/>
+				
 				<anchored to="successfulmaneuverseps" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
@@ -79,7 +79,7 @@
 				<center />
 			</label>
 			<stringu name="combateps">
-				<readonly/>
+				
 				<anchored to="combateps" position="insidetop" offset="0,20">
 					<bottom />
 				</anchored>
