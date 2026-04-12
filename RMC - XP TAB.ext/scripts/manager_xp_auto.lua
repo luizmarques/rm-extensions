@@ -1969,10 +1969,9 @@ function appendManeuverXPLog(nodePC, sField, sSkillName, sPendingDesc, sResoluti
 		sSkill = "Unknown Skill";
 	end
 
-	local sDetail = getManeuverDetailText(sPendingDesc, sResolutionDesc);
 	local sDifficulty = getManeuverDifficultyLabel(sField);
 	local nXP = getManeuverDifficultyXPValue(sField);
-	local sEntryText = string.format("%s: %s | Difficult: %s | XP: %+d", sSkill, sDetail, sDifficulty, nXP);
+	local sEntryText = string.format("%s | %s | XP: %+d", sSkill, sDifficulty, nXP);
 	appendXPLogLine(nodePC, "successfulmaneuverseps", sEntryText);
 end
 
@@ -2039,22 +2038,22 @@ function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget)
 		local sSeverity, sOutcome = sOriginNorm:match("critical matrix ([abcde])/([%a]+)");
 		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
 		local sOutcomeLabel = getCriticalOutcomeLabel(sOutcome);
-		return string.format("Critical: %s %s | (%s) | XP: %s", sOutcomeLabel, sSeverityLabel, sTargetName, sXPText);
+		return string.format("%s %s | XP: %s | %s", sOutcomeLabel, sSeverityLabel, sXPText, sTargetName);
 	end
 
 	if sOriginNorm:find("critical self ", 1, true) == 1 then
 		local sSeverity = sOriginNorm:match("critical self ([abcde])");
 		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
-		return string.format("Critical: Self %s | (%s) | XP: %s", sSeverityLabel, sTargetName, sXPText);
+		return string.format("Self %s | XP: %s | %s", sSeverityLabel, sXPText, sTargetName);
 	end
 
 	if sField == "hitsgiven" then
-		return string.format("%s | Hits Given: XP: %s", sTargetName, sXPText);
+		return string.format("Hits Given: %s XP | %s", sXPText, sTargetName);
 	end
 
 	if sField == "hitstaken" then
 		local sReceiverName = getCombatActorName(nodePC);
-		return string.format("%s | Hits Taken: XP: %s", sReceiverName, sXPText);
+		return string.format("Hits Taken: %s XP | %s", sXPText, sReceiverName);
 	end
 
 	if sField == "foekill" then
@@ -2098,7 +2097,7 @@ end
 function getCriticalOutcomeLabel(sOutcome)
 	sOutcome = normalizeText(tostring(sOutcome or ""));
 	local aOutcomeLabel = {
-		norm = "Normal",
+		norm = "Norm",
 		unc = "Unc",
 		down = "Down",
 		stun = "Stun",
