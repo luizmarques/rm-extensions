@@ -320,12 +320,12 @@ function handleApplyDamageOOB(msgOOB)
 		if sFoeKillBonusCategory == "" then
 			sFoeKillBonusCategory = "Unrecognized";
 		end
-		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase, sEventKey, nKillBasePoints, nKillCategoryBonus);
-
 		if nFoeKillBonusBase > 0 then
 			addXPValue(nodeSourcePC, "foekill", 1);
 			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
 		end
+
+		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase, sEventKey, nKillBasePoints, nKillCategoryBonus);
 	end
 end
 
@@ -448,10 +448,8 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 		sTargetPath = DB.getPath(nodeTarget) or "";
 	end
 	local sPrevPendingAttacker = "";
-	local sPrevPendingAttackerName = "";
 	if sTargetPath ~= "" then
 		sPrevPendingAttacker = aPendingAttackerPCByTarget[sTargetPath] or "";
-		sPrevPendingAttackerName = aPendingAttackerNameByTarget[sTargetPath] or "";
 
 		local sAttackerName = "";
 		if nodeAttackerPC then
@@ -485,7 +483,6 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 
 	if sTargetPath ~= "" then
 		aPendingAttackerPCByTarget[sTargetPath] = sPrevPendingAttacker;
-		aPendingAttackerNameByTarget[sTargetPath] = sPrevPendingAttackerName;
 	end
 
 	if not Session.IsHost then
@@ -577,12 +574,12 @@ function tryGrantStatusFoeKill(nodeAttackerPC, nodeTarget, woundEffects, sDescri
 	end
 
 	local sStatusKillLabel = getStatusKillLabel(nodeTarget, woundEffects, sDescription, sOutcome);
-	addFoeKillBonusEntry(nodeAttackerPC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase, sStatusEventKey, nKillBasePoints, nKillCategoryBonus, sStatusKillLabel);
-
 	if nFoeKillBonusBase > 0 then
 		addXPValue(nodeAttackerPC, "foekill", 1);
 		addXPValue(nodeAttackerPC, "foekillbase", nFoeKillBonusBase);
 	end
+
+	addFoeKillBonusEntry(nodeAttackerPC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase, sStatusEventKey, nKillBasePoints, nKillCategoryBonus, sStatusKillLabel);
 end
 
 function getStatusKillLabel(nodeTarget, woundEffects, sDescription, sOutcome)
@@ -992,17 +989,24 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	end
 
 	local sEventKey = buildCombatApplyEventKey(nodeSourcePC, nodeTargetPC, nodeTarget, nAppliedDamage, bKill);
+	local sTargetPathForPending = nodeTarget and (DB.getPath(nodeTarget) or "") or "";
 
 	local nHitsTakenXP = nAppliedDamage;
 	local nHitsGivenXP = nAppliedDamage;
 
 	if not Session.IsHost then
 		local sSourceName = getCombatSourceNameForDamage(rSource, nodeSourcePC, nodeTarget);
+		if sTargetPathForPending ~= "" then
+			aPendingAttackerNameByTarget[sTargetPathForPending] = nil;
+		end
 		notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill, sEventKey, sSourceName);
 		return;
 	end
 
 	local sSourceName = getCombatSourceNameForDamage(rSource, nodeSourcePC, nodeTarget);
+	if sTargetPathForPending ~= "" then
+		aPendingAttackerNameByTarget[sTargetPathForPending] = nil;
+	end
 
 	if isCombatEventProcessedRecently(sEventKey) then
 		return;
@@ -1023,12 +1027,12 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 		if sFoeKillBonusCategory == "" then
 			sFoeKillBonusCategory = "Unrecognized";
 		end
-		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase, sEventKey, nKillBasePoints, nKillCategoryBonus);
-
 		if nFoeKillBonusBase > 0 then
 			addXPValue(nodeSourcePC, "foekill", 1);
 			addXPValue(nodeSourcePC, "foekillbase", nFoeKillBonusBase);
 		end
+
+		addFoeKillBonusEntry(nodeSourcePC, nodeTarget, sFoeKillBonusCategory, nFoeKillBonusBase, sEventKey, nKillBasePoints, nKillCategoryBonus);
 	end
 end
 
@@ -2306,7 +2310,7 @@ function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget, sSou
 
 	if sField == "hitstaken" then
 		local sSource = sSourceName;
-		if normalizeText(sSource) == "" then
+		if normalizeText(sSource) == "" or normalizeText(sSource) == "unknown" then
 			sSource = sTargetName;
 		end
 		if normalizeText(sSource) == "" then
