@@ -2121,7 +2121,6 @@ function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget, sSou
 
 	local sOriginNorm = normalizeText(sOrigin);
 	local sXPText = string.format("%+d", nDelta);
-	local sFoeIsText = getCombatFoeIsText(nodePC);
 	local sActorName = getCombatActorName(nodePC);
 	local sTargetName = getCombatTargetName(nodeTarget);
 
@@ -2129,25 +2128,28 @@ function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget, sSou
 		local sSeverity, sOutcome = sOriginNorm:match("critical matrix ([abcde])/([%a]+)");
 		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
 		local sOutcomeLabel = getCriticalOutcomeLabel(sOutcome);
-		return string.format("%s %s | %s | %s XP | %s", sOutcomeLabel, sSeverityLabel, sFoeIsText, sXPText, sActorName);
+		return string.format("%s %s | %s XP | %s", sOutcomeLabel, sSeverityLabel, sXPText, sActorName);
 	end
 
 	if sOriginNorm:find("critical self ", 1, true) == 1 then
 		local sSeverity = sOriginNorm:match("critical self ([abcde])");
 		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
-		return string.format("Self %s | %s | %s XP | %s", sSeverityLabel, sFoeIsText, sXPText, sActorName);
+		return string.format("Self %s | %s XP | %s", sSeverityLabel, sXPText, sActorName);
 	end
 
 	if sField == "hitsgiven" then
-		return string.format("Hits Given: %s XP | %s | %s -> %s", sXPText, sFoeIsText, sActorName, sTargetName);
+		return string.format("Hits Given: %s XP | %s -> %s", sXPText, sActorName, sTargetName);
 	end
 
 	if sField == "hitstaken" then
 		local sSource = sSourceName;
 		if normalizeText(sSource) == "" then
+			sSource = sTargetName;
+		end
+		if normalizeText(sSource) == "" then
 			sSource = "Unknown";
 		end
-		return string.format("Hits Taken: %s XP | %s | %s -> %s", sXPText, sFoeIsText, sSource, sActorName);
+		return string.format("Hits Taken: %s XP | %s -> %s", sXPText, sSource, sActorName);
 	end
 
 	if sField == "foekill" then
@@ -2186,14 +2188,6 @@ function getCombatCriticalEquationXP(nodePC)
 
 	nCritBase = math.floor(nCritBase);
 	return math.floor(nCritBase * nMultiplier);
-end
-
-function getCombatFoeIsText(nodePC)
-	local nFoeIs = tonumber(DB.getValue(nodePC, "combatxpdesc", 1)) or 1;
-	if nFoeIs < 1 then
-		nFoeIs = 1;
-	end
-	return string.format("Foe is = %d", nFoeIs);
 end
 
 function getCriticalOutcomeLabel(sOutcome)
