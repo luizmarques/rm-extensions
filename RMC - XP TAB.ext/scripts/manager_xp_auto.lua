@@ -10,6 +10,7 @@ local OOB_MSGTYPE_XPAUTO_BASECAST_POSTROLL = "xpautobcpostroll";
 local OOB_MSGTYPE_XPAUTO_WOUNDEFFECTS = "xpautowoundeffects";
 local OOB_MSGTYPE_XPAUTO_APPLYDAMAGE = "xpautoapplydamage";
 local aPendingAttackerPCByTarget = {};
+local aPendingAttackerNameByTarget = {};
 local aProcessedCombatEPKeys = {};
 local aProcessedCombatEventKeys = {};
 local aProcessedSeverityKeys = {};
@@ -447,12 +448,29 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 		sTargetPath = DB.getPath(nodeTarget) or "";
 	end
 	local sPrevPendingAttacker = "";
+	local sPrevPendingAttackerName = "";
 	if sTargetPath ~= "" then
 		sPrevPendingAttacker = aPendingAttackerPCByTarget[sTargetPath] or "";
+		sPrevPendingAttackerName = aPendingAttackerNameByTarget[sTargetPath] or "";
+
+		local sAttackerName = "";
+		if nodeAttackerPC then
+			sAttackerName = getCombatActorName(nodeAttackerPC);
+		end
+		if normalizeText(sAttackerName) == "" or normalizeText(sAttackerName) == "unknown" then
+			sAttackerName = getActorNameFromCTNode(nodeAttackerCT);
+		end
+
 		if nodeAttackerPC then
 			aPendingAttackerPCByTarget[sTargetPath] = DB.getPath(nodeAttackerPC) or "";
 		else
 			aPendingAttackerPCByTarget[sTargetPath] = "";
+		end
+
+		if normalizeText(sAttackerName) ~= "" then
+			aPendingAttackerNameByTarget[sTargetPath] = sAttackerName;
+		else
+			aPendingAttackerNameByTarget[sTargetPath] = "";
 		end
 	end
 
@@ -467,6 +485,7 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 
 	if sTargetPath ~= "" then
 		aPendingAttackerPCByTarget[sTargetPath] = sPrevPendingAttacker;
+		aPendingAttackerNameByTarget[sTargetPath] = sPrevPendingAttackerName;
 	end
 
 	if not Session.IsHost then
@@ -978,12 +997,12 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	local nHitsGivenXP = nAppliedDamage;
 
 	if not Session.IsHost then
-		local sSourceName = getCombatSourceNameFromActor(rSource, nodeSourcePC);
+		local sSourceName = getCombatSourceNameForDamage(rSource, nodeSourcePC, nodeTarget);
 		notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill, sEventKey, sSourceName);
 		return;
 	end
 
-	local sSourceName = getCombatSourceNameFromActor(rSource, nodeSourcePC);
+	local sSourceName = getCombatSourceNameForDamage(rSource, nodeSourcePC, nodeTarget);
 
 	if isCombatEventProcessedRecently(sEventKey) then
 		return;
@@ -2392,6 +2411,49 @@ function getCombatSourceNameFromActor(rSource, nodeSourcePC)
 	end
 
 	return "Unknown";
+end
+
+function getActorNameFromCTNode(nodeCT)
+	if not nodeCT then
+		return "";
+	end
+
+	local sName = DB.getValue(nodeCT, "name", "");
+	if normalizeText(sName) ~= "" then
+		return sName;
+	end
+
+	local sClass, sRecord = DB.getValue(nodeCT, "link", "", "");
+	if sRecord ~= "" then
+		local nodeLinked = DB.findNode(sRecord);
+		if nodeLinked then
+			sName = DB.getValue(nodeLinked, "name", "");
+			if normalizeText(sName) ~= "" then
+				return sName;
+			end
+		end
+	end
+
+	return "";
+end
+
+function getCombatSourceNameForDamage(rSource, nodeSourcePC, nodeTarget)
+	local sSourceName = getCombatSourceNameFromActor(rSource, nodeSourcePC);
+	if normalizeText(sSourceName) ~= "" and normalizeText(sSourceName) ~= "unknown" then
+		return sSourceName;
+	end
+
+	if nodeTarget then
+		local sTargetPath = DB.getPath(nodeTarget) or "";
+		if sTargetPath ~= "" then
+			local sPendingSourceName = aPendingAttackerNameByTarget[sTargetPath] or "";
+			if normalizeText(sPendingSourceName) ~= "" then
+				return sPendingSourceName;
+			end
+		end
+	end
+
+	return sSourceName;
 end
 
 function getCombatFieldLabel(sField)
