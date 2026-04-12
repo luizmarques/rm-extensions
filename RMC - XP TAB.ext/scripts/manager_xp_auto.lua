@@ -184,7 +184,7 @@ function notifyWoundEffectsOOB(nodeAttackerCT, nodeAttackerPC, nodeTarget, nodeT
 	Comm.deliverOOBMessage(msgOOB, "");
 end
 
-function notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill, sEventKey)
+function notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill, sEventKey, sSourceName)
 	local msgOOB = {};
 	msgOOB.type = OOB_MSGTYPE_XPAUTO_APPLYDAMAGE;
 	msgOOB.nodeSourcePCPath = nodeSourcePC and (DB.getPath(nodeSourcePC) or "") or "";
@@ -194,6 +194,7 @@ function notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetTyp
 	msgOOB.nAppliedDamage = tonumber(nAppliedDamage or 0) or 0;
 	msgOOB.bKill = bKill and 1 or 0;
 	msgOOB.sEventKey = tostring(sEventKey or "");
+	msgOOB.sSourceName = tostring(sSourceName or "");
 
 	Comm.deliverOOBMessage(msgOOB, "");
 end
@@ -281,6 +282,7 @@ function handleApplyDamageOOB(msgOOB)
 	local nAppliedDamage = tonumber(msgOOB.nAppliedDamage or 0) or 0;
 	local bKill = tonumber(msgOOB.bKill or 0) == 1;
 	local sEventKey = tostring(msgOOB.sEventKey or "");
+	local sSourceName = tostring(msgOOB.sSourceName or "");
 	if sEventKey == "" then
 		sEventKey = buildCombatApplyEventKey(nodeSourcePC, nodeTargetPC, nodeTarget, nAppliedDamage, bKill);
 	end
@@ -295,12 +297,12 @@ function handleApplyDamageOOB(msgOOB)
 
 	if nodeTargetPC and not isCombatEPProcessedRecently(nodeTargetPC, "hitstaken", nAppliedDamage, bKill) then
 		addXPValue(nodeTargetPC, "hitstaken", nAppliedDamage);
-		appendXPLogCombat(nodeTargetPC, "hitstaken", nAppliedDamage, "Apply Damage", nodeTarget);
+		appendXPLogCombat(nodeTargetPC, "hitstaken", nAppliedDamage, "Apply Damage", nodeTarget, sSourceName);
 	end
 
 	if nodeSourcePC and not isCombatEPProcessedRecently(nodeSourcePC, "hitsgiven", nAppliedDamage, bKill) then
 		addXPValue(nodeSourcePC, "hitsgiven", nAppliedDamage);
-		appendXPLogCombat(nodeSourcePC, "hitsgiven", nAppliedDamage, "Apply Damage", nodeTarget);
+		appendXPLogCombat(nodeSourcePC, "hitsgiven", nAppliedDamage, "Apply Damage", nodeTarget, sSourceName);
 	end
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
@@ -841,9 +843,12 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 	local nHitsGivenXP = nAppliedDamage;
 
 	if not Session.IsHost then
-		notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill, sEventKey);
+		local sSourceName = getCombatSourceNameFromActor(rSource, nodeSourcePC);
+		notifyApplyDamageOOB(nodeSourcePC, nodeTargetPC, nodeTarget, sTargetType, nAppliedDamage, bKill, sEventKey, sSourceName);
 		return;
 	end
+
+	local sSourceName = getCombatSourceNameFromActor(rSource, nodeSourcePC);
 
 	if isCombatEventProcessedRecently(sEventKey) then
 		return;
@@ -851,12 +856,12 @@ function onApplyDamageWithXP(rSource, rTarget, bSecret, sDamage, nTotal)
 
 	if nodeTargetPC and nHitsTakenXP > 0 and not isCombatEPProcessedRecently(nodeTargetPC, "hitstaken", nHitsTakenXP, bKill) then
 		addXPValue(nodeTargetPC, "hitstaken", nHitsTakenXP);
-		appendXPLogCombat(nodeTargetPC, "hitstaken", nHitsTakenXP, "Apply Damage", nodeTarget);
+		appendXPLogCombat(nodeTargetPC, "hitstaken", nHitsTakenXP, "Apply Damage", nodeTarget, sSourceName);
 	end
 
 	if nodeSourcePC and nHitsGivenXP > 0 and not isCombatEPProcessedRecently(nodeSourcePC, "hitsgiven", nHitsGivenXP, bKill) then
 		addXPValue(nodeSourcePC, "hitsgiven", nHitsGivenXP);
-		appendXPLogCombat(nodeSourcePC, "hitsgiven", nHitsGivenXP, "Apply Damage", nodeTarget);
+		appendXPLogCombat(nodeSourcePC, "hitsgiven", nHitsGivenXP, "Apply Damage", nodeTarget, sSourceName);
 	end
 
 	if nodeSourcePC and bKill and not isCombatEPProcessedRecently(nodeSourcePC, "foekill", 1, bKill) then
@@ -1133,8 +1138,13 @@ function addFoeKillBonusEntry(nodePC, nodeTarget, sCategory, nBonus, sEventKey, 
 	end
 
 	local sEntryCategory = sCategory or "Bonus";
+	local nFoeLevel = getTargetLevelForKillPoints(nodeTarget, "");
+	local sLevelText = "Level ?";
+	if nFoeLevel > 0 then
+		sLevelText = string.format("Level %d", nFoeLevel);
+	end
 	local sEntryText = "";
-	sEntryText = string.format("%s | XP: +%d", sFoeName, nBonus);
+	sEntryText = string.format("%s | %s | %+d XP", sFoeName, sLevelText, nBonus);
 
 	DB.setValue(nodeEntry, "order", "number", nOrder);
 	DB.setValue(nodeEntry, "category", "string", sEntryCategory);
@@ -2075,7 +2085,7 @@ function appendXPLogDetailed(nodePC, sLogField, sCategory, sField, nDelta, sOrig
 	appendXPLogLine(nodePC, sLogField, sEntryText);
 end
 
-function appendXPLogCombat(nodePC, sField, nDelta, sOrigin, nodeTarget)
+function appendXPLogCombat(nodePC, sField, nDelta, sOrigin, nodeTarget, sSourceName)
 	if not Session.IsHost or not nodePC then
 		return;
 	end
@@ -2084,7 +2094,7 @@ function appendXPLogCombat(nodePC, sField, nDelta, sOrigin, nodeTarget)
 		return;
 	end
 
-	local sEntryText = buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget);
+	local sEntryText = buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget, sSourceName);
 	appendXPLogLine(nodePC, "combateps", sEntryText);
 end
 
@@ -2103,35 +2113,41 @@ function shouldAppendCombatLogEntry(sField, sOrigin)
 	return false;
 end
 
-function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget)
+function buildCombatXPLogEntry(nodePC, sField, nDelta, sOrigin, nodeTarget, sSourceName)
 	sField = tostring(sField or "");
 	nDelta = tonumber(nDelta or 0) or 0;
 	sOrigin = tostring(sOrigin or "");
+	sSourceName = tostring(sSourceName or "");
 
 	local sOriginNorm = normalizeText(sOrigin);
 	local sXPText = string.format("%+d", nDelta);
+	local sFoeIsText = getCombatFoeIsText(nodePC);
+	local sActorName = getCombatActorName(nodePC);
 	local sTargetName = getCombatTargetName(nodeTarget);
 
 	if sOriginNorm:find("critical matrix ", 1, true) == 1 then
 		local sSeverity, sOutcome = sOriginNorm:match("critical matrix ([abcde])/([%a]+)");
 		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
 		local sOutcomeLabel = getCriticalOutcomeLabel(sOutcome);
-		return string.format("%s %s | XP: %s | %s", sOutcomeLabel, sSeverityLabel, sXPText, sTargetName);
+		return string.format("%s %s | %s | %s XP | %s", sOutcomeLabel, sSeverityLabel, sFoeIsText, sXPText, sActorName);
 	end
 
 	if sOriginNorm:find("critical self ", 1, true) == 1 then
 		local sSeverity = sOriginNorm:match("critical self ([abcde])");
 		local sSeverityLabel = string.upper(tostring(sSeverity or "?"));
-		return string.format("Self %s | XP: %s | %s", sSeverityLabel, sXPText, sTargetName);
+		return string.format("Self %s | %s | %s XP | %s", sSeverityLabel, sFoeIsText, sXPText, sActorName);
 	end
 
 	if sField == "hitsgiven" then
-		return string.format("Hits Given: %s XP | %s", sXPText, sTargetName);
+		return string.format("Hits Given: %s XP | %s | %s -> %s", sXPText, sFoeIsText, sActorName, sTargetName);
 	end
 
 	if sField == "hitstaken" then
-		local sReceiverName = getCombatActorName(nodePC);
-		return string.format("Hits Taken: %s XP | %s", sXPText, sReceiverName);
+		local sSource = sSourceName;
+		if normalizeText(sSource) == "" then
+			sSource = "Unknown";
+		end
+		return string.format("Hits Taken: %s XP | %s | %s -> %s", sXPText, sFoeIsText, sSource, sActorName);
 	end
 
 	if sField == "foekill" then
@@ -2172,6 +2188,14 @@ function getCombatCriticalEquationXP(nodePC)
 	return math.floor(nCritBase * nMultiplier);
 end
 
+function getCombatFoeIsText(nodePC)
+	local nFoeIs = tonumber(DB.getValue(nodePC, "combatxpdesc", 1)) or 1;
+	if nFoeIs < 1 then
+		nFoeIs = 1;
+	end
+	return string.format("Foe is = %d", nFoeIs);
+end
+
 function getCriticalOutcomeLabel(sOutcome)
 	sOutcome = normalizeText(tostring(sOutcome or ""));
 	local aOutcomeLabel = {
@@ -2198,6 +2222,38 @@ function getCombatActorName(nodePC)
 	end
 
 	return sActorName;
+end
+
+function getCombatSourceNameFromActor(rSource, nodeSourcePC)
+	if nodeSourcePC then
+		local sPCName = getCombatActorName(nodeSourcePC);
+		if normalizeText(sPCName) ~= "" and normalizeText(sPCName) ~= "unknown" then
+			return sPCName;
+		end
+	end
+
+	if rSource then
+		local nodeSource = ActorManager.getCreatureNode(rSource);
+		if nodeSource then
+			local sSourceName = DB.getValue(nodeSource, "name", "");
+			if normalizeText(sSourceName) ~= "" then
+				return sSourceName;
+			end
+
+			local _, sRecord = DB.getValue(nodeSource, "link", "", "");
+			if sRecord ~= "" then
+				local nodeLinked = DB.findNode(sRecord);
+				if nodeLinked then
+					sSourceName = DB.getValue(nodeLinked, "name", "");
+					if normalizeText(sSourceName) ~= "" then
+						return sSourceName;
+					end
+				end
+			end
+		end
+	end
+
+	return "Unknown";
 end
 
 function getCombatFieldLabel(sField)
