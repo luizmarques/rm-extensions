@@ -431,6 +431,9 @@ function onAddWoundEffectsWithXP(nodeTarget, woundEffects, description, ...)
 	end
 
 	local nodeAttackerPC = getPCNodeFromCT(nodeAttackerCT);
+	if not nodeAttackerPC then
+		nodeAttackerPC = getPCNodeFromNode(nodeAttackerCT);
+	end
 	local nodeTargetPC = getPCNodeFromCT(nodeTarget);
 	if not nodeTargetPC then
 		nodeTargetPC = getPCNodeFromNode(nodeTarget);
